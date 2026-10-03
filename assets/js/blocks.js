@@ -4,6 +4,16 @@
 
 const btn = (label, href) => ({ label, href });
 
+// Turns a YouTube/Vimeo page link into a privacy-friendly embed URL.
+export function parseVideo(url) {
+  const u = String(url || '').trim();
+  let m = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i);
+  if (m) return { embed: `https://www.youtube-nocookie.com/embed/${m[1]}?autoplay=1&rel=0`, thumb: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg` };
+  m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (m) return { embed: `https://player.vimeo.com/video/${m[1]}?autoplay=1`, thumb: '' };
+  return null;
+}
+
 const SECTION_HEADER_FIELDS = [
   { key: 'eyebrow', label: 'Eyebrow', type: 'text' },
   { key: 'heading', label: 'Heading', type: 'text' },
@@ -78,13 +88,13 @@ export const BLOCKS = {
     }),
     fields: [
       { key: 'heading', label: 'Label', type: 'text' },
-      { key: 'items', label: 'Items', type: 'list', itemLabel: 'name', item: () => ({ name: 'New platform' }),
-        itemFields: [{ key: 'name', label: 'Name', type: 'text' }] },
+      { key: 'items', label: 'Items', type: 'list', itemLabel: 'name', item: () => ({ name: 'New platform', image: '' }),
+        itemFields: [{ key: 'name', label: 'Name', type: 'text' }, { key: 'image', label: 'Logo image (optional)', type: 'image', help: 'Shown instead of the name. Transparent PNG or SVG works best.' }] },
     ],
     render(d, h) {
       return `<div class="wrap logos">
         ${h.t('p', 'heading', 'logos__label', { ph: 'Label' })}
-        <ul class="logos__list">${h.list('items').map((_, i) => `<li>${h.t('span', `items.${i}.name`, '', { ph: 'Name' })}</li>`).join('')}</ul>
+        <ul class="logos__list">${h.list('items').map((it, i) => `<li>${it.image ? h.img(`items.${i}.image`, 'logos__img', it.name) : h.t('span', `items.${i}.name`, '', { ph: 'Name' })}</li>`).join('')}</ul>
       </div>`;
     },
   },
@@ -167,6 +177,114 @@ export const BLOCKS = {
         </div>
         <div class="split__media">${media}</div>
       </div>`;
+    },
+  },
+
+  gallery: {
+    label: 'Gallery',
+    group: 'Media',
+    icon: 'image',
+    description: 'Photo grid that opens full size',
+    defaults: () => ({
+      bg: 'light', pad: 'normal', columns: '3', ratio: 'landscape',
+      eyebrow: 'Our work', heading: 'Recent projects', intro: '',
+      items: [
+        { image: 'assets/library/network-mesh.svg', caption: 'Office network upgrade' },
+        { image: 'assets/library/server-grid.svg', caption: 'Server room buildout' },
+        { image: 'assets/library/circuit.svg', caption: 'Security system install' },
+      ],
+    }),
+    fields: [
+      ...SECTION_HEADER_FIELDS,
+      { key: 'columns', label: 'Columns', type: 'segmented', options: [['2', '2'], ['3', '3'], ['4', '4']] },
+      { key: 'ratio', label: 'Image shape', type: 'segmented', options: [['square', 'Square'], ['landscape', 'Wide'], ['portrait', 'Tall'], ['natural', 'Original']] },
+      { key: 'items', label: 'Photos', type: 'list', itemLabel: 'caption', item: () => ({ image: '', caption: '' }),
+        itemFields: [{ key: 'image', label: 'Photo', type: 'image' }, { key: 'caption', label: 'Caption', type: 'text' }] },
+    ],
+    render(d, h) {
+      return `<div class="wrap">${sectionHeader(h)}
+        <div class="grid grid--${d.columns || 3} gallery gallery--${d.ratio || 'landscape'}">${h.list('items').map((it, i) => {
+          const img = h.img(`items.${i}.image`, 'gallery__img', it.caption);
+          return `<figure class="gallery__item">${img ? `<a href="${h.esc(h.src(it.image))}" data-lightbox="${i}" aria-label="View ${h.esc(it.caption || 'photo')}">${img}</a>` : `<div class="gallery__empty">${h.icon('image')}</div>`}
+            ${h.t('figcaption', `items.${i}.caption`, '', { ph: 'Caption (optional)' })}</figure>`;
+        }).join('')}</div></div>`;
+    },
+  },
+
+  video: {
+    label: 'Video',
+    group: 'Media',
+    icon: 'play',
+    description: 'YouTube or Vimeo video',
+    defaults: () => ({ bg: 'light', pad: 'normal', width: 'wide', eyebrow: '', heading: 'See how we work', intro: '', url: '', caption: '' }),
+    fields: [
+      { key: 'url', label: 'Video link', type: 'text', help: 'Paste a YouTube or Vimeo link. The video only loads when a visitor presses play.' },
+      ...SECTION_HEADER_FIELDS,
+      { key: 'width', label: 'Width', type: 'segmented', options: [['narrow', 'Narrow'], ['wide', 'Wide']] },
+      { key: 'caption', label: 'Caption', type: 'text' },
+    ],
+    render(d, h) {
+      const v = parseVideo(d.url);
+      const player = v
+        ? `<div class="video" data-embed="${h.esc(v.embed)}">${v.thumb ? `<img class="video__thumb" src="${h.esc(v.thumb)}" alt="" loading="lazy">` : ''}
+            <button class="video__play" type="button" aria-label="Play video">${h.icon('play')}</button></div>`
+        : `<div class="video video--empty">${h.icon('play')}<span>${h.edit ? 'Paste a YouTube or Vimeo link in the panel on the right' : ''}</span></div>`;
+      return `<div class="wrap${d.width === 'narrow' ? ' wrap--narrow' : ''}">${sectionHeader(h)}${player}
+        ${h.t('p', 'caption', 'video__caption', { ph: 'Caption (optional)' })}</div>`;
+    },
+  },
+
+  map: {
+    label: 'Map',
+    group: 'Media',
+    icon: 'map-pin',
+    description: 'Google map of your location',
+    defaults: () => ({ bg: 'alt', pad: 'normal', height: 'medium', eyebrow: 'Find us', heading: 'Where we work', intro: '', address: '' }),
+    fields: [
+      { key: 'address', label: 'Address or place', type: 'text', help: 'A street address, city or business name, e.g. “Springfield, IL”.' },
+      ...SECTION_HEADER_FIELDS,
+      { key: 'height', label: 'Map height', type: 'segmented', options: [['short', 'S'], ['medium', 'M'], ['tall', 'L']] },
+    ],
+    render(d, h) {
+      const addr = String(d.address || '').trim();
+      const map = addr && !h.edit
+        ? `<iframe class="map__frame" src="https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map of ${h.esc(addr)}"></iframe>`
+        : `<div class="map__placeholder">${h.icon('map-pin')}<strong>${h.esc(addr || (h.edit ? 'Add an address in the panel on the right' : ''))}</strong>${addr ? '<small>The live map appears on your published site</small>' : ''}</div>`;
+      return `<div class="wrap">${sectionHeader(h)}<div class="map map--${d.height || 'medium'}">${map}</div></div>`;
+    },
+  },
+
+  team: {
+    label: 'Team',
+    group: 'Social proof',
+    icon: 'users',
+    description: 'People with photo and role',
+    defaults: () => ({
+      bg: 'light', pad: 'normal', columns: '3',
+      eyebrow: 'Our team', heading: 'The people behind the work', intro: '',
+      items: [
+        { image: '', name: 'Your name', role: 'Founder & Lead Technician', bio: 'A short bio about experience and certifications.' },
+      ],
+    }),
+    fields: [
+      ...SECTION_HEADER_FIELDS,
+      { key: 'columns', label: 'Columns', type: 'segmented', options: [['2', '2'], ['3', '3'], ['4', '4']] },
+      { key: 'items', label: 'People', type: 'list', itemLabel: 'name',
+        item: () => ({ image: '', name: 'Name', role: 'Role', bio: '' }),
+        itemFields: [
+          { key: 'image', label: 'Photo', type: 'image' }, { key: 'name', label: 'Name', type: 'text' },
+          { key: 'role', label: 'Role', type: 'text' }, { key: 'bio', label: 'Short bio', type: 'textarea' },
+        ] },
+    ],
+    render(d, h) {
+      const initials = (n) => String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+      return `<div class="wrap">${sectionHeader(h)}
+        <div class="grid grid--${d.columns || 3} team">${h.list('items').map((it, i) => `<article class="person">
+          ${it.image ? h.img(`items.${i}.image`, 'person__img', it.name) : `<span class="person__avatar">${h.esc(initials(it.name))}</span>`}
+          ${h.t('h3', `items.${i}.name`, 'person__name', { ph: 'Name' })}
+          ${h.t('p', `items.${i}.role`, 'person__role', { ph: 'Role' })}
+          ${h.t('p', `items.${i}.bio`, 'person__bio', { ph: 'Short bio', ml: true })}
+        </article>`).join('')}</div></div>`;
     },
   },
 
@@ -444,8 +562,10 @@ export const BLOCKS = {
 
 export const STYLE_FIELDS = [
   { key: 'bg', label: 'Background', type: 'swatches', options: [['light', 'Light'], ['alt', 'Tint'], ['dark', 'Dark'], ['brand', 'Brand']] },
+  { key: 'bgImage', label: 'Background image', type: 'image', help: 'Text turns white over the image for readability.' },
+  { key: 'overlay', label: 'Image darkness', type: 'segmented', options: [['light', 'Light'], ['medium', 'Medium'], ['strong', 'Strong']], when: (d) => !!d.bgImage },
   { key: 'pad', label: 'Spacing', type: 'segmented', options: [['compact', 'S'], ['normal', 'M'], ['spacious', 'L']] },
   { key: 'anchor', label: 'Anchor ID', type: 'text', help: 'Lets buttons link here, e.g. #contact' },
 ];
 
-export const BLOCK_GROUPS = ['Headers', 'Content', 'Social proof', 'Conversion', 'Basic'];
+export const BLOCK_GROUPS = ['Headers', 'Content', 'Media', 'Social proof', 'Conversion', 'Basic'];

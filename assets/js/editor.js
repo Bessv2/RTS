@@ -1,8 +1,9 @@
 // Visual site editor. Edits content/site.json through a live canvas.
 import { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS } from './blocks.js';
-import { renderPage, renderSection, themeCSS, fontsHref, getPath, setPath, esc, pageHref, THEME_PRESETS, FONTS } from './render.js';
-import { icon, ICON_NAMES } from './icons.js';
-import { publishToGitHub } from './publish.js';
+import { renderPage, renderSection, themeCSS, fontsHref, getPath, setPath, esc, pageHref, rich, THEME_PRESETS, FONTS } from './render.js';
+import { icon, ICON_NAMES, SOCIAL } from './icons.js';
+import { publishToGitHub, listPublishedVersions, readPublishedVersion, saveCloudDraft, loadCloudDraft } from './publish.js';
+import { kv, versions } from './store.js';
 
 // Refuse to run inside another site's frame (clickjacking protection;
 // GitHub Pages can't send X-Frame-Options headers).
@@ -13,6 +14,7 @@ if (window.top !== window.self) {
 
 const DRAFT_KEY = 'rts-editor-draft';
 const GH_KEY = 'rts-editor-github';
+const CLIP_KEY = 'rts-editor-clipboard';
 const DEFAULT_REPO = { owner: 'Bessv2', repo: 'RTS', branch: 'main' };
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -23,7 +25,7 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 const state = {
   doc: null, page: 0, sel: null, tab: 'add', device: 'desktop',
   history: [], future: [], snap: '', published: '',
-  open: new Set(), commitTimer: 0,
+  open: new Set(), commitTimer: 0, ghToken: '', clipboard: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -80,12 +82,9 @@ function commitSoon() { clearTimeout(state.commitTimer); state.commitTimer = set
 function flushCommit() { if (state.commitTimer) commit(); }
 
 function saveDraft(s = JSON.stringify(state.doc)) {
-  try {
-    if (s === state.published) localStorage.removeItem(DRAFT_KEY);
-    else localStorage.setItem(DRAFT_KEY, `{"savedAt":${Date.now()},"doc":${s}}`);
-  } catch {
-    toast('Draft is too large to save in this browser — try smaller images, or publish now.', { error: true });
-  }
+  try { localStorage.removeItem(DRAFT_KEY); } catch { /* legacy draft location */ }
+  const p = s === state.published ? kv.del('draft') : kv.set('draft', { savedAt: Date.now(), json: s });
+  return p.catch(() => toast('Could not save your draft in this browser. Publish or download a backup to keep your work.', { error: true }));
 }
 
 function restore(snap) {
@@ -124,7 +123,8 @@ function initCanvas() {
       d.addEventListener('input', onCanvasInput);
       d.addEventListener('keydown', onCanvasKey);
       d.addEventListener('paste', onCanvasPaste);
-      d.addEventListener('focusout', () => flushCommit());
+      d.addEventListener('focusin', onCanvasFocusIn);
+      d.addEventListener('focusout', onCanvasFocusOut);
       d.addEventListener('submit', (e) => e.preventDefault(), true);
       resolve();
     });
@@ -193,6 +193,7 @@ function decorateSelection() {
   tools.innerHTML = [
     ['up', 'chevron-up', 'Move up', i === 0], ['down', 'chevron-down', 'Move down', i === sections().length - 1],
     ['duplicate', 'copy', 'Duplicate'], ['hide', hidden ? 'eye' : 'eye-off', hidden ? 'Show on live site' : 'Hide on live site'],
+    ['copy', 'clipboard2', 'Copy (paste on any page)'], ['save', 'bookmark', 'Save to reuse later'],
     ['settings', 'sliders', 'Edit settings'], ['delete', 'trash', 'Delete'],
   ].map(([t, ic, title, dis]) => `<button type="button" data-tool="${t}" title="${title}"${dis ? ' disabled' : ''}>${icon(ic)}</button>`).join('');
   node.append(tools);
@@ -245,6 +246,22 @@ function onCanvasInput(e) {
   commitSoon();
 }
 
+// Formatted paragraphs show their raw **markdown** while being edited.
+function richTarget(e) {
+  const n = e.target.closest?.('[data-rich]');
+  const id = n?.closest('[data-section-id]')?.dataset.sectionId;
+  return n && id ? { n, raw: String(getPath(targetFor(id), n.dataset.edit) ?? '') } : null;
+}
+function onCanvasFocusIn(e) {
+  const r = richTarget(e);
+  if (r && r.n.textContent !== r.raw) r.n.textContent = r.raw;
+}
+function onCanvasFocusOut(e) {
+  flushCommit();
+  const r = richTarget(e);
+  if (r) r.n.innerHTML = rich(r.raw);
+}
+
 function onCanvasKey(e) {
   const n = e.target.closest?.('[data-edit]');
   if (n) {
@@ -280,7 +297,13 @@ function insertIndex() {
 }
 
 function addSection(type) {
-  const sec = newSection(type, type === 'hero' && state.page > 0 ? { layout: 'center', pad: 'normal' } : {});
+  insertSection(newSection(type, type === 'hero' && state.page > 0 ? { layout: 'center', pad: 'normal' } : {}), `${BLOCKS[type].label} added`);
+}
+
+// Inserts a copy of a section after the selection (or at the end).
+function insertSection(section, message) {
+  const sec = clone(section);
+  sec.id = uid();
   const at = state.sel === '__header' ? 0 : insertIndex();
   sections().splice(at, 0, sec);
   commit();
@@ -289,13 +312,46 @@ function addSection(type) {
   renderInspector();
   renderPanel();
   setTimeout(() => scrollToSection(sec.id, true), 30);
-  toast(`${BLOCKS[type].label} added`);
+  toast(message || `${BLOCKS[sec.type]?.label || 'Section'} added`);
+}
+
+function getClipboard() {
+  if (state.clipboard) return state.clipboard;
+  try { return JSON.parse(localStorage.getItem(CLIP_KEY) || 'null'); } catch { return null; }
+}
+
+function copySection(id) {
+  const sec = findSection(id);
+  if (!sec) return;
+  state.clipboard = clone(sec);
+  try { localStorage.setItem(CLIP_KEY, JSON.stringify(sec)); } catch { /* too large; memory copy still works */ }
+  toast(`${BLOCKS[sec.type].label} copied. Paste it on any page from the Add tab or with Ctrl+V.`);
+  if (state.tab === 'add') renderPanel();
+}
+
+function pasteSection() {
+  const clip = getClipboard();
+  if (clip && BLOCKS[clip.type]) insertSection(clip, `${BLOCKS[clip.type].label} pasted`);
+}
+
+function saveSection(id) {
+  const sec = findSection(id);
+  if (!sec) return;
+  const name = prompt('Name this saved section', sectionSummary(sec) || BLOCKS[sec.type].label);
+  if (name === null) return;
+  state.doc.saved ||= [];
+  state.doc.saved.push({ id: uid('saved'), name: name.trim() || BLOCKS[sec.type].label, section: clone(sec) });
+  commit();
+  if (state.tab === 'add') renderPanel();
+  toast('Saved. Find it at the top of the Add tab.');
 }
 
 function runTool(tool, id) {
   const list = sections();
   const i = list.findIndex((s) => s.id === id);
   if (tool === 'add') { setTab('add'); return; }
+  if (tool === 'copy') { copySection(id); return; }
+  if (tool === 'save') { saveSection(id); return; }
   if (tool === 'settings') { $('#inspector').scrollTop = 0; $('#inspector .in, #inspector textarea')?.focus(); return; }
   if (i === -1) return;
   if (tool === 'up' || tool === 'down') {
@@ -378,8 +434,7 @@ function renderInspector() {
 }
 
 // Builds form controls for a field schema. `onRender` refreshes the canvas.
-function renderFields(container, fields, target, onRender, base = '') {
-  const rebuild = () => renderInspector();
+function renderFields(container, fields, target, onRender, base = '', rebuild = renderInspector) {
   const change = (path, value, { structural = false, soon = false } = {}) => {
     setPath(target, path, value);
     onRender();
@@ -423,7 +478,7 @@ function fieldControl(f, path, val, change, target, onRender) {
     case 'textarea': {
       const ta = el('textarea', { rows: 3, 'data-path': path, oninput: (e) => change(path, e.target.value, { soon: true }) });
       ta.value = val ?? '';
-      put(wrap, label, ta, help);
+      put(wrap, label, ta, help || el('p', { class: 'f__help' }, 'Tip: **bold**, *italic*, [link text](https://…)'));
       return wrap;
     }
     case 'select': {
@@ -483,14 +538,15 @@ function fieldControl(f, path, val, change, target, onRender) {
       const file = el('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async (e) => {
         const f0 = e.target.files[0];
         if (!f0) return;
-        try { change(path, await imageToDataURL(f0), { structural: true }); } catch (err) { toast(err.message, { error: true }); }
+        try { const src = await imageToDataURL(f0); addToMedia(src, f0.name); change(path, src, { structural: true }); } catch (err) { toast(err.message, { error: true }); }
       } });
       const url = el('input', { class: 'in', type: 'text', placeholder: 'or paste an image URL', value: String(val || '').startsWith('data:') ? '' : (val || ''),
         onchange: (e) => change(path, e.target.value.trim(), { structural: true }) });
       put(wrap, el('span', { class: 'f__label' }, f.label), el('div', { class: 'img-field' }, preview,
         el('div', { class: 'img-field__btns' },
           el('button', { type: 'button', class: 'ed-btn ed-btn--sm', onclick: () => file.click() }, ico('upload'), val ? 'Replace' : 'Upload'),
-          val ? el('button', { type: 'button', class: 'ed-btn ed-btn--sm ed-btn--danger', onclick: () => change(path, '', { structural: true }) }, ico('trash'), 'Remove') : null),
+          el('button', { type: 'button', class: 'ed-btn ed-btn--sm', onclick: () => openMediaPicker((src) => change(path, src, { structural: true })) }, ico('image'), 'Library'),
+          val ? el('button', { type: 'button', class: 'ed-btn ed-btn--sm ed-btn--danger', title: 'Remove image', onclick: () => change(path, '', { structural: true }) }, ico('trash')) : null),
         url, file), help);
       return wrap;
     }
@@ -573,6 +629,10 @@ const THUMBS = {
   cta: '<div class="thumb thumb--brand"><div class="t-row" style="align-items:center"><div style="display:grid;gap:4px"><i></i><i style="width:60%"></i></div><i style="height:12px;background:#fff;flex:.5"></i></div></div>',
   contact: '<div class="thumb"><div class="t-row"><div style="display:grid;gap:4px;align-content:center"><i class="t-dark"></i><i></i><i></i></div><div class="t-box" style="height:44px"></div></div></div>',
   text: '<div class="thumb"><i class="t-dark" style="width:50%"></i><i></i><i></i><i style="width:70%"></i></div>',
+  gallery: '<div class="thumb"><div class="t-row"><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div></div><div class="t-row"><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div></div></div>',
+  video: '<div class="thumb thumb--dark" style="place-items:center;display:grid"><span style="width:22px;height:22px;border-radius:50%;background:#3b82f6;display:block"></span></div>',
+  map: '<div class="thumb" style="background:radial-gradient(circle at 1px 1px,#93c5fd 1.2px,transparent 0) 0 0/8px 8px,#eff6ff;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#2563eb;display:block"></span></div>',
+  team: '<div class="thumb"><div class="t-row" style="justify-items:center"><div style="display:grid;gap:3px;justify-items:center"><span style="width:18px;height:18px;border-radius:50%;background:#93c5fd;display:block"></span><i style="width:24px"></i></div><div style="display:grid;gap:3px;justify-items:center"><span style="width:18px;height:18px;border-radius:50%;background:#93c5fd;display:block"></span><i style="width:24px"></i></div><div style="display:grid;gap:3px;justify-items:center"><span style="width:18px;height:18px;border-radius:50%;background:#93c5fd;display:block"></span><i style="width:24px"></i></div></div></div>',
   image: '<div class="thumb"><div class="t-img"></div></div>',
 };
 
@@ -586,7 +646,7 @@ function renderPanel() {
   const box = $('#panel');
   const scroll = box.scrollTop;
   box.replaceChildren();
-  ({ add: panelAdd, layers: panelLayers, pages: panelPages, theme: panelTheme, site: panelSite, help: panelHelp })[state.tab](box);
+  ({ add: panelAdd, layers: panelLayers, pages: panelPages, media: panelMedia, theme: panelTheme, site: panelSite, history: panelHistory, help: panelHelp })[state.tab](box);
   box.scrollTop = scroll;
 }
 
@@ -599,6 +659,21 @@ function panelAdd(box) {
   body.append(el('div', { class: 'p-callout' }, ico('arrow-right'),
     after ? `Adds after “${BLOCKS[after.type].label}”` : 'Adds to the end of the page',
     after ? el('button', { type: 'button', onclick: () => select(null) }, 'Add at end') : null));
+  const clip = getClipboard();
+  if (clip) {
+    body.append(el('button', { type: 'button', class: 'ed-btn ed-btn--block', style: 'margin-bottom:8px', onclick: pasteSection },
+      ico('clipboard2'), `Paste copied ${BLOCKS[clip.type]?.label || 'section'}`));
+  }
+  if (state.doc.saved?.length) {
+    body.append(el('p', { class: 'p-sub' }, 'My saved sections'), el('div', { class: 'saved-list' }, state.doc.saved.map((sv) =>
+      el('div', { class: 'saved-item' },
+        el('button', { type: 'button', class: 'saved-item__main', title: 'Add this section', onclick: () => insertSection(sv.section) },
+          el('span', { class: 'layer__icon' }, ico(BLOCKS[sv.section.type]?.icon || 'layout')),
+          el('span', { class: 'layer__txt' }, el('strong', {}, sv.name), el('small', {}, BLOCKS[sv.section.type]?.label || ''))),
+        el('button', { type: 'button', class: 'ed-icon-btn ed-icon-btn--sm ed-icon-btn--danger', title: 'Remove from saved', onclick: () => {
+          state.doc.saved = state.doc.saved.filter((x) => x.id !== sv.id); commit(); renderPanel();
+        } }, ico('trash'))))));
+  }
   for (const g of BLOCK_GROUPS) {
     const entries = Object.entries(BLOCKS).filter(([, b]) => b.group === g);
     if (!entries.length) continue;
@@ -806,6 +881,11 @@ function panelTheme(box) {
   body.append(el('p', { class: 'p-sub' }, 'Shape'));
   body.append(fieldControl({ type: 'segmented', label: 'Corners', options: [['sharp', 'Sharp'], ['soft', 'Soft'], ['round', 'Round']] }, 'radius', t.radius, (p, v) => set(p, v), t));
   body.append(fieldControl({ type: 'segmented', label: 'Buttons', options: [['rounded', 'Rounded'], ['pill', 'Pill']] }, 'buttons', t.buttons, (p, v) => set(p, v), t));
+  const css = el('textarea', { class: 'code-in', rows: 8, spellcheck: false, placeholder: '.hero__title { letter-spacing: -0.05em; }',
+    oninput: (e) => { t.customCSS = e.target.value; applyTheme(); commitSoon(); } });
+  css.value = t.customCSS || '';
+  body.append(el('details', { class: 'adv', open: !!t.customCSS }, el('summary', {}, ico('code'), 'Custom CSS (advanced)'),
+    el('p', { class: 'f__help' }, 'Added after the theme styles on every page.'), css));
   box.append(body);
 }
 
@@ -823,7 +903,21 @@ function panelSite(box) {
     { key: 'formEndpoint', label: 'Form endpoint (optional)', type: 'text', help: 'Paste your Formspree (or similar) https:// URL to receive form messages by email. Spam protection is built in. Leave empty to open the visitor’s email app instead.' },
   ];
   body.append(el('p', { class: 'p-sub' }, 'Business'));
-  renderFields(body, fields, s, () => renderCanvas());
+  renderFields(body, fields, s, () => renderCanvas(), '', renderPanel);
+  body.append(el('p', { class: 'p-sub' }, 'Announcement bar'));
+  renderFields(body, [
+    { key: 'announcement.enabled', label: 'Show a bar above the header', type: 'toggle' },
+    { key: 'announcement.text', label: 'Message', type: 'text', when: (d) => d.announcement?.enabled },
+    { key: 'announcement.linkText', label: 'Link text (optional)', type: 'text', when: (d) => d.announcement?.enabled },
+    { key: 'announcement.link', label: 'Link', type: 'link', when: (d) => d.announcement?.enabled },
+  ], s, () => renderCanvas(), '', renderPanel);
+  body.append(el('p', { class: 'p-sub' }, 'Social links'), el('p', { class: 'p-hint' }, 'Shown as icons in the footer. Leave empty to hide.'));
+  renderFields(body, SOCIAL.map(([k, l]) => ({ key: `social.${k}`, label: l, type: 'text' })), s, () => renderCanvas(), '', renderPanel);
+  body.append(el('p', { class: 'p-sub' }, 'Branding & sharing'));
+  renderFields(body, [
+    { key: 'favicon', label: 'Browser tab icon', type: 'image', help: 'A square image, at least 64×64.' },
+    { key: 'shareImage', label: 'Share image', type: 'image', help: 'Shown when your site is shared on social media or messages. 1200×630 works best.' },
+  ], s, () => {}, '', renderPanel);
   body.append(el('p', { class: 'p-sub' }, 'Header & footer'),
     el('button', { type: 'button', class: 'ed-btn ed-btn--block', onclick: () => select('__header', { scroll: true }) }, ico('layout'), 'Edit header & footer'));
   body.append(el('p', { class: 'p-sub' }, 'Backup'),
@@ -841,13 +935,18 @@ function panelHelp(box) {
       el('li', {}, el('strong', {}, 'Edit text on the page. '), 'Click any text in the preview and type.'),
       el('li', {}, el('strong', {}, 'Select a section '), 'to change images, buttons, icons, colors and spacing on the right.'),
       el('li', {}, el('strong', {}, 'Add sections '), 'from the Add tab. Reorder them with the arrows or drag in Layers.'),
+      el('li', {}, el('strong', {}, 'Format text '), 'with **bold**, *italic* and [link text](https://…).'),
+      el('li', {}, el('strong', {}, 'Reuse sections: '), 'copy a section and paste it on another page, or save it to reuse later.'),
+      el('li', {}, el('strong', {}, 'Images: '), 'upload once in the Images tab, then pick from the Library anywhere. Any section can have a background image.'),
       el('li', {}, el('strong', {}, 'Change the look '), 'in Design — one click swaps the whole color theme.'),
+      el('li', {}, el('strong', {}, 'History '), 'keeps saved versions, cloud drafts and every published version.'),
       el('li', {}, el('strong', {}, 'Your work saves automatically '), 'as a draft in this browser.'),
       el('li', {}, el('strong', {}, 'Click Publish '), 'to make it live. The site updates about a minute later.')),
     el('p', { class: 'p-sub' }, 'Shortcuts'),
     el('div', { class: 'kbd-list' },
       el('div', {}, 'Undo', el('kbd', {}, 'Ctrl Z')), el('div', {}, 'Redo', el('kbd', {}, 'Ctrl ⇧ Z')),
       el('div', {}, 'Delete selected section', el('kbd', {}, 'Del')), el('div', {}, 'Finish editing text', el('kbd', {}, 'Esc')),
+      el('div', {}, 'Duplicate section', el('kbd', {}, 'Ctrl D')), el('div', {}, 'Copy / paste section', el('span', {}, el('kbd', {}, 'Ctrl C'), ' ', el('kbd', {}, 'Ctrl V'))),
       el('div', {}, 'Save draft', el('kbd', {}, 'Ctrl S')))));
 }
 
@@ -900,6 +999,7 @@ function openPublish() {
   const inp = (k, ph, type = 'text') => el('input', { class: 'in', type, value: gh[k] || '', placeholder: ph, autocomplete: 'off', spellcheck: false });
   const owner = inp('owner', 'GitHub user'); const repo = inp('repo', 'Repository'); const branch = inp('branch', 'main');
   const token = inp('token', 'github_pat_…', 'password');
+  if (!gh.token && state.ghToken) token.value = state.ghToken;
   const remember = el('input', { type: 'checkbox', checked: !!gh.token });
   const msg = el('input', { class: 'in', value: 'Update site content' });
   const log = el('div', { class: 'log', hidden: true });
@@ -908,13 +1008,14 @@ function openPublish() {
   go.addEventListener('click', async () => {
     const cfg = { owner: owner.value.trim(), repo: repo.value.trim(), branch: branch.value.trim() || 'main', token: token.value.trim() };
     if (!cfg.owner || !cfg.repo || !cfg.token) { write('Fill in repository and token first.', 'err'); return; }
-    try { localStorage.setItem(GH_KEY, JSON.stringify(remember.checked ? cfg : { ...cfg, token: '' })); } catch { /* ignore */ }
+    rememberGH(cfg, remember.checked);
     go.disabled = true;
     log.replaceChildren();
     try {
       const r = await publishToGitHub({ ...cfg, message: msg.value.trim() || 'Update site content', doc: state.doc, log: write });
       state.published = JSON.stringify(state.doc);
       saveDraft();
+      addVersion(`Published: ${msg.value.trim() || 'Update site content'}`).catch(() => {});
       updateTopbar();
       write('Done! Your site will update in about a minute.', 'ok');
       if (r.commitUrl) log.append(el('div', {}, el('a', { href: r.commitUrl, target: '_blank', rel: 'noopener', style: 'color:#93c5fd' }, 'View commit on GitHub')));
@@ -952,6 +1053,253 @@ function openPublish() {
   } }, label);
   tabs.append(tab('Publish to GitHub', ghPane, true), tab('Download file', filePane));
   openModal('Publish your site', el('div', {}, tabs, ghPane, filePane));
+}
+
+// ---------------------------------------------------------------------------
+// GitHub connection shared by publish, history and cloud drafts
+function rememberGH(cfg, persist) {
+  state.ghToken = cfg.token;
+  try { localStorage.setItem(GH_KEY, JSON.stringify(persist ? cfg : { ...cfg, token: '' })); } catch { /* ignore */ }
+}
+
+function currentGH() {
+  const gh = loadGH();
+  const token = gh.token || state.ghToken;
+  return token ? { ...gh, token } : null;
+}
+
+function needGH(reason) {
+  const ready = currentGH();
+  if (ready) return Promise.resolve(ready);
+  return new Promise((resolve) => {
+    const gh = loadGH();
+    const inp = (k, ph, type = 'text') => el('input', { class: 'in', type, value: gh[k] || '', placeholder: ph, autocomplete: 'off', spellcheck: false });
+    const owner = inp('owner', 'GitHub user'); const repo = inp('repo', 'Repository'); const branch = inp('branch', 'main');
+    const token = inp('token', 'github_pat_…', 'password');
+    const remember = el('input', { type: 'checkbox' });
+    const go = () => {
+      const cfg = { owner: owner.value.trim(), repo: repo.value.trim(), branch: branch.value.trim() || 'main', token: token.value.trim() };
+      if (!cfg.owner || !cfg.repo || !cfg.token) { toast('Fill in repository and token first.', { error: true }); return; }
+      rememberGH(cfg, remember.checked);
+      closeModal();
+      resolve(cfg);
+    };
+    openModal('Connect to GitHub', el('div', {},
+      el('p', {}, reason),
+      el('div', { class: 'f-row' }, el('div', { class: 'f' }, el('label', {}, 'Owner'), owner), el('div', { class: 'f' }, el('label', {}, 'Repository'), repo)),
+      el('div', { class: 'f-row' }, el('div', { class: 'f' }, el('label', {}, 'Branch'), branch), el('div', { class: 'f' }, el('label', {}, 'Access token'), token)),
+      el('div', { class: 'f' }, el('label', { class: 'switch' }, 'Remember token on this computer', remember)),
+      el('div', { class: 'modal-actions' }, el('button', { type: 'button', class: 'ed-btn', onclick: () => { closeModal(); resolve(null); } }, 'Cancel'),
+        el('button', { type: 'button', class: 'ed-btn ed-btn--primary', onclick: go }, 'Continue'))));
+    setTimeout(() => token.focus(), 50);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Media library
+let libraryCache;
+function loadLibrary() {
+  libraryCache ||= fetch('assets/library/manifest.json').then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  return libraryCache;
+}
+
+function addToMedia(src, name = 'Image') {
+  state.doc.media ||= [];
+  if (!state.doc.media.some((m) => m.src === src)) state.doc.media.unshift({ src, name, addedAt: Date.now() });
+}
+
+const IMAGE_KEYS = new Set(['image', 'bgImage', 'logo', 'favicon', 'shareImage']);
+function siteImages() {
+  const out = new Map((state.doc.media || []).map((m) => [m.src, { ...m, uploaded: true }]));
+  (function walk(node, key) {
+    if (Array.isArray(node)) node.forEach((n) => walk(n, key));
+    else if (node && typeof node === 'object') Object.entries(node).forEach(([k, v]) => walk(v, k));
+    else if (typeof node === 'string' && node && IMAGE_KEYS.has(key) && !out.has(node) && !node.startsWith('assets/library/')) out.set(node, { src: node, name: node.startsWith('data:') ? 'Uploaded image' : node.split('/').pop() });
+  })({ site: state.doc.site, pages: state.doc.pages, saved: state.doc.saved }, '');
+  return [...out.values()];
+}
+
+async function uploadFiles(files) {
+  let last = '';
+  for (const f of files) {
+    try { last = await imageToDataURL(f); addToMedia(last, f.name); } catch (err) { toast(`${f.name}: ${err.message}`, { error: true }); }
+  }
+  if (last) { commit(); toast(files.length > 1 ? `${files.length} images added to your library` : 'Image added to your library'); }
+  return last;
+}
+
+function pickFiles(multiple = true) {
+  return new Promise((resolve) => {
+    const input = el('input', { type: 'file', accept: 'image/*', multiple });
+    input.addEventListener('change', () => resolve([...input.files]));
+    input.click();
+  });
+}
+
+function mediaTile(img, { onPick, onRemove } = {}) {
+  return el('div', { class: 'media-tile' },
+    el('button', { type: 'button', class: 'media-tile__img', title: onPick ? `Use ${img.name}` : img.name, style: `background-image:url("${String(img.src).replace(/["\\]/g, encodeURIComponent)}")`, onclick: () => onPick?.(img.src) }),
+    el('span', { class: 'media-tile__name' }, img.name),
+    onRemove ? el('button', { type: 'button', class: 'media-tile__rm', title: 'Remove from library', onclick: onRemove }, ico('x')) : null);
+}
+
+async function mediaGrids(container, { onPick } = {}) {
+  const mine = siteImages();
+  container.replaceChildren(
+    el('p', { class: 'p-sub' }, `Your images (${mine.length})`),
+    mine.length ? el('div', { class: 'media-grid' }, mine.map((img) => mediaTile(img, { onPick,
+      onRemove: img.uploaded && !onPick ? () => { state.doc.media = state.doc.media.filter((m) => m.src !== img.src); commit(); renderPanel(); } : null })))
+      : el('p', { class: 'p-hint' }, 'Upload photos of your work, team or logo to reuse them anywhere.'),
+    el('p', { class: 'p-sub' }, 'Built-in images'),
+    el('div', { class: 'media-grid' }, (await loadLibrary()).map((img) => mediaTile(img, { onPick }))));
+}
+
+function panelMedia(box) {
+  box.append(panelHead('Images', 'image', el('button', { type: 'button', class: 'ed-btn ed-btn--sm', onclick: async () => { await uploadFiles(await pickFiles()); renderPanel(); } }, ico('upload'), 'Upload')));
+  const body = el('div', { class: 'p-body' }, el('p', { class: 'p-hint' }, 'To place an image, select a section and press Library on any image setting. Uploads are resized automatically and saved to your site when you publish.'));
+  const grids = el('div');
+  body.append(grids);
+  box.append(body);
+  mediaGrids(grids);
+}
+
+function openMediaPicker(onPick) {
+  const grids = el('div');
+  const pick = (src) => { closeModal(); onPick(src); };
+  openModal('Choose an image', el('div', { class: 'picker' },
+    el('button', { type: 'button', class: 'ed-btn ed-btn--block', onclick: async () => { const src = await uploadFiles(await pickFiles(false)); if (src) pick(src); } }, ico('upload'), 'Upload a new image'),
+    grids));
+  mediaGrids(grids, { onPick: pick });
+}
+
+// ---------------------------------------------------------------------------
+// History: saved versions (this browser), cloud drafts and published versions
+async function addVersion(name) {
+  await versions.add({ id: uid('v'), name, savedAt: Date.now(), json: JSON.stringify(state.doc) });
+  const all = await versions.list();
+  await Promise.all(all.slice(40).map((v) => versions.del(v.id)));
+}
+
+function restoreDoc(doc, message) {
+  if (!doc?.pages?.length || !doc.site) { toast('That version could not be read.', { error: true }); return; }
+  state.doc = doc;
+  state.doc.theme ||= {};
+  state.page = 0;
+  state.sel = null;
+  commit();
+  refreshAll();
+  toast(message, { action: 'Undo', onAction: undo });
+}
+
+const when = (d) => new Date(d).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+function histRow(title, date, actions) {
+  return el('div', { class: 'hist-row' },
+    el('div', { class: 'hist-row__txt' }, el('strong', {}, title), el('small', {}, when(date))),
+    el('div', { class: 'hist-row__actions' }, actions.map(([label, fn, cls]) => el('button', { type: 'button', class: `ed-btn ed-btn--sm${cls ? ` ${cls}` : ''}`, onclick: fn }, label))));
+}
+
+function panelHistory(box) {
+  box.append(panelHead('History', 'history'));
+  const body = el('div', { class: 'p-body' });
+
+  body.append(el('p', { class: 'p-sub' }, 'Saved versions'), el('p', { class: 'p-hint' }, 'Snapshots kept in this browser. One is saved automatically every time you publish.'),
+    el('button', { type: 'button', class: 'ed-btn ed-btn--block', onclick: async () => {
+      const name = prompt('Name this version', `Version ${when(Date.now())}`);
+      if (name === null) return;
+      try { await addVersion(name.trim() || 'Untitled version'); toast('Version saved'); renderPanel(); } catch { toast('Could not save a version in this browser.', { error: true }); }
+    } }, ico('bookmark'), 'Save current version'));
+  const local = el('div', { class: 'hist' }, el('p', { class: 'p-hint' }, 'Loading…'));
+  body.append(local);
+  versions.list().then((vs) => local.replaceChildren(...(vs.length ? vs.map((v) => histRow(v.name, v.savedAt, [
+    ['Restore', () => confirm(`Restore “${v.name}”? Your current work can be brought back with Undo.`) && restoreDoc(JSON.parse(v.json), `Restored “${v.name}”`)],
+    ['Delete', async () => { await versions.del(v.id); renderPanel(); }, 'ed-btn--danger'],
+  ])) : [el('p', { class: 'p-hint' }, 'No saved versions yet.')]))).catch(() => local.replaceChildren(el('p', { class: 'p-hint' }, 'Saved versions are not available in this browser.')));
+
+  body.append(el('p', { class: 'p-sub' }, 'Cloud draft'), el('p', { class: 'p-hint' }, 'Save your unpublished work to GitHub and pick it up on another computer. Drafts live on a separate branch and never change the live site.'),
+    el('div', { class: 'f-row' },
+      el('button', { type: 'button', class: 'ed-btn', onclick: async (e) => {
+        const cfg = await needGH('Cloud drafts are stored in your GitHub repository.');
+        if (!cfg) return;
+        const b = e.currentTarget; b.disabled = true;
+        try { flushCommit(); await saveCloudDraft(cfg, state.doc); toast('Draft saved to the cloud'); } catch (err) { toast(err.message, { error: true }); } finally { b.disabled = false; }
+      } }, ico('upload'), 'Save'),
+      el('button', { type: 'button', class: 'ed-btn', onclick: async (e) => {
+        const cfg = await needGH('Cloud drafts are stored in your GitHub repository.');
+        if (!cfg) return;
+        const b = e.currentTarget; b.disabled = true;
+        try {
+          const d = await loadCloudDraft(cfg);
+          if (!d) toast('No cloud draft saved yet.');
+          else if (confirm(`Load the cloud draft saved ${when(d.savedAt)}? Your current work can be brought back with Undo.`)) restoreDoc(d.doc, 'Cloud draft loaded');
+        } catch (err) { toast(err.message, { error: true }); } finally { b.disabled = false; }
+      } }, ico('download'), 'Load')));
+
+  body.append(el('p', { class: 'p-sub' }, 'Published versions'));
+  const pub = el('div', { class: 'hist' });
+  const loadPublished = async (cfg) => {
+    pub.replaceChildren(el('p', { class: 'p-hint' }, 'Loading…'));
+    try {
+      const list = await listPublishedVersions(cfg);
+      pub.replaceChildren(...(list.length ? list.map((c) => histRow(c.message, c.date, [['Open', async () => {
+        if (!confirm('Load this published version into the editor? Nothing changes on the live site until you publish.')) return;
+        try { restoreDoc(await readPublishedVersion(cfg, c.sha), 'Published version loaded — publish to make it live again'); } catch (err) { toast(err.message, { error: true }); }
+      }]])) : [el('p', { class: 'p-hint' }, 'No published versions found.')]));
+    } catch (err) { pub.replaceChildren(el('p', { class: 'p-hint' }, err.message)); }
+  };
+  const cfg = currentGH();
+  if (cfg) loadPublished(cfg);
+  else pub.append(el('button', { type: 'button', class: 'ed-btn ed-btn--block', onclick: async () => { const c = await needGH('Published versions are read from your GitHub repository.'); if (c) loadPublished(c); } }, ico('github'), 'Show published versions'));
+  body.append(pub);
+  box.append(body);
+}
+
+// ---------------------------------------------------------------------------
+// Find & replace across all pages and site settings
+const NON_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'logo', 'logoIcon', 'panelIcon', 'favicon', 'shareImage', 'href', 'link', 'src', 'bg', 'pad',
+  'layout', 'side', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'overlay', 'anchor', 'headerStyle', 'formEndpoint', 'slug', 'url']);
+
+function eachText(fn) {
+  (function walk(node, key) {
+    if (Array.isArray(node)) node.forEach((n, i) => { if (typeof n === 'string') node[i] = fn(n) ?? n; else walk(n, key); });
+    else if (node && typeof node === 'object') {
+      for (const [k, v] of Object.entries(node)) {
+        if (typeof v === 'string') { if (!NON_TEXT.has(k) && !v.startsWith('data:')) node[k] = fn(v) ?? v; } else walk(v, k);
+      }
+    }
+  })({ site: state.doc.site, pages: state.doc.pages }, '');
+}
+
+function openFindReplace() {
+  const find = el('input', { class: 'in', placeholder: 'Find…' });
+  const repl = el('input', { class: 'in', placeholder: 'Replace with…' });
+  const matchCase = el('input', { type: 'checkbox' });
+  const info = el('p', { class: 'p-hint', style: 'margin:0' }, 'Type something to search all pages.');
+  const go = el('button', { type: 'button', class: 'ed-btn ed-btn--primary', disabled: true }, ico('replace'), 'Replace all');
+  const rx = () => find.value && new RegExp(find.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), matchCase.checked ? 'g' : 'gi');
+  const count = () => {
+    const r = rx();
+    let n = 0;
+    if (r) eachText((v) => { n += (v.match(r) || []).length; });
+    info.textContent = !find.value ? 'Type something to search all pages.' : `${n} match${n === 1 ? '' : 'es'} found`;
+    go.disabled = !n;
+  };
+  find.addEventListener('input', count);
+  matchCase.addEventListener('change', count);
+  go.addEventListener('click', () => {
+    const r = rx();
+    if (!r) return;
+    let n = 0;
+    eachText((v) => v.replace(r, () => { n += 1; return repl.value; }));
+    commit(); refreshAll(); count();
+    toast(`Replaced ${n} match${n === 1 ? '' : 'es'}`, { action: 'Undo', onAction: undo });
+  });
+  openModal('Find & replace', el('div', {},
+    el('div', { class: 'f' }, el('label', {}, 'Find'), find),
+    el('div', { class: 'f' }, el('label', {}, 'Replace with'), repl),
+    el('div', { class: 'f' }, el('label', { class: 'switch' }, 'Match case', matchCase)),
+    info,
+    el('div', { class: 'modal-actions' }, el('button', { type: 'button', class: 'ed-btn', onclick: closeModal }, 'Close'), go)));
+  setTimeout(() => find.focus(), 50);
 }
 
 // ---------------------------------------------------------------------------
@@ -1004,6 +1352,9 @@ function onGlobalKey(e) {
   if (inField) return;
   if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
   else if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+  else if (mod && e.key.toLowerCase() === 'd' && state.sel && !isChrome(state.sel)) { e.preventDefault(); runTool('duplicate', state.sel); }
+  else if (mod && e.key.toLowerCase() === 'c' && state.sel && !isChrome(state.sel) && !String(e.target.ownerDocument?.getSelection?.() || '')) { e.preventDefault(); copySection(state.sel); }
+  else if (mod && e.key.toLowerCase() === 'v' && getClipboard()) { e.preventDefault(); pasteSection(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && state.sel && !isChrome(state.sel)) { e.preventDefault(); runTool('delete', state.sel); }
   else if (e.key === 'Escape') { if (!$('#modal').hidden) closeModal(); else select(null); }
 }
@@ -1015,10 +1366,15 @@ async function boot() {
   let published = null;
   try { published = await fetchPublished(); } catch (e) { toast(e.message, { error: true }); }
   let draft = null;
-  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { /* ignore */ }
-  state.doc = draft?.doc || published;
+  try {
+    const saved = await kv.get('draft');
+    if (saved?.json) draft = { doc: JSON.parse(saved.json) };
+  } catch { /* IndexedDB unavailable */ }
+  if (!draft) { try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { /* ignore */ } }
+  const normalize = (d) => { if (d) { d.theme ||= {}; d.media ||= []; d.saved ||= []; } return d; };
+  normalize(published);
+  state.doc = normalize(draft?.doc) || published;
   if (!state.doc) return;
-  state.doc.theme ||= {};
   state.published = published ? JSON.stringify(published) : '';
   state.snap = JSON.stringify(state.doc);
 
@@ -1032,7 +1388,8 @@ async function boot() {
   $('#redo').addEventListener('click', redo);
   $('#page-select').addEventListener('change', (e) => goToPage(+e.target.value));
   $('#publish').addEventListener('click', openPublish);
-  $('#preview').addEventListener('click', () => { flushCommit(); saveDraft(); window.open(`./?preview=1${pageHref(page(), state.page)}`, '_blank'); });
+  $('#preview').addEventListener('click', async () => { flushCommit(); await saveDraft(); window.open(`./?preview=1${pageHref(page(), state.page)}`, '_blank'); });
+  $('#find').addEventListener('click', openFindReplace);
   document.addEventListener('keydown', onGlobalKey);
   addEventListener('beforeunload', () => flushCommit());
 }

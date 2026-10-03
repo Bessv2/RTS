@@ -1,6 +1,6 @@
 // Shared renderer used by the public site (index.html) and the editor canvas.
 import { BLOCKS } from './blocks.js';
-import { icon } from './icons.js';
+import { icon, SOCIAL } from './icons.js';
 
 export const FONTS = {
   'Inter': 'Inter:wght@400;500;600;700;800',
@@ -28,6 +28,24 @@ export function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// Lightweight formatting for paragraphs: **bold**, *italic*, [link](url).
+// Text is escaped first, so only these three patterns ever become HTML.
+export function rich(v) {
+  return esc(v)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*(?![\s*])([^*\n]+?)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, text, href) => {
+      const url = safeHref(href.replace(/&amp;/g, '&'));
+      const ext = /^https?:/i.test(url) ? ' target="_blank" rel="noopener"' : '';
+      return `<a href="${esc(url)}"${ext}>${text}</a>`;
+    });
+}
+
+export function cssUrl(src) {
+  const v = safeSrc(src);
+  return v ? `url("${v.replace(/["\\\s()]/g, (c) => encodeURIComponent(c))}")` : '';
+}
+
 export function getPath(obj, path) {
   return String(path).split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
@@ -48,7 +66,7 @@ export function safeHref(href) {
   return v;
 }
 
-function safeSrc(src) {
+export function safeSrc(src) {
   const v = String(src || '').trim();
   if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);/i.test(v)) return v;
   if (/^[a-z][\w+.-]*:/i.test(v) && !/^https?:/i.test(v)) return '';
@@ -64,7 +82,8 @@ export function themeCSS(theme) {
   const t = { ...THEME_PRESETS.midnight, ...theme };
   return `:root{--c-primary:${t.primary};--c-accent:${t.accent};--c-dark:${t.dark};--c-bg:${t.bg};--c-surface:${t.surface};--c-text:${t.text};`
     + `--font-head:'${t.headingFont || 'Inter'}',system-ui,sans-serif;--font-body:'${t.bodyFont || 'Inter'}',system-ui,sans-serif;`
-    + `--radius:${RADII[t.radius] || RADII.soft};--btn-radius:${t.buttons === 'pill' ? '999px' : `var(--radius)`};}`;
+    + `--radius:${RADII[t.radius] || RADII.soft};--btn-radius:${t.buttons === 'pill' ? '999px' : `var(--radius)`};}`
+    + (t.customCSS ? `\n/* custom */\n${String(t.customCSS).replace(/<\/?style/gi, '')}` : '');
 }
 
 export function pageHref(page, index) {
@@ -78,11 +97,13 @@ function helpers(data, ctx, sectionPath = '') {
     : '';
   const h = {
     edit, esc, icon, site: ctx.site.site,
+    src: (v) => safeSrc(v),
     list: (path) => (Array.isArray(getPath(data, path)) ? getPath(data, path) : []),
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
-      return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}>${esc(v)}</${tag}>`;
+      const body = opts.ml ? rich(v) : esc(v);
+      return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && opts.ml ? ' data-rich' : ''}>${body}</${tag}>`;
     },
     img(path, cls, alt = '') {
       const src = safeSrc(getPath(data, path));
@@ -107,8 +128,10 @@ export function renderSection(section, ctx) {
   if (section.hidden && !ctx.edit) return '';
   const d = section.data || {};
   const anchor = String(d.anchor || '').replace(/[^\w-]/g, '');
-  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${section.hidden ? ' is-hidden' : ''}`;
-  const attrs = ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '';
+  const bgImg = cssUrl(d.bgImage);
+  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${section.hidden ? ' is-hidden' : ''}`;
+  const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
+    + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
   return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, helpers(d, ctx))}</section>`;
 }
 
@@ -119,7 +142,11 @@ export function renderHeader(doc, pageIndex, ctx) {
   const logo = s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`;
   const cta = s.headerCta && (s.headerCta.label || '').trim()
     ? `<a class="btn btn--primary btn--sm header__cta" href="${esc(safeHref(s.headerCta.href))}"><span${ctx.edit ? ' data-edit="headerCta.label" data-ph="Button"' : ''}>${esc(s.headerCta.label)}</span></a>` : '';
-  return `<header class="site-header site-header--${s.headerStyle || 'light'}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
+  const ann = s.announcement || {};
+  const bar = ann.enabled && (ann.text || ctx.edit)
+    ? `<div class="announce"${ctx.edit ? ' data-section-id="__header" data-label="Announcement bar"' : ''}><div class="wrap announce__inner">${icon('megaphone')}${h.t('span', 'announcement.text', '', { ph: 'Announcement text' })}${ann.link && ann.linkText ? `<a href="${esc(safeHref(ann.link))}">${esc(ann.linkText)} →</a>` : ''}</div></div>`
+    : '';
+  return `${bar}<header class="site-header site-header--${s.headerStyle || 'light'}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
     <div class="wrap site-header__inner">
       <a class="brand" href="#/">${logo}${h.t('span', 'name', 'brand__name', { ph: 'Business name' })}</a>
       <nav class="nav" aria-label="Main"><ul class="nav__list">${navPages.map(({ p, i }) =>
@@ -137,6 +164,7 @@ export function renderFooter(doc, ctx) {
       <div class="site-footer__brand">
         <a class="brand" href="#/">${s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`}<span class="brand__name">${esc(s.name)}</span></a>
         ${h.t('p', 'tagline', 'site-footer__tagline', { ph: 'Short tagline', ml: true })}
+        ${socialLinks(s)}
       </div>
       <div><h4>Pages</h4><ul>${doc.pages.map((p, i) => (p.showInNav !== false ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
       <div><h4>Contact</h4><ul>
@@ -147,6 +175,12 @@ export function renderFooter(doc, ctx) {
     </div>
     <div class="wrap site-footer__bottom"><span>© ${year} ${esc(s.name)}</span>${h.t('span', 'footerText', '', { ph: 'Footer note' })}</div>
   </footer>`;
+}
+
+function socialLinks(s) {
+  const links = SOCIAL.filter(([k]) => /^https?:\/\//i.test(String(s.social?.[k] || '').trim()));
+  return links.length ? `<ul class="social">${links.map(([k, label]) =>
+    `<li><a href="${esc(s.social[k].trim())}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${icon(k)}</a></li>`).join('')}</ul>` : '';
 }
 
 export function renderPage(doc, pageIndex, ctx = {}) {

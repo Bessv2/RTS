@@ -11,16 +11,38 @@ The site has a built-in visual editor, so you can change it without touching cod
 2. Click any text on the page and type. Click a section to change its images, buttons, icons,
    background and spacing in the panel on the right.
 3. Use the left rail to:
-   - **Add** new sections (hero, services grid, image + text, stats, checklist, steps,
-     testimonials, pricing, FAQ, call to action, contact, text, image)
+   - **Add** new sections: hero, services grid, image + text, gallery, video, map, team, stats,
+     checklist, steps, testimonials, pricing, FAQ, call to action, contact, text and image.
+     Your saved sections and anything you've copied show up at the top.
    - **Layers**: reorder (drag), hide or delete sections
    - **Pages**: add, rename, reorder or remove pages and set search-engine titles
-   - **Design**: switch color themes, colors, fonts and corner style
-   - **Settings**: business name, email, phone, location and contact form, plus backups
+   - **Images**: upload photos once and reuse them anywhere, plus built-in tech-style images
+   - **Design**: color themes, colors, fonts, corner style and custom CSS
+   - **Settings**: business details, contact form, announcement bar, social links, browser-tab
+     icon, share image and backups
+   - **History**: saved versions, cloud drafts and every published version
 4. Your work is saved automatically as a draft in your browser. Use **Preview** to see the
    real site with your draft.
-5. Click **Publish**. This commits the changes to this repository and GitHub Pages updates the
-   live site about a minute later.
+5. Handy extras:
+   - Format paragraph text with `**bold**`, `*italic*` and `[link text](https://…)`.
+   - Any section can have a **background image**. White text and a darkening overlay keep it readable.
+   - Use the section toolbar to **copy** a section to another page or **save** it for later.
+   - **Find & replace** (magnifying glass in the top bar) changes wording across every page.
+   - Shortcuts: Ctrl+Z / Ctrl+Shift+Z undo/redo, Ctrl+D duplicate, Ctrl+C / Ctrl+V copy and paste
+     sections, Delete removes the selected section.
+6. Click **Publish**. This commits the changes to this repository and GitHub Pages updates the
+   live site about a minute later. Publishing also uploads new images to `assets/uploads/` and
+   updates the page title, description, share image and tab icon in `index.html` so Google and
+   social media previews show them.
+
+### Where your work is stored
+
+| What | Where |
+| --- | --- |
+| Working draft and saved versions | Your browser (IndexedDB), on the computer you are using |
+| Cloud draft | The `editor-drafts` branch of this repository (never affects the live site) |
+| Published site | `content/site.json` and `assets/uploads/` on `main` |
+| Built-in images | `assets/library/` (add your own SVG/PNG files and list them in `manifest.json`) |
 
 ### One-time publishing setup
 
@@ -83,7 +105,9 @@ No build step, no framework, just static files GitHub Pages can serve:
 | `editor.html` + `assets/js/editor.js` | The visual editor |
 | `assets/js/blocks.js` | Section library: defaults, editor fields and HTML for each section type |
 | `assets/js/render.js` | Shared renderer used by both the site and the editor canvas |
-| `assets/js/publish.js` | Publishes to GitHub in a single commit (images go to `assets/uploads/`) |
+| `assets/js/publish.js` | GitHub integration: publish in one commit, version history, cloud drafts |
+| `assets/js/store.js` | Browser storage (IndexedDB) for drafts and saved versions |
+| `assets/library/` | Built-in images offered in the editor's image library |
 | `assets/css/site.css` | Site styles, driven by theme CSS variables |
 | `assets/css/editor.css`, `editor-canvas.css` | Editor UI and in-canvas selection styles |
 

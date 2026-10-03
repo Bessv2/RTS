@@ -1,20 +1,26 @@
 // Public site bootstrap: loads content/site.json and renders the current page.
-import { renderPage, themeCSS, fontsHref, findPageIndex } from './render.js';
+import { renderPage, themeCSS, fontsHref, findPageIndex, safeSrc, esc } from './render.js';
+import { icon } from './icons.js';
+import { kv } from './store.js';
 
-const DRAFT_KEY = 'rts-editor-draft';
 let doc = null;
 let currentIndex = -1;
 
 async function loadDoc() {
   if (new URLSearchParams(location.search).has('preview')) {
     try {
-      const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-      if (draft?.doc) return draft.doc;
+      const draft = await kv.get('draft');
+      if (draft?.json) return JSON.parse(draft.json);
     } catch { /* fall through to published content */ }
   }
   const res = await fetch(`content/site.json?v=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Could not load site content (${res.status})`);
   return res.json();
+}
+
+function applyFavicon() {
+  const src = safeSrc(doc.site.favicon);
+  if (src) document.querySelector('link[rel="icon"]')?.setAttribute('href', src);
 }
 
 function applyTheme() {
@@ -59,7 +65,47 @@ function bind(root) {
     form.dataset.startedAt = String(Date.now());
     form.addEventListener('submit', onSubmit);
   });
+  root.querySelectorAll('.video[data-embed]').forEach((v) => v.addEventListener('click', () => playVideo(v), { once: true }));
+  root.querySelectorAll('.gallery').forEach((g) => g.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-lightbox]');
+    if (!a) return;
+    e.preventDefault();
+    openLightbox([...g.querySelectorAll('a[data-lightbox]')], Number(a.dataset.lightbox));
+  }));
   reveal(root);
+}
+
+function playVideo(v) {
+  const src = v.dataset.embed;
+  if (!/^https:\/\/(www\.youtube-nocookie\.com|player\.vimeo\.com)\//.test(src)) return;
+  v.innerHTML = `<iframe src="${esc(src)}" title="Video" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe>`;
+}
+
+function openLightbox(links, start) {
+  let i = start;
+  const box = document.createElement('div');
+  box.className = 'lightbox';
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  const show = () => {
+    const a = links[i];
+    const caption = a.closest('figure')?.querySelector('figcaption')?.textContent || '';
+    box.innerHTML = `<img src="${esc(a.getAttribute('href'))}" alt="${esc(caption)}">${caption ? `<p>${esc(caption)}</p>` : ''}
+      <button class="lightbox__close" type="button" aria-label="Close">${icon('x')}</button>
+      ${links.length > 1 ? `<button class="lightbox__prev" type="button" aria-label="Previous">${icon('chevron-right')}</button><button class="lightbox__next" type="button" aria-label="Next">${icon('chevron-right')}</button>` : ''}`;
+  };
+  const go = (d) => { i = (i + d + links.length) % links.length; show(); };
+  const close = () => { box.remove(); removeEventListener('keydown', onKey); links[i]?.focus(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); else if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1); };
+  box.addEventListener('click', (e) => {
+    if (e.target.closest('.lightbox__next')) go(1);
+    else if (e.target.closest('.lightbox__prev')) go(-1);
+    else if (e.target.closest('.lightbox__close') || e.target === box) close();
+  });
+  addEventListener('keydown', onKey);
+  show();
+  document.body.append(box);
+  box.querySelector('.lightbox__close').focus();
 }
 
 function reveal(root) {
@@ -145,6 +191,7 @@ async function onSubmit(e) {
 try {
   doc = await loadDoc();
   applyTheme();
+  applyFavicon();
   render(true);
   addEventListener('hashchange', () => render());
 } catch (err) {

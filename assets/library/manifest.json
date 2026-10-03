@@ -1,0 +1,42 @@
+[
+  {
+    "src": "assets/library/network-mesh.svg",
+    "name": "Network mesh",
+    "tags": "dark network"
+  },
+  {
+    "src": "assets/library/circuit.svg",
+    "name": "Circuit board",
+    "tags": "dark tech"
+  },
+  {
+    "src": "assets/library/server-grid.svg",
+    "name": "Server racks",
+    "tags": "dark server"
+  },
+  {
+    "src": "assets/library/waves.svg",
+    "name": "Blue waves",
+    "tags": "dark abstract"
+  },
+  {
+    "src": "assets/library/topography.svg",
+    "name": "Topography lines",
+    "tags": "dark abstract"
+  },
+  {
+    "src": "assets/library/dots-light.svg",
+    "name": "Light dot grid",
+    "tags": "light abstract"
+  },
+  {
+    "src": "assets/library/gradient-blue.svg",
+    "name": "Blue gradient",
+    "tags": "brand abstract"
+  },
+  {
+    "src": "assets/library/hex-shield.svg",
+    "name": "Security shield",
+    "tags": "dark security"
+  }
+]
