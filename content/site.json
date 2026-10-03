@@ -5,7 +5,7 @@
     "tagline": "Consulting and technology services for small to medium businesses and residential clients.",
     "description": "Roe Technology Services provides IT consulting, networking, security, device deployment and support for small to medium businesses and homes.",
     "logo": "",
-    "logoIcon": "cpu",
+    "logoIcon": "shield-check",
     "email": "info@roetechnologyservices.com",
     "phone": "",
     "location": "Serving local businesses and homes",
@@ -15,7 +15,7 @@
       "href": "#/contact"
     },
     "footerText": "Reliable IT, done right.",
-    "formEndpoint": ""
+    "formEndpoint": "https://formspree.io/f/myezrgov"
   },
   "theme": {
     "preset": "midnight",
