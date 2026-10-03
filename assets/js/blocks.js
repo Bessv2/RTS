@@ -288,6 +288,34 @@ export const BLOCKS = {
     },
   },
 
+  blogfeed: {
+    label: 'Blog feed',
+    group: 'Content',
+    icon: 'pen',
+    description: 'Your latest posts and blurbs',
+    defaults: () => ({ bg: 'light', pad: 'normal', eyebrow: 'Blog', heading: 'Latest from the blog', intro: '', show: 'all', limit: '3', layout: 'grid', showTags: false }),
+    fields: [
+      { type: 'note', text: 'Write posts and blurbs in the Blog tab on the left. They appear here automatically, newest first.' },
+      ...SECTION_HEADER_FIELDS,
+      { key: 'show', label: 'Show', type: 'segmented', options: [['all', 'Everything'], ['post', 'Posts'], ['blurb', 'Blurbs']] },
+      { key: 'limit', label: 'How many', type: 'segmented', options: [['3', '3'], ['6', '6'], ['9', '9'], ['all', 'All']], help: 'Use “All” on your main Blog page.' },
+      { key: 'layout', label: 'Layout', type: 'segmented', options: [['grid', 'Grid'], ['list', 'List']] },
+      { key: 'showTags', label: 'Let visitors filter by tag', type: 'toggle' },
+    ],
+    render(d, h) {
+      const all = h.blog.publishedPosts(h.doc, d.show || 'all');
+      const items = d.limit === 'all' ? all : all.slice(0, Number(d.limit) || 3);
+      const tags = [...new Set(items.flatMap((p) => h.blog.postTags(p)))].sort((a, b) => a.localeCompare(b));
+      const filter = d.showTags && tags.length > 1
+        ? `<div class="tag-filter" role="group" aria-label="Filter by tag"><button type="button" class="is-on" data-tag="">All</button>${tags.map((t) => `<button type="button" data-tag="${h.esc(t.toLowerCase())}">${h.esc(t)}</button>`).join('')}</div>`
+        : '';
+      const body = items.length
+        ? `<div class="blogfeed blogfeed--${d.layout === 'list' ? 'list' : 'grid'}">${items.map((p) => h.blog.renderPostCard(p, h.doc)).join('')}</div>`
+        : `<div class="blogfeed__empty">${h.icon('pen')}<span>${h.edit ? 'No posts yet. Write your first one in the Blog tab.' : 'New posts are coming soon.'}</span></div>`;
+      return `<div class="wrap">${sectionHeader(h)}${filter}${body}</div>`;
+    },
+  },
+
   stats: {
     label: 'Stats',
     group: 'Content',

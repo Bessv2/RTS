@@ -1,6 +1,6 @@
 // Visual site editor. Edits content/site.json through a live canvas.
 import { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS } from './blocks.js';
-import { renderPage, renderSection, themeCSS, fontsHref, getPath, setPath, esc, pageHref, rich, THEME_PRESETS, FONTS } from './render.js';
+import { renderPage, renderSection, renderPostPage, postTitle, formatDate, themeCSS, fontsHref, getPath, setPath, esc, pageHref, rich, THEME_PRESETS, FONTS } from './render.js';
 import { icon, ICON_NAMES, SOCIAL } from './icons.js';
 import { publishToGitHub, listPublishedVersions, readPublishedVersion, saveCloudDraft, loadCloudDraft } from './publish.js';
 import { kv, versions } from './store.js';
@@ -25,7 +25,7 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 const state = {
   doc: null, page: 0, sel: null, tab: 'add', device: 'desktop',
   history: [], future: [], snap: '', published: '',
-  open: new Set(), commitTimer: 0, ghToken: '', clipboard: null,
+  open: new Set(), commitTimer: 0, ghToken: '', clipboard: null, post: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -144,7 +144,8 @@ function renderCanvas({ keepScroll = true } = {}) {
   if (!d?.getElementById('app')) return;
   const y = d.defaultView.scrollY;
   const app = d.getElementById('app');
-  app.innerHTML = renderPage(state.doc, state.page, { edit: true });
+  const post = state.post && findPost(state.post);
+  app.innerHTML = post ? renderPostPage(state.doc, post, { preview: true }) : renderPage(state.doc, state.page, { edit: true });
   makeEditable(app);
   decorateSelection();
   d.defaultView.scrollTo(0, keepScroll ? y : 0);
@@ -396,6 +397,16 @@ function renderInspector() {
   const box = $('#inspector');
   const scroll = box.scrollTop;
   box.replaceChildren();
+  if (state.post) {
+    box.append(el('div', { class: 'p-head' }, el('h2', {}, ico('pen'), 'Writing tips')), el('div', { class: 'p-body' },
+      el('p', { class: 'p-hint' }, 'The preview updates as you type. Use the toolbar above the text box, or type these yourself:'),
+      el('div', { class: 'md-cheats' }, [
+        ['**bold**', 'bold'], ['*italic*', 'italic'], ['[text](https://…)', 'link'], ['## Heading', 'section heading'],
+        ['- item', 'bullet list'], ['1. item', 'numbered list'], ['> quote', 'quote'], ['![caption](image)', 'image'], ['---', 'divider line'],
+      ].map(([code, what]) => el('div', {}, el('code', {}, code), el('span', {}, what)))),
+      el('p', { class: 'p-hint', style: 'margin-top:14px' }, 'Leave a blank line between paragraphs. Press Publish when you are ready for it to go live.')));
+    return;
+  }
   if (!state.sel) {
     box.append(el('div', { class: 'empty' },
       el('span', { class: 'empty__icon' }, ico('sparkle')),
@@ -473,6 +484,39 @@ function fieldControl(f, path, val, change, target, onRender) {
       const input = el('input', { class: 'in', type: 'text', value: val ?? '', 'data-path': path, list: f.type === 'link' ? linkSuggestions() : null,
         oninput: (e) => change(path, e.target.value, { soon: true }) });
       put(wrap, label, input, help);
+      return wrap;
+    }
+    case 'date': {
+      const input = el('input', { class: 'in', type: 'date', value: val || '', onchange: (e) => change(path, e.target.value) });
+      put(wrap, label, input, help);
+      return wrap;
+    }
+    case 'markdown': {
+      const ta = el('textarea', { class: 'md-in', rows: f.rows || 14, 'data-path': path, placeholder: f.placeholder || 'Start writing…', oninput: (e) => change(path, e.target.value, { soon: true }) });
+      ta.value = val ?? '';
+      const fire = () => { ta.focus(); ta.dispatchEvent(new Event('input')); };
+      const wrapSel = (before, after, ph) => {
+        const [a, b] = [ta.selectionStart, ta.selectionEnd];
+        const sel = ta.value.slice(a, b) || ph;
+        ta.setRangeText(before + sel + after, a, b, 'end');
+        if (a === b) ta.setSelectionRange(a + before.length, a + before.length + sel.length);
+        fire();
+      };
+      const prefix = (pre) => {
+        const start = ta.value.lastIndexOf('\n', ta.selectionStart - 1) + 1;
+        ta.setRangeText(pre, start, start, 'end');
+        fire();
+      };
+      const tools = [
+        [el('b', {}, 'B'), 'Bold', () => wrapSel('**', '**', 'bold text')],
+        [el('i', {}, 'I'), 'Italic', () => wrapSel('*', '*', 'italic text')],
+        [ico('link'), 'Link', () => { const url = prompt('Link address', 'https://'); if (url) wrapSel('[', `](${url.trim()})`, 'link text'); }],
+        [el('b', {}, 'H'), 'Heading', () => prefix('## ')],
+        [ico('list'), 'Bullet list', () => prefix('- ')],
+        [ico('quote'), 'Quote', () => prefix('> ')],
+        [ico('image'), 'Image', () => openMediaPicker((src) => { const nl = ta.value.indexOf('\n', ta.selectionEnd); const at = nl === -1 ? ta.value.length : nl; ta.setRangeText(`\n![](${mediaRef(src)})\n`, at, at, 'end'); fire(); })],
+      ];
+      put(wrap, label, el('div', { class: 'md-tools' }, tools.map(([content, title, fn]) => el('button', { type: 'button', title, onclick: fn }, content))), ta, help);
       return wrap;
     }
     case 'textarea': {
@@ -629,6 +673,7 @@ const THUMBS = {
   cta: '<div class="thumb thumb--brand"><div class="t-row" style="align-items:center"><div style="display:grid;gap:4px"><i></i><i style="width:60%"></i></div><i style="height:12px;background:#fff;flex:.5"></i></div></div>',
   contact: '<div class="thumb"><div class="t-row"><div style="display:grid;gap:4px;align-content:center"><i class="t-dark"></i><i></i><i></i></div><div class="t-box" style="height:44px"></div></div></div>',
   text: '<div class="thumb"><i class="t-dark" style="width:50%"></i><i></i><i></i><i style="width:70%"></i></div>',
+  blogfeed: '<div class="thumb"><div class="t-row"><div style="display:grid;gap:3px"><div class="t-img" style="height:18px"></div><i></i><i style="width:60%"></i></div><div style="display:grid;gap:3px"><div class="t-img" style="height:18px"></div><i></i><i style="width:60%"></i></div><div style="display:grid;gap:3px"><div class="t-img" style="height:18px"></div><i></i><i style="width:60%"></i></div></div></div>',
   gallery: '<div class="thumb"><div class="t-row"><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div></div><div class="t-row"><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div><div class="t-img" style="height:20px"></div></div></div>',
   video: '<div class="thumb thumb--dark" style="place-items:center;display:grid"><span style="width:22px;height:22px;border-radius:50%;background:#3b82f6;display:block"></span></div>',
   map: '<div class="thumb" style="background:radial-gradient(circle at 1px 1px,#93c5fd 1.2px,transparent 0) 0 0/8px 8px,#eff6ff;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#2563eb;display:block"></span></div>',
@@ -637,6 +682,7 @@ const THUMBS = {
 };
 
 function setTab(tab) {
+  if (tab !== 'blog' && state.post) { flushCommit(); state.post = null; renderCanvas({ keepScroll: false }); renderInspector(); }
   state.tab = tab;
   $$('.ed-rail button').forEach((b) => b.classList.toggle('is-on', b.dataset.tab === tab));
   renderPanel();
@@ -646,7 +692,7 @@ function renderPanel() {
   const box = $('#panel');
   const scroll = box.scrollTop;
   box.replaceChildren();
-  ({ add: panelAdd, layers: panelLayers, pages: panelPages, media: panelMedia, theme: panelTheme, site: panelSite, history: panelHistory, help: panelHelp })[state.tab](box);
+  ({ add: panelAdd, layers: panelLayers, pages: panelPages, media: panelMedia, blog: panelBlog, theme: panelTheme, site: panelSite, history: panelHistory, help: panelHelp })[state.tab](box);
   box.scrollTop = scroll;
 }
 
@@ -739,6 +785,7 @@ function slugify(s) { return String(s).toLowerCase().trim().replace(/['’]/g, '
 
 function goToPage(i) {
   flushCommit();
+  state.post = null;
   state.page = i;
   state.sel = null;
   renderCanvas({ keepScroll: false });
@@ -1096,6 +1143,122 @@ function needGH(reason) {
 }
 
 // ---------------------------------------------------------------------------
+// Blog: posts (full articles with their own page) and blurbs (short notes)
+const findPost = (id) => (state.doc.posts || []).find((p) => p.id === id);
+const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const byDate = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
+
+function uniquePostSlug(base, id) {
+  const root = base || 'post';
+  let slug = root;
+  let n = 2;
+  while (state.doc.posts.some((p) => p.slug === slug && p.id !== id)) slug = `${root}-${n++}`;
+  return slug;
+}
+
+function newPost(kind) {
+  const p = { id: uid('post'), kind, title: kind === 'post' ? 'Untitled post' : '', slug: '', date: localToday(), published: true, tags: '', image: '', summary: '', body: '', link: '' };
+  p.slug = uniquePostSlug(kind === 'post' ? 'untitled-post' : `note-${p.date}`, p.id);
+  state.doc.posts.unshift(p);
+  commit();
+  openPost(p.id);
+}
+
+function openPost(id) {
+  flushCommit();
+  state.post = id;
+  state.sel = null;
+  if (state.tab !== 'blog') { state.tab = 'blog'; $$('.ed-rail button').forEach((b) => b.classList.toggle('is-on', b.dataset.tab === 'blog')); }
+  renderCanvas({ keepScroll: false });
+  renderInspector();
+  renderPanel();
+}
+
+function closePost() {
+  flushCommit();
+  state.post = null;
+  renderCanvas({ keepScroll: false });
+  renderInspector();
+  renderPanel();
+}
+
+function deletePost(id) {
+  const p = findPost(id);
+  if (!p || !confirm(`Delete “${postTitle(p) || 'this entry'}”? You can undo this.`)) return;
+  state.doc.posts = state.doc.posts.filter((x) => x.id !== id);
+  commit();
+  closePost();
+  toast('Deleted', { action: 'Undo', onAction: undo });
+}
+
+function panelBlog(box) {
+  const current = state.post && findPost(state.post);
+  if (current) { panelPostEditor(box, current); return; }
+  box.append(panelHead('Blog', 'pen'));
+  const body = el('div', { class: 'p-body' },
+    el('div', { class: 'f-row' },
+      el('button', { type: 'button', class: 'ed-btn ed-btn--primary', onclick: () => newPost('post') }, ico('pen'), 'New post'),
+      el('button', { type: 'button', class: 'ed-btn', onclick: () => newPost('blurb') }, ico('sparkle'), 'New blurb')),
+    el('p', { class: 'p-hint', style: 'margin-top:10px' }, 'Posts are full articles with their own page. Blurbs are short notes, tips or links you like.'));
+  if (!state.doc.pages.some((pg) => pg.sections.some((sec) => sec.type === 'blogfeed'))) {
+    body.append(el('div', { class: 'p-callout' }, ico('arrow-right'), 'Add a “Blog feed” section to a page to show your posts.'));
+  }
+  const posts = [...state.doc.posts].sort(byDate);
+  body.append(el('p', { class: 'p-sub' }, `All entries (${posts.length})`));
+  body.append(posts.length
+    ? el('div', { class: 'post-list' }, posts.map((p) => el('button', { type: 'button', class: 'post-row', onclick: () => openPost(p.id) },
+      el('span', { class: 'layer__icon' }, ico((p.kind || 'post') === 'blurb' ? 'sparkle' : 'pen')),
+      el('span', { class: 'layer__txt' }, el('strong', {}, postTitle(p) || 'Untitled'), el('small', {}, `${formatDate(p.date)} · ${(p.kind || 'post') === 'blurb' ? 'Blurb' : 'Post'}`)),
+      p.published === false ? el('span', { class: 'badge' }, 'Draft') : null)))
+    : el('p', { class: 'p-hint' }, 'Nothing here yet. Write your first post!'));
+  box.append(body);
+}
+
+function panelPostEditor(box, p) {
+  const blurb = (p.kind || 'post') === 'blurb';
+  box.append(el('div', { class: 'p-head' },
+    el('button', { type: 'button', class: 'ed-icon-btn', title: 'Back to all entries', onclick: closePost }, el('span', { class: 'flip' }, ico('arrow-right'))),
+    el('h2', {}, blurb ? 'Edit blurb' : 'Edit post'),
+    el('button', { type: 'button', class: 'ed-icon-btn ed-icon-btn--danger', title: 'Delete', onclick: () => deletePost(p.id) }, ico('trash'))));
+  const body = el('div', { class: 'p-body' });
+  const preview = () => renderCanvas();
+  const autoSlug = () => {
+    if (!blurb && !p.slugLocked) {
+      p.slug = uniquePostSlug(slugify(postTitle(p)) || 'post', p.id);
+      const input = $('#panel [data-path="slug"]');
+      if (input && document.activeElement !== input) input.value = p.slug;
+    }
+    preview();
+  };
+  renderFields(body, [
+    { key: 'kind', label: 'Type', type: 'segmented', options: [['post', 'Post'], ['blurb', 'Blurb']] },
+    { key: 'published', label: 'Show on website', type: 'toggle', help: 'Turn off to keep this as a private draft.' },
+  ], p, preview, '', renderPanel);
+  renderFields(body, [{ key: 'title', label: blurb ? 'Title (optional)' : 'Title', type: 'text' }], p, autoSlug, '', renderPanel);
+  renderFields(body, [
+    { key: 'date', label: 'Date', type: 'date' },
+    { key: 'tags', label: 'Tags', type: 'text', help: 'Separate with commas, e.g. Security, Tips' },
+    ...(blurb ? [
+      { key: 'body', label: 'Blurb', type: 'markdown', rows: 6, placeholder: 'A quick thought, tip or something you liked…' },
+      { key: 'link', label: 'Source link (optional)', type: 'text', help: 'Shown as “via example.com”.' },
+    ] : [
+      { key: 'image', label: 'Cover image', type: 'image' },
+      { key: 'summary', label: 'Summary', type: 'textarea', help: 'One or two sentences shown on the blog card and in search results.' },
+      { key: 'body', label: 'Article', type: 'markdown', rows: 18 },
+      { key: 'link', label: 'Source link (optional)', type: 'text', help: 'Credit an article you are writing about.' },
+    ]),
+  ], p, preview, '', renderPanel);
+  if (!blurb) {
+    renderFields(body, [{ key: 'slug', label: 'Web address', type: 'text', help: 'The end of this post’s link (yoursite.com/#/post/…). Changing it breaks links people already shared.' }], p, () => {
+      p.slug = uniquePostSlug(slugify(p.slug) || 'post', p.id);
+      p.slugLocked = true;
+      preview();
+    }, '', renderPanel);
+  }
+  box.append(body);
+}
+
+// ---------------------------------------------------------------------------
 // Media library
 let libraryCache;
 function loadLibrary() {
@@ -1105,7 +1268,16 @@ function loadLibrary() {
 
 function addToMedia(src, name = 'Image') {
   state.doc.media ||= [];
-  if (!state.doc.media.some((m) => m.src === src)) state.doc.media.unshift({ src, name, addedAt: Date.now() });
+  if (!state.doc.media.some((m) => m.src === src)) state.doc.media.unshift({ id: uid('img'), src, name, addedAt: Date.now() });
+}
+
+// Short reference for post text, so uploaded images don't paste huge data into it.
+function mediaRef(src) {
+  if (!String(src).startsWith('data:')) return src;
+  const m = (state.doc.media || []).find((x) => x.src === src);
+  if (!m) return src;
+  m.id ||= uid('img');
+  return `media:${m.id}`;
 }
 
 const IMAGE_KEYS = new Set(['image', 'bgImage', 'logo', 'favicon', 'shareImage']);
@@ -1115,7 +1287,7 @@ function siteImages() {
     if (Array.isArray(node)) node.forEach((n) => walk(n, key));
     else if (node && typeof node === 'object') Object.entries(node).forEach(([k, v]) => walk(v, k));
     else if (typeof node === 'string' && node && IMAGE_KEYS.has(key) && !out.has(node) && !node.startsWith('assets/library/')) out.set(node, { src: node, name: node.startsWith('data:') ? 'Uploaded image' : node.split('/').pop() });
-  })({ site: state.doc.site, pages: state.doc.pages, saved: state.doc.saved }, '');
+  })({ site: state.doc.site, pages: state.doc.pages, saved: state.doc.saved, posts: state.doc.posts }, '');
   return [...out.values()];
 }
 
@@ -1148,7 +1320,11 @@ async function mediaGrids(container, { onPick } = {}) {
   container.replaceChildren(
     el('p', { class: 'p-sub' }, `Your images (${mine.length})`),
     mine.length ? el('div', { class: 'media-grid' }, mine.map((img) => mediaTile(img, { onPick,
-      onRemove: img.uploaded && !onPick ? () => { state.doc.media = state.doc.media.filter((m) => m.src !== img.src); commit(); renderPanel(); } : null })))
+      onRemove: img.uploaded && !onPick ? () => {
+        const ref = img.id && JSON.stringify(state.doc.posts || []).includes(`media:${img.id}`);
+        if (ref) { toast('This image is used inside a blog post. Remove it from the post first.', { error: true }); return; }
+        state.doc.media = state.doc.media.filter((m) => m.src !== img.src); commit(); renderPanel();
+      } : null })))
       : el('p', { class: 'p-hint' }, 'Upload photos of your work, team or logo to reuse them anywhere.'),
     el('p', { class: 'p-sub' }, 'Built-in images'),
     el('div', { class: 'media-grid' }, (await loadLibrary()).map((img) => mediaTile(img, { onPick }))));
@@ -1256,7 +1432,7 @@ function panelHistory(box) {
 // ---------------------------------------------------------------------------
 // Find & replace across all pages and site settings
 const NON_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'logo', 'logoIcon', 'panelIcon', 'favicon', 'shareImage', 'href', 'link', 'src', 'bg', 'pad',
-  'layout', 'side', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'overlay', 'anchor', 'headerStyle', 'formEndpoint', 'slug', 'url']);
+  'layout', 'side', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'overlay', 'anchor', 'headerStyle', 'formEndpoint', 'slug', 'url', 'kind', 'date', 'show', 'limit']);
 
 function eachText(fn) {
   (function walk(node, key) {
@@ -1266,7 +1442,7 @@ function eachText(fn) {
         if (typeof v === 'string') { if (!NON_TEXT.has(k) && !v.startsWith('data:')) node[k] = fn(v) ?? v; } else walk(v, k);
       }
     }
-  })({ site: state.doc.site, pages: state.doc.pages }, '');
+  })({ site: state.doc.site, pages: state.doc.pages, posts: state.doc.posts }, '');
 }
 
 function openFindReplace() {
@@ -1338,6 +1514,7 @@ function setDevice(d) {
 }
 
 function refreshAll() {
+  if (state.post && !findPost(state.post)) state.post = null;
   applyTheme();
   renderCanvas();
   renderPanel();
@@ -1371,7 +1548,7 @@ async function boot() {
     if (saved?.json) draft = { doc: JSON.parse(saved.json) };
   } catch { /* IndexedDB unavailable */ }
   if (!draft) { try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { /* ignore */ } }
-  const normalize = (d) => { if (d) { d.theme ||= {}; d.media ||= []; d.saved ||= []; } return d; };
+  const normalize = (d) => { if (d) { d.theme ||= {}; d.media ||= []; d.saved ||= []; d.posts ||= []; } return d; };
   normalize(published);
   state.doc = normalize(draft?.doc) || published;
   if (!state.doc) return;
@@ -1388,7 +1565,8 @@ async function boot() {
   $('#redo').addEventListener('click', redo);
   $('#page-select').addEventListener('change', (e) => goToPage(+e.target.value));
   $('#publish').addEventListener('click', openPublish);
-  $('#preview').addEventListener('click', async () => { flushCommit(); await saveDraft(); window.open(`./?preview=1${pageHref(page(), state.page)}`, '_blank'); });
+  $('#preview').addEventListener('click', async () => { flushCommit(); await saveDraft(); const post = state.post && findPost(state.post);
+    window.open(`./?preview=1${post ? `#/post/${post.slug}` : pageHref(page(), state.page)}`, '_blank'); });
   $('#find').addEventListener('click', openFindReplace);
   document.addEventListener('keydown', onGlobalKey);
   addEventListener('beforeunload', () => flushCommit());

@@ -278,3 +278,17 @@ kbd { font: 600 11px ui-monospace, monospace; padding: 2px 6px; border-radius: 5
 .code-in { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--e-line-2); background: #0f172a; color: #e2e8f0; font: 12.5px/1.5 ui-monospace, monospace; resize: vertical; outline: none; }
 .code-in:focus { border-color: var(--e-accent); box-shadow: 0 0 0 3px var(--e-accent-soft); }
 .img-field__btns .ed-btn--danger { flex: none; width: 34px; padding: 0; }
+
+/* Blog */
+.post-list { display: grid; gap: 4px; }
+.post-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 6px; border-radius: 8px; border: 1px solid transparent; background: var(--e-soft); text-align: left; width: 100%; }
+.post-row:hover { border-color: var(--e-accent); }
+.flip { display: inline-flex; transform: rotate(180deg); }
+.md-tools { display: flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 8px 8px 0 0; border: 1px solid var(--e-line-2); border-bottom: 0; background: var(--e-soft); margin-bottom: -6px; }
+.md-tools button { display: grid; place-items: center; min-width: 30px; height: 28px; padding: 0 6px; border: 0; border-radius: 6px; background: none; color: #374151; font-size: 14px; }
+.md-tools button:hover { background: var(--e-panel); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.f textarea.md-in { border-radius: 0 0 8px 8px; font: 13.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 120px; }
+.md-cheats { display: grid; gap: 6px; font-size: 12.5px; }
+.md-cheats div { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.md-cheats code { font: 12px ui-monospace, monospace; padding: 2px 6px; border-radius: 5px; background: var(--e-bg); border: 1px solid var(--e-line); color: #111827; }
+.md-cheats span { color: var(--e-muted); }

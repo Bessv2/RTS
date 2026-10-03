@@ -48,23 +48,66 @@ export function createApi({ owner, repo, token }) {
   };
 }
 
-// Replace every data:image URL in the document with a repo path; collect the files.
+// Replace every data:image URL in the document (whole values, or images
+// embedded in post text) with a repo path; collect the files to upload.
 async function extractImages(doc) {
   const files = new Map();
+  async function toPath(dataUrl) {
+    const m = dataUrl.match(/^data:(image\/[\w+.-]+)(;base64)?,(.*)$/s);
+    if (!m || !EXT[m[1]]) return null;
+    const path = `assets/uploads/${await hashOf(dataUrl)}.${EXT[m[1]]}`;
+    if (!files.has(path)) files.set(path, m[2] ? m[3] : utf8ToBase64(decodeURIComponent(m[3])));
+    return path;
+  }
   async function walk(node) {
     if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) node[i] = await walk(node[i]); return node; }
     if (node && typeof node === 'object') { for (const k of Object.keys(node)) node[k] = await walk(node[k]); return node; }
-    if (typeof node === 'string' && node.startsWith('data:image/')) {
-      const m = node.match(/^data:(image\/[\w+.-]+)(;base64)?,(.*)$/s);
-      if (!m || !EXT[m[1]]) return node;
-      const path = `assets/uploads/${await hashOf(node)}.${EXT[m[1]]}`;
-      if (!files.has(path)) files.set(path, m[2] ? m[3] : utf8ToBase64(decodeURIComponent(m[3])));
-      return path;
+    if (typeof node !== 'string' || !node.includes('data:image/')) return node;
+    if (node.startsWith('data:image/')) return (await toPath(node)) ?? node;
+    let out = node;
+    for (const m of new Set(node.match(/data:image\/[\w+.-]+;base64,[A-Za-z0-9+/=]+/g) || [])) {
+      const path = await toPath(m);
+      if (path) out = out.split(m).join(path);
     }
-    return node;
+    return out;
   }
   const out = await walk(structuredClone(doc));
   return { out, files };
+}
+
+const xml = (v) => String(v ?? '').replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+
+// RSS feed of published posts and blurbs, so people can subscribe.
+export function rssFeed(doc, origin) {
+  const s = doc.site || {};
+  const root = `${origin.replace(/\/$/, '')}/`;
+  const posts = (doc.posts || []).filter((p) => p.published !== false)
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 30);
+  const text = (t) => String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`]+/g, '').replace(/\s+/g, ' ').trim();
+  const items = posts.map((p) => {
+    const blurb = (p.kind || 'post') === 'blurb';
+    const t = text(p.body);
+    const title = p.title || (t.length > 80 ? `${t.slice(0, 80).replace(/\s+\S*$/, '')}…` : t) || 'Note';
+    const link = blurb && /^https?:\/\//i.test(p.link || '') ? p.link : `${root}#/post/${p.slug}`;
+    const date = new Date(`${String(p.date || '').slice(0, 10)}T12:00:00Z`);
+    return `    <item>
+      <title>${xml(title)}</title>
+      <link>${xml(link)}</link>
+      <guid isPermaLink="false">${xml(p.id)}</guid>
+      ${Number.isNaN(date.getTime()) ? '' : `<pubDate>${date.toUTCString()}</pubDate>`}
+      <description>${xml(p.summary || text(p.body).slice(0, 400))}</description>
+    </item>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>${xml(s.name)}</title>
+    <link>${xml(root)}</link>
+    <description>${xml(s.description || s.tagline || '')}</description>
+${items}
+  </channel>
+</rss>
+`;
 }
 
 const DEFAULT_FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M10 9h7a5 5 0 0 1 0 10h-1l5 5M10 9v15' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
@@ -113,6 +156,10 @@ export async function publishToGitHub({ owner, repo, branch, token, message, doc
   log('Uploading content/site.json…');
   const json = await api('/git/blobs', { method: 'POST', body: { content: utf8ToBase64(`${JSON.stringify(out, null, 2)}\n`), encoding: 'base64' } });
   tree.push({ path: 'content/site.json', mode: '100644', type: 'blob', sha: json.sha });
+
+  log('Updating RSS feed…');
+  const feed = await api('/git/blobs', { method: 'POST', body: { content: utf8ToBase64(rssFeed(out, origin)), encoding: 'base64' } });
+  tree.push({ path: 'feed.xml', mode: '100644', type: 'blob', sha: feed.sha });
 
   const html = await api(`/contents/index.html?ref=${encodeURIComponent(branch)}`, { raw: true, allow404: true });
   if (html && html.includes('<!-- seo:start') && html.includes('<!-- seo:end -->')) {

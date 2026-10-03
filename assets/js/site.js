@@ -1,10 +1,11 @@
 // Public site bootstrap: loads content/site.json and renders the current page.
-import { renderPage, themeCSS, fontsHref, findPageIndex, safeSrc, esc } from './render.js';
+import { renderPage, renderPostPage, postTitle, themeCSS, fontsHref, findPageIndex, safeSrc, esc } from './render.js';
 import { icon } from './icons.js';
 import { kv } from './store.js';
 
 let doc = null;
 let currentIndex = -1;
+let currentKey = '';
 
 async function loadDoc() {
   if (new URLSearchParams(location.search).has('preview')) {
@@ -40,14 +41,27 @@ function setMeta(page) {
 function render(force = false) {
   const hash = location.hash;
   const isRoute = !hash || hash.startsWith('#/');
-  if (!isRoute && currentIndex !== -1 && !force) return; // plain #anchor on current page
-  let index = isRoute ? findPageIndex(doc, hash) : 0;
-  if (index < 0) index = 0;
-  const changed = index !== currentIndex;
-  currentIndex = index;
+  if (!isRoute && currentKey && !force) return; // plain #anchor on current page
   const app = document.getElementById('app');
-  app.innerHTML = renderPage(doc, index);
-  setMeta(doc.pages[index]);
+  const postSlug = (hash.match(/^#\/post\/([\w-]+)/) || [])[1];
+  const post = postSlug && (doc.posts || []).find((p) => p.slug === postSlug && p.published !== false);
+  let key;
+  if (post) {
+    key = `post:${post.id}`;
+    currentIndex = -2;
+    app.innerHTML = renderPostPage(doc, post);
+    document.title = `${postTitle(post)} | ${doc.site.name}`;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', post.summary || doc.site.description || '');
+  } else {
+    let index = isRoute ? findPageIndex(doc, hash) : 0;
+    if (index < 0) index = 0;
+    key = `page:${index}`;
+    currentIndex = index;
+    app.innerHTML = renderPage(doc, index);
+    setMeta(doc.pages[index]);
+  }
+  const changed = key !== currentKey;
+  currentKey = key;
   bind(app);
   if (!isRoute) document.getElementById(hash.slice(1))?.scrollIntoView();
   else if (changed) window.scrollTo({ top: 0, behavior: 'instant' });
@@ -65,6 +79,15 @@ function bind(root) {
     form.dataset.startedAt = String(Date.now());
     form.addEventListener('submit', onSubmit);
   });
+  root.querySelectorAll('.tag-filter').forEach((bar) => bar.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-tag]');
+    if (!b) return;
+    bar.querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
+    const tag = b.dataset.tag;
+    bar.parentElement.querySelectorAll('.blogfeed [data-tags]').forEach((card) => {
+      card.classList.toggle('is-filtered', !!tag && !card.dataset.tags.split('|').includes(tag));
+    });
+  }));
   root.querySelectorAll('.video[data-embed]').forEach((v) => v.addEventListener('click', () => playVideo(v), { once: true }));
   root.querySelectorAll('.gallery').forEach((g) => g.addEventListener('click', (e) => {
     const a = e.target.closest('a[data-lightbox]');

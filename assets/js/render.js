@@ -96,7 +96,8 @@ function helpers(data, ctx, sectionPath = '') {
     ? ` data-edit="${esc(sectionPath + path)}" data-ph="${esc(opts.ph || 'Type here…')}"${opts.ml ? ' data-ml' : ''}`
     : '';
   const h = {
-    edit, esc, icon, site: ctx.site.site,
+    edit, esc, icon, site: ctx.site.site, doc: ctx.site,
+    blog: { publishedPosts, renderPostCard, postTags },
     src: (v) => safeSrc(v),
     list: (path) => (Array.isArray(getPath(data, path)) ? getPath(data, path) : []),
     t(tag, path, cls = '', opts = {}) {
@@ -196,4 +197,128 @@ export function findPageIndex(doc, hash) {
   if (!slug) return 0;
   const i = doc.pages.findIndex((p) => p.slug === slug);
   return i;
+}
+
+// ---------------------------------------------------------------------------
+// Blog
+// Block-level markdown for post bodies: ## headings, lists, > quotes,
+// ![images](src), --- rules and blank-line paragraphs. Inline formatting
+// goes through rich(), which escapes everything first.
+export function markdown(src, resolve = (v) => v) {
+  const lines = String(src || '').replace(/\r/g, '').split('\n');
+  let html = '';
+  let para = [];
+  let list = null;
+  const inline = (t) => rich(t).replace(/\n/g, '<br>');
+  const flushP = () => { if (para.length) { html += `<p>${inline(para.join('\n'))}</p>`; para = []; } };
+  const flushL = () => { if (list) { html += `<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join('')}</${list.tag}>`; list = null; } };
+  const block = () => { flushP(); flushL(); };
+  for (const line of lines) {
+    let m;
+    if (!line.trim()) { block(); continue; }
+    if ((m = line.match(/^(#{2,4})\s+(.*)/))) { block(); html += `<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`; continue; }
+    if ((m = line.match(/^\s*[-*]\s+(.*)/)) || (m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
+      const tag = /^\s*\d/.test(line) ? 'ol' : 'ul';
+      flushP();
+      if (list?.tag !== tag) { flushL(); list = { tag, items: [] }; }
+      list.items.push(m[1]);
+      continue;
+    }
+    if ((m = line.match(/^>\s?(.*)/))) { block(); html += `<blockquote><p>${inline(m[1])}</p></blockquote>`; continue; }
+    if ((m = line.match(/^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/))) {
+      block();
+      const s = safeSrc(resolve(m[2]));
+      if (s) html += `<figure><img src="${esc(s)}" alt="${esc(m[1])}" loading="lazy">${m[1] ? `<figcaption>${esc(m[1])}</figcaption>` : ''}</figure>`;
+      continue;
+    }
+    if (/^-{3,}$/.test(line.trim())) { block(); html += '<hr>'; continue; }
+    flushL();
+    para.push(line);
+  }
+  block();
+  return html;
+}
+
+export const postHref = (p) => `#/post/${p.slug}`;
+
+// Images inside post text can point at the media library as media:<id>.
+const mediaResolver = (doc) => (v) => (String(v).startsWith('media:') ? (doc.media || []).find((m) => m.id === String(v).slice(6))?.src || '' : v);
+
+export function formatDate(d) {
+  const t = new Date(`${String(d || '').slice(0, 10)}T12:00:00`);
+  return Number.isNaN(t.getTime()) ? '' : t.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export const postTags = (p) => String(p.tags || '').split(',').map((t) => t.trim()).filter(Boolean);
+
+export function publishedPosts(doc, kind = 'all') {
+  return (doc.posts || [])
+    .filter((p) => p.published !== false && (kind === 'all' || (p.kind || 'post') === kind))
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+}
+
+const plain = (t) => String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`-]+/g, ' ').replace(/\s+/g, ' ').trim();
+export function postTitle(p) {
+  if (p.title) return p.title;
+  const t = plain(p.body);
+  return t.length > 70 ? `${t.slice(0, 67)}…` : t;
+}
+
+function tagChips(p) {
+  const tags = postTags(p);
+  return tags.length ? `<span class="post-tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</span>` : '';
+}
+
+export function renderPostCard(p, doc = {}) {
+  const tags = esc(postTags(p).join('|').toLowerCase());
+  const meta = `<div class="post-meta"><time datetime="${esc(p.date)}">${formatDate(p.date)}</time>${tagChips(p)}</div>`;
+  if ((p.kind || 'post') === 'blurb') {
+    let host = '';
+    try { host = p.link ? new URL(p.link).hostname.replace(/^www\./, '') : ''; } catch { host = ''; }
+    return `<article class="blurb-card" data-tags="${tags}"><span class="blurb-card__icon">${icon('sparkle')}</span>${meta}
+      ${p.title ? `<h3 class="blurb-card__title">${esc(p.title)}</h3>` : ''}
+      <div class="blurb-card__text">${markdown(p.body, mediaResolver(doc))}</div>
+      ${host ? `<a class="blurb-card__src" href="${esc(safeHref(p.link))}" target="_blank" rel="noopener">via ${esc(host)} ${icon('external')}</a>` : ''}</article>`;
+  }
+  const img = safeSrc(p.image);
+  return `<article class="post-card" data-tags="${tags}">
+    <a class="post-card__img" href="${postHref(p)}" tabindex="-1" aria-hidden="true">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="post-card__ph">${icon('pen')}</span>`}</a>
+    <div class="post-card__body">${meta}
+      <h3 class="post-card__title"><a href="${postHref(p)}">${esc(postTitle(p))}</a></h3>
+      ${p.summary ? `<p class="post-card__sum">${esc(p.summary)}</p>` : ''}
+      <a class="post-card__more" href="${postHref(p)}">Read more ${icon('arrow-right')}</a>
+    </div></article>`;
+}
+
+export function blogPageIndex(doc) {
+  return doc.pages.findIndex((p) => (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
+}
+
+export function renderPostPage(doc, post, ctx = {}) {
+  const c = { ...ctx, edit: false, site: doc };
+  let bi = blogPageIndex(doc);
+  if (bi < 0) bi = doc.pages.findIndex((p) => (p.sections || []).some((s) => s.type === 'blogfeed'));
+  const back = bi >= 0 ? pageHref(doc.pages[bi], bi) : '#/';
+  const all = publishedPosts(doc, 'post');
+  const i = all.findIndex((p) => p.id === post.id);
+  const newer = i > 0 ? all[i - 1] : null;
+  const older = i >= 0 && i < all.length - 1 ? all[i + 1] : null;
+  const img = safeSrc(post.image);
+  const host = (() => { try { return post.link ? new URL(post.link).hostname.replace(/^www\./, '') : ''; } catch { return ''; } })();
+  return renderHeader(doc, bi, c)
+    + `<main id="main"><article class="sec sec--light pad--normal post">
+      <header class="wrap wrap--narrow post__head">
+        <a class="post__back" href="${back}">${icon('arrow-right')} Back to blog</a>
+        <div class="post-meta"><time datetime="${esc(post.date)}">${formatDate(post.date)}</time>${tagChips(post)}</div>
+        <h1 class="post__title">${esc(postTitle(post))}</h1>
+        ${post.summary ? `<p class="lead post__summary">${esc(post.summary)}</p>` : ''}
+      </header>
+      ${img ? `<figure class="wrap post__cover"><img src="${esc(img)}" alt=""></figure>` : ''}
+      <div class="wrap wrap--narrow post__body">${markdown(post.body, mediaResolver(doc)) || (ctx.preview ? '<p class="post__empty">Start writing in the panel on the left…</p>' : '')}
+        ${host ? `<p class="post__src"><a href="${esc(safeHref(post.link))}" target="_blank" rel="noopener">Source: ${esc(host)} ${icon('external')}</a></p>` : ''}</div>
+      ${newer || older ? `<nav class="wrap wrap--narrow post__nav" aria-label="More posts">
+        ${older ? `<a href="${postHref(older)}"><small>Previous</small>${esc(postTitle(older))}</a>` : '<span></span>'}
+        ${newer ? `<a class="next" href="${postHref(newer)}"><small>Next</small>${esc(postTitle(newer))}</a>` : ''}</nav>` : ''}
+    </article></main>`
+    + renderFooter(doc, c);
 }

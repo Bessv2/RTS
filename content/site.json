@@ -236,6 +236,21 @@
           }
         },
         {
+          "id": "s-home-blog",
+          "type": "blogfeed",
+          "data": {
+            "bg": "light",
+            "pad": "normal",
+            "eyebrow": "From the blog",
+            "heading": "Latest tech news & tips",
+            "intro": "",
+            "show": "all",
+            "limit": "3",
+            "layout": "grid",
+            "showTags": false
+          }
+        },
+        {
           "id": "s-cta",
           "type": "cta",
           "data": {
@@ -542,6 +557,54 @@
       ]
     },
     {
+      "id": "p-blog",
+      "title": "Blog",
+      "slug": "blog",
+      "showInNav": true,
+      "seoTitle": "Blog | Roe Technology Services",
+      "seoDescription": "Tech news, IT tips and short notes from Roe Technology Services.",
+      "sections": [
+        {
+          "id": "s-bl-hero",
+          "type": "hero",
+          "data": {
+            "bg": "dark",
+            "pad": "normal",
+            "layout": "center",
+            "eyebrow": "Blog",
+            "heading": "Tech news, tips & notes",
+            "text": "What's happening in the tech world, practical advice for your business and home, and a few things I like.",
+            "primary": {
+              "label": "",
+              "href": ""
+            },
+            "secondary": {
+              "label": "",
+              "href": ""
+            },
+            "image": "",
+            "cardTitle": "",
+            "highlights": []
+          }
+        },
+        {
+          "id": "s-bl-feed",
+          "type": "blogfeed",
+          "data": {
+            "bg": "light",
+            "pad": "normal",
+            "eyebrow": "",
+            "heading": "",
+            "intro": "",
+            "show": "all",
+            "limit": "all",
+            "layout": "grid",
+            "showTags": true
+          }
+        }
+      ]
+    },
+    {
       "id": "p-contact",
       "title": "Contact",
       "slug": "contact",
@@ -565,6 +628,60 @@
           }
         }
       ]
+    }
+  ],
+  "posts": [
+    {
+      "id": "post-network-signs",
+      "kind": "post",
+      "title": "5 signs your small business network needs an upgrade",
+      "slug": "5-signs-your-network-needs-an-upgrade",
+      "date": "2026-10-01",
+      "published": true,
+      "tags": "Networking, Small business",
+      "image": "assets/library/network-mesh.svg",
+      "summary": "Slow Wi-Fi, dropped video calls and mystery outages usually aren't bad luck. Here's how to tell when it's time to modernize.",
+      "body": "Most networks aren't designed. They grow one switch, one extender and one \"temporary\" cable at a time. Eventually that adds up to slowdowns and outages nobody can explain.\n\n## 1. Wi-Fi gets worse when everyone is in the office\nIf things are fine at 7am and crawl by 10am, your access points are overloaded or badly placed. Modern business-grade Wi-Fi is built for lots of devices at once.\n\n## 2. Video calls freeze or drop\nCalls are the first thing to suffer when bandwidth is shared poorly. Quality-of-service settings and a properly sized internet connection make a big difference.\n\n## 3. Your firewall is older than your phone\nOlder firewalls stop receiving security updates and often can't keep up with today's internet speeds. If yours is past end of life, it's a security risk as well as a bottleneck.\n\n## 4. Nobody knows where the cables go\nUnlabeled cables and a tangled closet make every problem take longer to fix.\n\n## 5. Guests and staff share the same network\nVisitors and personal devices should be kept separate from the computers that run your business.\n\n> A little planning now prevents a lot of downtime later.\n\nIf any of these sound familiar, [get in touch](#/contact) for a free network review.",
+      "link": ""
+    },
+    {
+      "id": "post-mfa",
+      "kind": "post",
+      "title": "Turn on multi-factor authentication today",
+      "slug": "turn-on-multi-factor-authentication",
+      "date": "2026-09-24",
+      "published": true,
+      "tags": "Security, Tips",
+      "image": "assets/library/hex-shield.svg",
+      "summary": "Stolen passwords are behind a huge share of account break-ins. Multi-factor authentication is the simplest, cheapest fix.",
+      "body": "Passwords get reused, guessed and leaked. **Multi-factor authentication (MFA)** adds a second check, like a code on your phone, so a stolen password alone isn't enough.\n\n## Where to turn it on first\n- Your email account (it can reset everything else)\n- Banking and payroll\n- Microsoft 365 or Google Workspace admin accounts\n- Your domain registrar and website host\n\n## Which method to choose\n1. An authenticator app or security key is the strongest everyday option.\n2. Text-message codes are better than nothing, but easier to intercept.\n\nIt takes about ten minutes per account, and it's one of the best security investments a small business can make.",
+      "link": ""
+    },
+    {
+      "id": "blurb-label-cables",
+      "kind": "blurb",
+      "title": "",
+      "slug": "note-label-every-cable",
+      "date": "2026-09-30",
+      "published": true,
+      "tags": "Tips",
+      "image": "",
+      "summary": "",
+      "body": "**Quick tip:** label both ends of every network cable during an install. It costs a few minutes today and saves hours the next time something breaks.",
+      "link": ""
+    },
+    {
+      "id": "blurb-password-managers",
+      "kind": "blurb",
+      "title": "Something I like: password managers",
+      "slug": "note-password-managers",
+      "date": "2026-09-20",
+      "published": true,
+      "tags": "Security, Tools",
+      "image": "",
+      "summary": "",
+      "body": "A good password manager means you only remember one strong password, and every other account gets a unique one. It's the single easiest upgrade most people can make.",
+      "link": ""
     }
   ]
 }

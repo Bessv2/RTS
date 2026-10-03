@@ -16,6 +16,8 @@ The site has a built-in visual editor, so you can change it without touching cod
      Your saved sections and anything you've copied show up at the top.
    - **Layers**: reorder (drag), hide or delete sections
    - **Pages**: add, rename, reorder or remove pages and set search-engine titles
+   - **Blog**: write posts (full articles with their own page) and blurbs (short notes, tips
+     or links you like). See "Writing blog posts" below.
    - **Images**: upload photos once and reuse them anywhere, plus built-in tech-style images
    - **Design**: color themes, colors, fonts, corner style and custom CSS
    - **Settings**: business details, contact form, announcement bar, social links, browser-tab
@@ -35,13 +37,27 @@ The site has a built-in visual editor, so you can change it without touching cod
    updates the page title, description, share image and tab icon in `index.html` so Google and
    social media previews show them.
 
+### Writing blog posts
+
+1. Open the **Blog** tab and click **New post** or **New blurb**.
+2. Give it a title, date and tags (comma separated, e.g. `Security, Tips`). Posts also get a
+   cover image and a one-line summary.
+3. Write in the text box. The toolbar adds **bold**, *italic*, links, headings, lists, quotes
+   and images, and the preview in the middle updates as you type.
+4. Turn off **Show on website** to keep something as a private draft.
+5. Click **Publish**. Posts show up wherever a **Blog feed** section is placed (the Blog page
+   and the "Latest" strip on the home page), newest first. Each post gets its own page at
+   `/#/post/your-post-title`.
+
+Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a feed reader.
+
 ### Where your work is stored
 
 | What | Where |
 | --- | --- |
 | Working draft and saved versions | Your browser (IndexedDB), on the computer you are using |
 | Cloud draft | The `editor-drafts` branch of this repository (never affects the live site) |
-| Published site | `content/site.json` and `assets/uploads/` on `main` |
+| Published site and blog posts | `content/site.json`, `assets/uploads/` and `feed.xml` on `main` |
 | Built-in images | `assets/library/` (add your own SVG/PNG files and list them in `manifest.json`) |
 
 ### One-time publishing setup
