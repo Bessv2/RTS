@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com; frame-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
   <title>Site Editor · Roe Technology Services</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111827'/%3E%3Cpath d='M9 22l3-1 9-9-2-2-9 9zM18 9l2-2 3 3-2 2' stroke='white' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -29,6 +31,7 @@
       </div>
       <div class="ed-top__right">
         <span class="ed-status" id="status"></span>
+        <button type="button" class="ed-icon-btn" id="find" title="Find &amp; replace"><span data-icon="search"></span></button>
         <button type="button" class="ed-icon-btn" id="undo" title="Undo (Ctrl+Z)"><span data-icon="undo"></span></button>
         <button type="button" class="ed-icon-btn" id="redo" title="Redo (Ctrl+Shift+Z)"><span data-icon="redo"></span></button>
         <button type="button" class="ed-btn" id="preview"><span data-icon="eye"></span>Preview</button>
@@ -40,8 +43,11 @@
       <button type="button" data-tab="add" class="is-on"><span data-icon="plus"></span><small>Add</small></button>
       <button type="button" data-tab="layers"><span data-icon="layers"></span><small>Layers</small></button>
       <button type="button" data-tab="pages"><span data-icon="file"></span><small>Pages</small></button>
+      <button type="button" data-tab="blog"><span data-icon="pen"></span><small>Blog</small></button>
+      <button type="button" data-tab="media"><span data-icon="image"></span><small>Images</small></button>
       <button type="button" data-tab="theme"><span data-icon="droplet"></span><small>Design</small></button>
       <button type="button" data-tab="site"><span data-icon="sliders"></span><small>Settings</small></button>
+      <button type="button" data-tab="history"><span data-icon="history"></span><small>History</small></button>
       <button type="button" data-tab="help" class="ed-rail__end"><span data-icon="help"></span><small>Help</small></button>
     </nav>
 

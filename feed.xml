@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Roe Technology Services</title>
+    <link>https://roetechnologyservices.com/</link>
+    <description>Roe Technology Services provides IT consulting, networking, security, device deployment and support for small to medium businesses and homes.</description>
+    <item>
+      <title>5 signs your small business network needs an upgrade</title>
+      <link>https://roetechnologyservices.com/#/post/5-signs-your-network-needs-an-upgrade</link>
+      <guid isPermaLink="false">post-network-signs</guid>
+      <pubDate>Thu, 01 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Slow Wi-Fi, dropped video calls and mystery outages usually aren&apos;t bad luck. Here&apos;s how to tell when it&apos;s time to modernize.</description>
+    </item>
+    <item>
+      <title>Quick tip: label both ends of every network cable during an install. It costs a…</title>
+      <link>https://roetechnologyservices.com/#/post/note-label-every-cable</link>
+      <guid isPermaLink="false">blurb-label-cables</guid>
+      <pubDate>Wed, 30 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Quick tip: label both ends of every network cable during an install. It costs a few minutes today and saves hours the next time something breaks.</description>
+    </item>
+    <item>
+      <title>Turn on multi-factor authentication today</title>
+      <link>https://roetechnologyservices.com/#/post/turn-on-multi-factor-authentication</link>
+      <guid isPermaLink="false">post-mfa</guid>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Stolen passwords are behind a huge share of account break-ins. Multi-factor authentication is the simplest, cheapest fix.</description>
+    </item>
+    <item>
+      <title>Something I like: password managers</title>
+      <link>https://roetechnologyservices.com/#/post/note-password-managers</link>
+      <guid isPermaLink="false">blurb-password-managers</guid>
+      <pubDate>Sun, 20 Sep 2026 12:00:00 GMT</pubDate>
+      <description>A good password manager means you only remember one strong password, and every other account gets a unique one. It&apos;s the single easiest upgrade most people can make.</description>
+    </item>
+  </channel>
+</rss>
