@@ -1,5 +1,7 @@
-// Shared renderer used by the public site (index.html) and the editor canvas.
+// Shared renderer used by the static build, the preview page and the editor canvas.
+// Pure functions only (no DOM access), so it runs the same in browsers and Node.
 import { BLOCKS } from './blocks.js';
+import { POSTS_BASE } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 
 export const FONTS = {
@@ -43,7 +45,7 @@ export function rich(v) {
 
 export function cssUrl(src) {
   const v = safeSrc(src);
-  return v ? `url("${v.replace(/["\\\s()]/g, (c) => encodeURIComponent(c))}")` : '';
+  return v ? `url("${v.replace(/["\\\s()']/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`)}")` : '';
 }
 
 export function getPath(obj, path) {
@@ -66,11 +68,15 @@ export function safeHref(href) {
   return v;
 }
 
+// Image sources: data images, https URLs, or site files. Site-relative paths are
+// made root-relative so they work from nested pages like /blog/my-post/.
 export function safeSrc(src) {
   const v = String(src || '').trim();
+  if (!v) return '';
   if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);/i.test(v)) return v;
-  if (/^[a-z][\w+.-]*:/i.test(v) && !/^https?:/i.test(v)) return '';
-  return v;
+  if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
+  if (/^[a-z][\w+.-]*:/i.test(v)) return '';
+  return `/${v.replace(/^\.\//, '')}`;
 }
 
 export function fontsHref(theme) {
@@ -87,7 +93,7 @@ export function themeCSS(theme) {
 }
 
 export function pageHref(page, index) {
-  return index === 0 || !page.slug ? '#/' : `#/${page.slug}`;
+  return index === 0 || !page.slug ? '/' : `/${page.slug}/`;
 }
 
 function helpers(data, ctx, sectionPath = '') {
@@ -149,7 +155,7 @@ export function renderHeader(doc, pageIndex, ctx) {
     : '';
   return `${bar}<header class="site-header site-header--${s.headerStyle || 'light'}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
     <div class="wrap site-header__inner">
-      <a class="brand" href="#/">${logo}${h.t('span', 'name', 'brand__name', { ph: 'Business name' })}</a>
+      <a class="brand" href="/">${logo}${h.t('span', 'name', 'brand__name', { ph: 'Business name' })}</a>
       <nav class="nav" aria-label="Main"><ul class="nav__list">${navPages.map(({ p, i }) =>
         `<li><a href="${pageHref(p, i)}"${i === pageIndex ? ' aria-current="page"' : ''}>${esc(p.title)}</a></li>`).join('')}</ul>${cta}</nav>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">${icon('menu')}</button>
@@ -163,7 +169,7 @@ export function renderFooter(doc, ctx) {
   return `<footer class="site-footer"${ctx.edit ? ' data-section-id="__footer" data-label="Footer"' : ''}>
     <div class="wrap site-footer__grid">
       <div class="site-footer__brand">
-        <a class="brand" href="#/">${s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`}<span class="brand__name">${esc(s.name)}</span></a>
+        <a class="brand" href="/">${s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`}<span class="brand__name">${esc(s.name)}</span></a>
         ${h.t('p', 'tagline', 'site-footer__tagline', { ph: 'Short tagline', ml: true })}
         ${socialLinks(s)}
       </div>
@@ -192,11 +198,30 @@ export function renderPage(doc, pageIndex, ctx = {}) {
     + renderFooter(doc, c);
 }
 
-export function findPageIndex(doc, hash) {
-  const slug = String(hash || '').replace(/^#\/?/, '').split(/[?#]/)[0];
-  if (!slug) return 0;
-  const i = doc.pages.findIndex((p) => p.slug === slug);
-  return i;
+// Resolves a URL path (/services/, /blog/my-post/) to a page or post.
+export function findRoute(doc, path) {
+  const parts = String(path || '/').split(/[?#]/)[0].split('/').filter(Boolean);
+  if (!parts.length) return { type: 'page', index: 0 };
+  if (parts.length === 2 && parts[0] === POSTS_BASE) {
+    const post = (doc.posts || []).find((p) => p.slug === parts[1] && p.published !== false);
+    return post ? { type: 'post', post } : null;
+  }
+  if (parts.length === 1) {
+    const index = doc.pages.findIndex((p, i) => i > 0 && p.slug === parts[0]);
+    return index > 0 ? { type: 'page', index } : null;
+  }
+  return null;
+}
+
+export function renderNotFound(doc) {
+  const c = { site: doc };
+  return renderHeader(doc, -1, c)
+    + `<main id="main"><section class="sec sec--light pad--spacious"><div class="wrap wrap--narrow notfound">
+        <span class="eyebrow">Error 404</span><h1 class="sec-title">We couldn’t find that page</h1>
+        <p class="sec-intro">The link may be old or mistyped. Try the home page or one of the pages above.</p>
+        <div class="btns" style="justify-content:center"><a class="btn btn--primary btn--lg" href="/">Go to the home page</a></div>
+      </div></section></main>`
+    + renderFooter(doc, c);
 }
 
 // ---------------------------------------------------------------------------
@@ -239,7 +264,7 @@ export function markdown(src, resolve = (v) => v) {
   return html;
 }
 
-export const postHref = (p) => `#/post/${p.slug}`;
+export const postHref = (p) => `/${POSTS_BASE}/${p.slug}/`;
 
 // Images inside post text can point at the media library as media:<id>.
 const mediaResolver = (doc) => (v) => (String(v).startsWith('media:') ? (doc.media || []).find((m) => m.id === String(v).slice(6))?.src || '' : v);
@@ -298,7 +323,7 @@ export function renderPostPage(doc, post, ctx = {}) {
   const c = { ...ctx, edit: false, site: doc };
   let bi = blogPageIndex(doc);
   if (bi < 0) bi = doc.pages.findIndex((p) => (p.sections || []).some((s) => s.type === 'blogfeed'));
-  const back = bi >= 0 ? pageHref(doc.pages[bi], bi) : '#/';
+  const back = bi >= 0 ? pageHref(doc.pages[bi], bi) : '/';
   const all = publishedPosts(doc, 'post');
   const i = all.findIndex((p) => p.id === post.id);
   const newer = i > 0 ? all[i - 1] : null;

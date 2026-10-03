@@ -38,7 +38,7 @@ export const BLOCKS = {
       eyebrow: 'Technology partner',
       heading: 'Technology that just works.',
       text: 'Describe what you do and who you help in one or two sentences.',
-      primary: btn('Get started', '#/contact'),
+      primary: btn('Get started', '/contact/'),
       secondary: btn('Learn more', '#services'),
       image: '',
       cardTitle: 'System status',
@@ -147,7 +147,7 @@ export const BLOCKS = {
       eyebrow: 'About us', heading: 'Tell your story',
       text: 'Share who you are, what you believe in and why clients choose you.',
       bullets: [{ text: 'First key point' }, { text: 'Second key point' }, { text: 'Third key point' }],
-      button: btn('Get in touch', '#/contact'),
+      button: btn('Get in touch', '/contact/'),
       image: '', panelIcon: 'cpu', panelText: '',
     }),
     fields: [
@@ -425,15 +425,15 @@ export const BLOCKS = {
       bg: 'light', pad: 'normal',
       eyebrow: 'Pricing', heading: 'Simple, transparent plans', intro: '',
       items: [
-        { name: 'Basic', price: '$99', period: '/month', text: 'For individuals', features: 'Feature one\nFeature two\nFeature three', button: btn('Choose plan', '#/contact'), featured: false },
-        { name: 'Business', price: '$299', period: '/month', text: 'For growing teams', features: 'Everything in Basic\nFeature four\nFeature five', button: btn('Choose plan', '#/contact'), featured: true },
-        { name: 'Custom', price: 'Quote', period: '', text: 'For larger projects', features: 'Tailored scope\nDedicated support', button: btn('Contact us', '#/contact'), featured: false },
+        { name: 'Basic', price: '$99', period: '/month', text: 'For individuals', features: 'Feature one\nFeature two\nFeature three', button: btn('Choose plan', '/contact/'), featured: false },
+        { name: 'Business', price: '$299', period: '/month', text: 'For growing teams', features: 'Everything in Basic\nFeature four\nFeature five', button: btn('Choose plan', '/contact/'), featured: true },
+        { name: 'Custom', price: 'Quote', period: '', text: 'For larger projects', features: 'Tailored scope\nDedicated support', button: btn('Contact us', '/contact/'), featured: false },
       ],
     }),
     fields: [
       ...SECTION_HEADER_FIELDS,
       { key: 'items', label: 'Plans', type: 'list', itemLabel: 'name',
-        item: () => ({ name: 'Plan', price: '$0', period: '/month', text: '', features: 'Feature', button: btn('Choose plan', '#/contact'), featured: false }),
+        item: () => ({ name: 'Plan', price: '$0', period: '/month', text: '', features: 'Feature', button: btn('Choose plan', '/contact/'), featured: false }),
         itemFields: [
           { key: 'name', label: 'Name', type: 'text' }, { key: 'price', label: 'Price', type: 'text' },
           { key: 'period', label: 'Period', type: 'text' }, { key: 'text', label: 'Short description', type: 'text' },
@@ -488,7 +488,7 @@ export const BLOCKS = {
     defaults: () => ({
       bg: 'brand', pad: 'normal',
       heading: 'Ready to get started?', text: 'Tell visitors what to do next.',
-      primary: btn('Contact us', '#/contact'), secondary: btn('', ''),
+      primary: btn('Contact us', '/contact/'), secondary: btn('', ''),
     }),
     fields: [
       { key: 'heading', label: 'Heading', type: 'text' },
@@ -538,7 +538,7 @@ export const BLOCKS = {
             ${d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', '', { ph: 'Business hours' })}</div></li>` : ''}
           </ul>
         </div>
-        ${d.showForm ? `<form class="contact__form" data-contact-form novalidate>
+        ${d.showForm ? `<form class="contact__form" data-contact-form data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}" novalidate>
           <div class="field-row"><label>Name<input name="name" required maxlength="100" autocomplete="name"></label>
           <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label></div>
           <label><span>Phone <em>(optional)</em></span><input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>

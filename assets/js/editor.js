@@ -4,6 +4,7 @@ import { renderPage, renderSection, renderPostPage, postTitle, formatDate, theme
 import { icon, ICON_NAMES, SOCIAL } from './icons.js';
 import { publishToGitHub, listPublishedVersions, readPublishedVersion, saveCloudDraft, loadCloudDraft } from './publish.js';
 import { kv, versions } from './store.js';
+import { migrate, validate, POSTS_BASE } from './schema.js';
 
 // Refuse to run inside another site's frame (clickjacking protection;
 // GitHub Pages can't send X-Frame-Options headers).
@@ -465,6 +466,7 @@ function linkSuggestions() {
   if (!dl) { dl = el('datalist', { id: 'link-suggest' }); document.body.append(dl); }
   const opts = [];
   state.doc.pages.forEach((p, i) => opts.push([pageHref(p, i), `Page: ${p.title}`]));
+  (state.doc.posts || []).forEach((p) => opts.push([`/${POSTS_BASE}/${p.slug}/`, `Post: ${postTitle(p)}`]));
   state.doc.pages.forEach((p) => p.sections.forEach((s) => s.data?.anchor && opts.push([`#${s.data.anchor}`, `Section on current page: ${s.data.anchor}`])));
   if (state.doc.site.email) opts.push([`mailto:${state.doc.site.email}`, 'Email']);
   if (state.doc.site.phone) opts.push([`tel:${state.doc.site.phone.replace(/[^+\d]/g, '')}`, 'Phone']);
@@ -814,7 +816,7 @@ function panelPages(box) {
           if (i > 0 && auto) { p.slug = slugify(p.title); const sl = $('.page-slug', b); if (sl) sl.value = p.slug; }
           upd();
         } })),
-        i > 0 ? el('div', { class: 'f' }, el('label', {}, 'URL'), el('input', { class: 'in page-slug', value: p.slug, oninput: (e) => { p.slug = slugify(e.target.value) || `page-${i}`; upd(); },
+        i > 0 ? el('div', { class: 'f' }, el('label', {}, 'Web address (yoursite.com/…/)'), el('input', { class: 'in page-slug', value: p.slug, oninput: (e) => { p.slug = slugify(e.target.value) || `page-${i}`; upd(); },
           onchange: (e) => { e.target.value = p.slug; renderPanel(); } })) : null,
         el('div', { class: 'f' }, el('label', { class: 'switch' }, 'Show in navigation', el('input', { type: 'checkbox', checked: p.showInNav !== false, onchange: (e) => { p.showInNav = e.target.checked; commit(); renderCanvas(); renderPanel(); } }))),
         el('p', { class: 'p-sub' }, 'Search engines'),
@@ -942,6 +944,7 @@ function panelSite(box) {
   const body = el('div', { class: 'p-body' });
   const fields = [
     { key: 'name', label: 'Business name', type: 'text' },
+    { key: 'url', label: 'Site address', type: 'text', help: 'Your full web address, e.g. https://roetechnologyservices.com. Used for search engines and share links.' },
     { key: 'description', label: 'Site description (for search engines)', type: 'textarea' },
     { type: 'note', text: 'Contact details are used in the Contact section and the footer.' },
     { key: 'email', label: 'Email', type: 'text' },
@@ -1012,9 +1015,9 @@ function importJSON() {
   const input = el('input', { type: 'file', accept: '.json,application/json' });
   input.addEventListener('change', async () => {
     try {
-      const d = JSON.parse(await input.files[0].text());
-      if (!Array.isArray(d.pages) || !d.pages.length || !d.site) throw new Error();
-      state.doc = d; state.page = 0; state.sel = null;
+      const raw = JSON.parse(await input.files[0].text());
+      if (!Array.isArray(raw.pages) || !raw.pages.length || !raw.site) throw new Error();
+      state.doc = migrate(raw); state.page = 0; state.sel = null;
       commit(); refreshAll();
       toast('Site restored from file');
     } catch { toast('That file is not a valid site.json backup.', { error: true }); }
@@ -1025,7 +1028,7 @@ function importJSON() {
 async function resetToPublished() {
   if (!confirm('Discard your draft and load the live version? You can undo this.')) return;
   try {
-    state.doc = await fetchPublished();
+    state.doc = migrate(await fetchPublished());
     state.page = 0; state.sel = null;
     commit(); refreshAll();
     toast('Loaded the live version', { action: 'Undo', onAction: undo });
@@ -1056,6 +1059,8 @@ function openPublish() {
     const cfg = { owner: owner.value.trim(), repo: repo.value.trim(), branch: branch.value.trim() || 'main', token: token.value.trim() };
     if (!cfg.owner || !cfg.repo || !cfg.token) { write('Fill in repository and token first.', 'err'); return; }
     rememberGH(cfg, remember.checked);
+    const problems = validate(state.doc);
+    if (problems.length) { log.replaceChildren(); problems.forEach((pr) => write(pr, 'err')); write('Fix these, then publish again.', 'err'); return; }
     go.disabled = true;
     log.replaceChildren();
     try {
@@ -1249,7 +1254,7 @@ function panelPostEditor(box, p) {
     ]),
   ], p, preview, '', renderPanel);
   if (!blurb) {
-    renderFields(body, [{ key: 'slug', label: 'Web address', type: 'text', help: 'The end of this post’s link (yoursite.com/#/post/…). Changing it breaks links people already shared.' }], p, () => {
+    renderFields(body, [{ key: 'slug', label: 'Web address', type: 'text', help: `The end of this post’s link (yoursite.com/${POSTS_BASE}/…/). Changing it breaks links people already shared.` }], p, () => {
       p.slug = uniquePostSlug(slugify(p.slug) || 'post', p.id);
       p.slugLocked = true;
       preview();
@@ -1358,8 +1363,7 @@ async function addVersion(name) {
 
 function restoreDoc(doc, message) {
   if (!doc?.pages?.length || !doc.site) { toast('That version could not be read.', { error: true }); return; }
-  state.doc = doc;
-  state.doc.theme ||= {};
+  try { state.doc = migrate(doc); } catch (err) { toast(err.message, { error: true }); return; }
   state.page = 0;
   state.sel = null;
   commit();
@@ -1548,9 +1552,9 @@ async function boot() {
     if (saved?.json) draft = { doc: JSON.parse(saved.json) };
   } catch { /* IndexedDB unavailable */ }
   if (!draft) { try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch { /* ignore */ } }
-  const normalize = (d) => { if (d) { d.theme ||= {}; d.media ||= []; d.saved ||= []; d.posts ||= []; } return d; };
-  normalize(published);
-  state.doc = normalize(draft?.doc) || published;
+  const safeMigrate = (d) => { try { return d ? migrate(d) : null; } catch (err) { toast(err.message, { error: true }); return null; } };
+  published = safeMigrate(published);
+  state.doc = safeMigrate(draft?.doc) || published;
   if (!state.doc) return;
   state.published = published ? JSON.stringify(published) : '';
   state.snap = JSON.stringify(state.doc);
@@ -1566,7 +1570,7 @@ async function boot() {
   $('#page-select').addEventListener('change', (e) => goToPage(+e.target.value));
   $('#publish').addEventListener('click', openPublish);
   $('#preview').addEventListener('click', async () => { flushCommit(); await saveDraft(); const post = state.post && findPost(state.post);
-    window.open(`./?preview=1${post ? `#/post/${post.slug}` : pageHref(page(), state.page)}`, '_blank'); });
+    window.open(`/preview.html?path=${encodeURIComponent(post ? `/${POSTS_BASE}/${post.slug}/` : pageHref(page(), state.page))}`, '_blank'); });
   $('#find').addEventListener('click', openFindReplace);
   document.addEventListener('keydown', onGlobalKey);
   addEventListener('beforeunload', () => flushCommit());

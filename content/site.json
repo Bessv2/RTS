@@ -1,7 +1,8 @@
 {
-  "version": 1,
+  "version": 2,
   "site": {
     "name": "Roe Technology Services",
+    "url": "https://roetechnologyservices.com",
     "tagline": "Consulting and technology services for small to medium businesses and residential clients.",
     "description": "Roe Technology Services provides IT consulting, networking, security, device deployment and support for small to medium businesses and homes.",
     "logo": "",
@@ -12,7 +13,7 @@
     "headerStyle": "light",
     "headerCta": {
       "label": "Free consultation",
-      "href": "#/contact"
+      "href": "/contact/"
     },
     "footerText": "Reliable IT, done right.",
     "formEndpoint": "https://formspree.io/f/myezrgov"
@@ -51,11 +52,11 @@
             "text": "From secure networks and firewalls to device rollouts and disaster recovery, Roe Technology Services keeps your technology running so you can focus on what matters.",
             "primary": {
               "label": "Book a free consultation",
-              "href": "#/contact"
+              "href": "/contact/"
             },
             "secondary": {
               "label": "Explore services",
-              "href": "#/services"
+              "href": "/services/"
             },
             "image": "",
             "cardTitle": "Your IT, handled",
@@ -199,7 +200,7 @@
             ],
             "button": {
               "label": "About us",
-              "href": "#/about"
+              "href": "/about/"
             },
             "image": "",
             "panelIcon": "shield-check",
@@ -260,7 +261,7 @@
             "text": "Book a free consultation and get a clear plan for your network, devices and security.",
             "primary": {
               "label": "Get in touch",
-              "href": "#/contact"
+              "href": "/contact/"
             },
             "secondary": {
               "label": "",
@@ -290,7 +291,7 @@
             "text": "One partner for networking, security, devices, servers and support — for businesses and homes.",
             "primary": {
               "label": "Request a quote",
-              "href": "#/contact"
+              "href": "/contact/"
             },
             "secondary": {
               "label": "",
@@ -411,7 +412,7 @@
             "text": "Tell us about your setup and we'll point you in the right direction.",
             "primary": {
               "label": "Contact us",
-              "href": "#/contact"
+              "href": "/contact/"
             },
             "secondary": {
               "label": "",
@@ -475,7 +476,7 @@
             ],
             "button": {
               "label": "Work with us",
-              "href": "#/contact"
+              "href": "/contact/"
             },
             "image": "",
             "panelIcon": "award",
@@ -641,7 +642,7 @@
       "tags": "Networking, Small business",
       "image": "assets/library/network-mesh.svg",
       "summary": "Slow Wi-Fi, dropped video calls and mystery outages usually aren't bad luck. Here's how to tell when it's time to modernize.",
-      "body": "Most networks aren't designed. They grow one switch, one extender and one \"temporary\" cable at a time. Eventually that adds up to slowdowns and outages nobody can explain.\n\n## 1. Wi-Fi gets worse when everyone is in the office\nIf things are fine at 7am and crawl by 10am, your access points are overloaded or badly placed. Modern business-grade Wi-Fi is built for lots of devices at once.\n\n## 2. Video calls freeze or drop\nCalls are the first thing to suffer when bandwidth is shared poorly. Quality-of-service settings and a properly sized internet connection make a big difference.\n\n## 3. Your firewall is older than your phone\nOlder firewalls stop receiving security updates and often can't keep up with today's internet speeds. If yours is past end of life, it's a security risk as well as a bottleneck.\n\n## 4. Nobody knows where the cables go\nUnlabeled cables and a tangled closet make every problem take longer to fix.\n\n## 5. Guests and staff share the same network\nVisitors and personal devices should be kept separate from the computers that run your business.\n\n> A little planning now prevents a lot of downtime later.\n\nIf any of these sound familiar, [get in touch](#/contact) for a free network review.",
+      "body": "Most networks aren't designed. They grow one switch, one extender and one \"temporary\" cable at a time. Eventually that adds up to slowdowns and outages nobody can explain.\n\n## 1. Wi-Fi gets worse when everyone is in the office\nIf things are fine at 7am and crawl by 10am, your access points are overloaded or badly placed. Modern business-grade Wi-Fi is built for lots of devices at once.\n\n## 2. Video calls freeze or drop\nCalls are the first thing to suffer when bandwidth is shared poorly. Quality-of-service settings and a properly sized internet connection make a big difference.\n\n## 3. Your firewall is older than your phone\nOlder firewalls stop receiving security updates and often can't keep up with today's internet speeds. If yours is past end of life, it's a security risk as well as a bottleneck.\n\n## 4. Nobody knows where the cables go\nUnlabeled cables and a tangled closet make every problem take longer to fix.\n\n## 5. Guests and staff share the same network\nVisitors and personal devices should be kept separate from the computers that run your business.\n\n> A little planning now prevents a lot of downtime later.\n\nIf any of these sound familiar, [get in touch](/contact/) for a free network review.",
       "link": ""
     },
     {
@@ -683,5 +684,7 @@
       "body": "A good password manager means you only remember one strong password, and every other account gets a unique one. It's the single easiest upgrade most people can make.",
       "link": ""
     }
-  ]
+  ],
+  "media": [],
+  "saved": []
 }

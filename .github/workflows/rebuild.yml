@@ -1,0 +1,48 @@
+name: Rebuild pages
+
+# Regenerates the static pages from content/site.json whenever code or content
+# changes on main, and once a month (so things like the footer year stay current).
+# The editor's Publish button already builds pages, so usually there is nothing to do.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/**'
+      - 'assets/**'
+      - 'scripts/**'
+      - 'CNAME'
+  schedule:
+    - cron: '23 7 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-pages
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests
+        run: npm test
+      - name: Build
+        run: node scripts/build.mjs
+      - name: Commit regenerated pages
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Generated pages are already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Rebuild generated pages"
+          git pull --rebase origin main
+          git push origin HEAD:main
