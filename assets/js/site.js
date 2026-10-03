@@ -1,73 +1,17 @@
-// Public site bootstrap: loads content/site.json and renders the current page.
-import { renderPage, renderPostPage, postTitle, themeCSS, fontsHref, findPageIndex, safeSrc, esc } from './render.js';
+// Public site behavior. Pages arrive fully rendered as static HTML (see build.js);
+// this script only adds interactivity: menu, contact form, gallery, video, tag filter.
+// On preview.html it also renders the editor's unpublished draft.
+import { renderPage, renderPostPage, renderNotFound, findRoute, postTitle, themeCSS, fontsHref, esc } from './render.js';
+import { migrate, hashToPath } from './schema.js';
 import { icon } from './icons.js';
 import { kv } from './store.js';
 
-let doc = null;
-let currentIndex = -1;
-let currentKey = '';
+const PREVIEW = document.documentElement.hasAttribute('data-preview');
 
-async function loadDoc() {
-  if (new URLSearchParams(location.search).has('preview')) {
-    try {
-      const draft = await kv.get('draft');
-      if (draft?.json) return JSON.parse(draft.json);
-    } catch { /* fall through to published content */ }
-  }
-  const res = await fetch(`content/site.json?v=${Date.now()}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Could not load site content (${res.status})`);
-  return res.json();
-}
+// Links from the old site version (#/services, #/post/x) still work.
+if (!PREVIEW && /^#\/[\w/-]*$/.test(location.hash)) location.replace(hashToPath(location.hash));
 
-function applyFavicon() {
-  const src = safeSrc(doc.site.favicon);
-  if (src) document.querySelector('link[rel="icon"]')?.setAttribute('href', src);
-}
-
-function applyTheme() {
-  document.getElementById('theme-vars').textContent = themeCSS(doc.theme || {});
-  const href = fontsHref(doc.theme || {});
-  const link = document.getElementById('theme-fonts');
-  if (href && link.getAttribute('href') !== href) link.setAttribute('href', href);
-}
-
-function setMeta(page) {
-  const s = doc.site;
-  document.title = page.seoTitle || (currentIndex === 0 ? s.name : `${page.title} | ${s.name}`);
-  const desc = page.seoDescription || s.description || '';
-  document.querySelector('meta[name="description"]')?.setAttribute('content', desc);
-}
-
-function render(force = false) {
-  const hash = location.hash;
-  const isRoute = !hash || hash.startsWith('#/');
-  if (!isRoute && currentKey && !force) return; // plain #anchor on current page
-  const app = document.getElementById('app');
-  const postSlug = (hash.match(/^#\/post\/([\w-]+)/) || [])[1];
-  const post = postSlug && (doc.posts || []).find((p) => p.slug === postSlug && p.published !== false);
-  let key;
-  if (post) {
-    key = `post:${post.id}`;
-    currentIndex = -2;
-    app.innerHTML = renderPostPage(doc, post);
-    document.title = `${postTitle(post)} | ${doc.site.name}`;
-    document.querySelector('meta[name="description"]')?.setAttribute('content', post.summary || doc.site.description || '');
-  } else {
-    let index = isRoute ? findPageIndex(doc, hash) : 0;
-    if (index < 0) index = 0;
-    key = `page:${index}`;
-    currentIndex = index;
-    app.innerHTML = renderPage(doc, index);
-    setMeta(doc.pages[index]);
-  }
-  const changed = key !== currentKey;
-  currentKey = key;
-  bind(app);
-  if (!isRoute) document.getElementById(hash.slice(1))?.scrollIntoView();
-  else if (changed) window.scrollTo({ top: 0, behavior: 'instant' });
-}
-
-function bind(root) {
+function enhance(root) {
   const header = root.querySelector('.site-header');
   const toggle = root.querySelector('.nav-toggle');
   toggle?.addEventListener('click', () => {
@@ -148,8 +92,8 @@ const COOLDOWN_MS = 60_000; // one message per minute per browser
 const MAX_LINKS = 2; // link-stuffed messages are almost always spam
 const LAST_SENT_KEY = 'rts-form-last-sent';
 
-function formEndpoint() {
-  const v = String(doc.site.formEndpoint || '').trim();
+function formEndpoint(form) {
+  const v = String(form.dataset.endpoint || '').trim();
   return /^https:\/\/[^\s/]+\/\S*$/i.test(v) ? v : '';
 }
 
@@ -186,7 +130,9 @@ async function onSubmit(e) {
     setStatus(status, 'Please remove some of the links from your message and try again.', 'err');
     return;
   }
-  const endpoint = formEndpoint();
+  const email = form.dataset.email || '';
+  if (PREVIEW) { setStatus(status, 'The form is turned off in preview. It works on the published site.', 'err'); return; }
+  const endpoint = formEndpoint(form);
   if (endpoint) {
     button.disabled = true;
     setStatus(status, 'Sending…');
@@ -200,23 +146,67 @@ async function onSubmit(e) {
       form.dataset.startedAt = String(Date.now());
       setStatus(status, 'Thanks! Your message has been sent. We’ll be in touch soon.', 'ok');
     } catch {
-      setStatus(status, `Something went wrong. Please email us${doc.site.email ? ` at ${doc.site.email}` : ''}.`, 'err');
+      setStatus(status, `Something went wrong. Please email us${email ? ` at ${email}` : ''}.`, 'err');
     } finally {
       button.disabled = false;
     }
     return;
   }
   const text = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\n\n${data.message}`;
-  location.href = `mailto:${doc.site.email || ''}?subject=${encodeURIComponent(`Website inquiry from ${data.name}`)}&body=${encodeURIComponent(text)}`;
+  location.href = `mailto:${email}?subject=${encodeURIComponent(`Website inquiry from ${data.name}`)}&body=${encodeURIComponent(text)}`;
   setStatus(status, 'Opening your email app…');
 }
 
-try {
-  doc = await loadDoc();
-  applyTheme();
-  applyFavicon();
-  render(true);
-  addEventListener('hashchange', () => render());
-} catch (err) {
-  document.getElementById('app').innerHTML = `<p style="padding:40px;font-family:system-ui">${err.message}</p>`;
+// --- Preview of the editor's unpublished draft (preview.html?path=/services/) ---
+async function loadDraft() {
+  try {
+    const draft = await kv.get('draft');
+    if (draft?.json) return migrate(JSON.parse(draft.json));
+  } catch { /* fall back to the published content */ }
+  const res = await fetch(`/content/site.json?v=${Date.now()}`, { cache: 'no-store' });
+  return migrate(await res.json());
 }
+
+async function bootPreview() {
+  const app = document.getElementById('app');
+  let doc;
+  try { doc = await loadDraft(); } catch (err) { app.textContent = `Could not load the preview: ${err.message}`; return; }
+  document.getElementById('theme-vars').textContent = themeCSS(doc.theme);
+  const fonts = fontsHref(doc.theme);
+  if (fonts) document.getElementById('theme-fonts').setAttribute('href', fonts);
+  const show = (path, push = false) => {
+    const route = findRoute(doc, path);
+    if (route?.type === 'post') {
+      app.innerHTML = renderPostPage(doc, route.post);
+      document.title = `Preview: ${postTitle(route.post)}`;
+    } else if (route?.type === 'page') {
+      app.innerHTML = renderPage(doc, route.index);
+      document.title = `Preview: ${doc.pages[route.index].title}`;
+    } else {
+      app.innerHTML = renderNotFound(doc);
+      document.title = 'Preview: page not found';
+    }
+    if (push) history.pushState({ path }, '', `?path=${encodeURIComponent(path)}`);
+    enhance(app);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  // Keep site links inside the preview.
+  app.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="/"]');
+    if (!a || a.target === '_blank' || /\.(xml|json|txt)$/.test(a.getAttribute('href'))) return;
+    e.preventDefault();
+    const href = a.getAttribute('href');
+    const [path, hash] = href.split('#');
+    show(path || '/', true);
+    if (hash) document.getElementById(hash)?.scrollIntoView();
+  });
+  addEventListener('popstate', () => show(new URLSearchParams(location.search).get('path') || '/'));
+  const badge = document.createElement('div');
+  badge.className = 'preview-badge';
+  badge.textContent = 'Preview — not published yet';
+  document.body.append(badge);
+  show(new URLSearchParams(location.search).get('path') || '/');
+}
+
+if (PREVIEW) bootPreview();
+else enhance(document);

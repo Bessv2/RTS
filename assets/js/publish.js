@@ -1,5 +1,6 @@
 // GitHub integration for the editor: publishing, version history and cloud drafts.
 // Everything goes through the REST API with the user's fine-grained token.
+import { buildSite, staleFiles } from './build.js';
 
 const enc = new TextEncoder();
 const DRAFT_BRANCH = 'editor-drafts';
@@ -50,7 +51,7 @@ export function createApi({ owner, repo, token }) {
 
 // Replace every data:image URL in the document (whole values, or images
 // embedded in post text) with a repo path; collect the files to upload.
-async function extractImages(doc) {
+export async function extractImages(doc) {
   const files = new Map();
   async function toPath(dataUrl) {
     const m = dataUrl.match(/^data:(image\/[\w+.-]+)(;base64)?,(.*)$/s);
@@ -75,69 +76,8 @@ async function extractImages(doc) {
   return { out, files };
 }
 
-const xml = (v) => String(v ?? '').replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
-
-// RSS feed of published posts and blurbs, so people can subscribe.
-export function rssFeed(doc, origin) {
-  const s = doc.site || {};
-  const root = `${origin.replace(/\/$/, '')}/`;
-  const posts = (doc.posts || []).filter((p) => p.published !== false)
-    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))).slice(0, 30);
-  const text = (t) => String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`]+/g, '').replace(/\s+/g, ' ').trim();
-  const items = posts.map((p) => {
-    const blurb = (p.kind || 'post') === 'blurb';
-    const t = text(p.body);
-    const title = p.title || (t.length > 80 ? `${t.slice(0, 80).replace(/\s+\S*$/, '')}…` : t) || 'Note';
-    const link = blurb && /^https?:\/\//i.test(p.link || '') ? p.link : `${root}#/post/${p.slug}`;
-    const date = new Date(`${String(p.date || '').slice(0, 10)}T12:00:00Z`);
-    return `    <item>
-      <title>${xml(title)}</title>
-      <link>${xml(link)}</link>
-      <guid isPermaLink="false">${xml(p.id)}</guid>
-      ${Number.isNaN(date.getTime()) ? '' : `<pubDate>${date.toUTCString()}</pubDate>`}
-      <description>${xml(p.summary || text(p.body).slice(0, 400))}</description>
-    </item>`;
-  }).join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-  <channel>
-    <title>${xml(s.name)}</title>
-    <link>${xml(root)}</link>
-    <description>${xml(s.description || s.tagline || '')}</description>
-${items}
-  </channel>
-</rss>
-`;
-}
-
-const DEFAULT_FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M10 9h7a5 5 0 0 1 0 10h-1l5 5M10 9v15' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
-
-const escAttr = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
-// Static <head> tags so search engines and link previews see real metadata.
-function seoBlock(doc, origin) {
-  const s = doc.site || {};
-  const home = doc.pages?.[0] || {};
-  const title = home.seoTitle || s.name || '';
-  const desc = home.seoDescription || s.description || '';
-  const abs = (p) => (!p ? '' : /^https?:\/\//i.test(p) ? p : `${origin.replace(/\/$/, '')}/${String(p).replace(/^\.?\//, '')}`);
-  const img = abs(s.shareImage);
-  const favicon = s.favicon && !String(s.favicon).startsWith('data:') ? s.favicon : DEFAULT_FAVICON;
-  return [
-    '<!-- seo:start (written by the editor on publish) -->',
-    `  <title>${escAttr(title)}</title>`,
-    `  <meta name="description" content="${escAttr(desc)}">`,
-    `  <meta property="og:type" content="website">`,
-    `  <meta property="og:title" content="${escAttr(title)}">`,
-    `  <meta property="og:description" content="${escAttr(desc)}">`,
-    `  <meta property="og:url" content="${escAttr(abs('/'))}">`,
-    img ? `  <meta property="og:image" content="${escAttr(img)}">` : '',
-    `  <meta name="twitter:card" content="${img ? 'summary_large_image' : 'summary'}">`,
-    `  <link rel="icon" href="${escAttr(favicon)}">`,
-    '  <!-- seo:end -->',
-  ].filter(Boolean).join('\n');
-}
-
+// Publishes in a single commit: content/site.json, uploaded images, and every
+// generated page (build.js). Pages that no longer exist are deleted.
 export async function publishToGitHub({ owner, repo, branch, token, message, doc, origin = location.origin, log = () => {} }) {
   const api = createApi({ owner, repo, token });
   const ref = `/git/ref/heads/${encPath(branch)}`;
@@ -146,30 +86,28 @@ export async function publishToGitHub({ owner, repo, branch, token, message, doc
   log(`Connecting to ${owner}/${repo} (${branch})…`);
   const head = await api(ref);
   const parent = await api(`/git/commits/${head.object.sha}`);
+  const upload = async (path, content, encoding = 'utf8') => {
+    const blob = await api('/git/blobs', { method: 'POST', body: encoding === 'base64' ? { content, encoding } : { content: utf8ToBase64(content), encoding: 'base64' } });
+    return { path, mode: '100644', type: 'blob', sha: blob.sha };
+  };
 
   const tree = [];
   for (const [path, b64] of files) {
     log(`Uploading ${path}…`);
-    const blob = await api('/git/blobs', { method: 'POST', body: { content: b64, encoding: 'base64' } });
-    tree.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
+    tree.push(await upload(path, b64, 'base64'));
   }
-  log('Uploading content/site.json…');
-  const json = await api('/git/blobs', { method: 'POST', body: { content: utf8ToBase64(`${JSON.stringify(out, null, 2)}\n`), encoding: 'base64' } });
-  tree.push({ path: 'content/site.json', mode: '100644', type: 'blob', sha: json.sha });
+  log('Saving content…');
+  tree.push(await upload('content/site.json', `${JSON.stringify(out, null, 2)}\n`));
 
-  log('Updating RSS feed…');
-  const feed = await api('/git/blobs', { method: 'POST', body: { content: utf8ToBase64(rssFeed(out, origin)), encoding: 'base64' } });
-  tree.push({ path: 'feed.xml', mode: '100644', type: 'blob', sha: feed.sha });
-
-  const html = await api(`/contents/index.html?ref=${encodeURIComponent(branch)}`, { raw: true, allow404: true });
-  if (html && html.includes('<!-- seo:start') && html.includes('<!-- seo:end -->')) {
-    log('Updating search & social preview tags…');
-    const next = html.replace(/<!-- seo:start[\s\S]*?<!-- seo:end -->/, seoBlock(out, origin));
-    if (next !== html) {
-      const blob = await api('/git/blobs', { method: 'POST', body: { content: utf8ToBase64(next), encoding: 'base64' } });
-      tree.push({ path: 'index.html', mode: '100644', type: 'blob', sha: blob.sha });
-    }
+  log('Building pages…');
+  const site = buildSite(out, { origin });
+  for (const [path, content] of site.files) tree.push(await upload(path, content));
+  const previous = await api(`/contents/generated.json?ref=${encodeURIComponent(branch)}`, { raw: true, allow404: true });
+  for (const path of staleFiles(previous, site.paths)) {
+    log(`Removing old page ${path}…`);
+    tree.push({ path, mode: '100644', type: 'blob', sha: null });
   }
+  log(`${site.files.size} files built.`);
 
   const newTree = await api('/git/trees', { method: 'POST', body: { base_tree: parent.tree.sha, tree } });
   if (newTree.sha === parent.tree.sha) { log('No changes since the last publish.', 'ok'); return { unchanged: true, published: out }; }

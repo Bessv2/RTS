@@ -32,10 +32,9 @@ The site has a built-in visual editor, so you can change it without touching cod
    - **Find & replace** (magnifying glass in the top bar) changes wording across every page.
    - Shortcuts: Ctrl+Z / Ctrl+Shift+Z undo/redo, Ctrl+D duplicate, Ctrl+C / Ctrl+V copy and paste
      sections, Delete removes the selected section.
-6. Click **Publish**. This commits the changes to this repository and GitHub Pages updates the
-   live site about a minute later. Publishing also uploads new images to `assets/uploads/` and
-   updates the page title, description, share image and tab icon in `index.html` so Google and
-   social media previews show them.
+6. Click **Publish**. This builds every page of the site and commits it to this repository in a
+   single step; GitHub Pages updates the live site about a minute later. New images go to
+   `assets/uploads/`, and the sitemap, RSS feed and search/social preview tags are refreshed.
 
 ### Writing blog posts
 
@@ -47,7 +46,7 @@ The site has a built-in visual editor, so you can change it without touching cod
 4. Turn off **Show on website** to keep something as a private draft.
 5. Click **Publish**. Posts show up wherever a **Blog feed** section is placed (the Blog page
    and the "Latest" strip on the home page), newest first. Each post gets its own page at
-   `/#/post/your-post-title`.
+   `/blog/your-post-title/`.
 
 Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a feed reader.
 
@@ -57,7 +56,8 @@ Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a fee
 | --- | --- |
 | Working draft and saved versions | Your browser (IndexedDB), on the computer you are using |
 | Cloud draft | The `editor-drafts` branch of this repository (never affects the live site) |
-| Published site and blog posts | `content/site.json`, `assets/uploads/` and `feed.xml` on `main` |
+| Published content | `content/site.json` and `assets/uploads/` on `main` |
+| Built pages | `index.html`, `<page>/index.html`, `blog/<post>/index.html`, `404.html`, `sitemap.xml`, `feed.xml`, `robots.txt` (generated, listed in `generated.json`) |
 | Built-in images | `assets/library/` (add your own SVG/PNG files and list them in `manifest.json`) |
 
 ### One-time publishing setup
@@ -112,23 +112,84 @@ Keeping publishing safe:
 
 ## How it works
 
-No build step, no framework, just static files GitHub Pages can serve:
+The site is designed to keep working for years with as little maintenance as possible:
+
+- **No frameworks, no runtime dependencies.** Plain HTML, CSS and JavaScript modules that every
+  browser supports. There is nothing to upgrade and no package that can be abandoned.
+- **Every page is a real, pre-built HTML file** (`/services/`, `/blog/my-post/`). Pages load
+  instantly, work without JavaScript, and each blog post can be found by search engines.
+  JavaScript only adds interactivity (menu, form, gallery, video, tag filter).
+- **Content is data.** Everything lives in `content/site.json`, which carries a format version.
+  Older content (drafts, backups, history) is upgraded automatically when it is opened.
+- **One build, two places.** `assets/js/build.js` turns the content into pages. The editor runs
+  it in your browser when you publish, and GitHub Actions runs the same code with Node, so the
+  live pages always match the content.
+- **Automatic checks.** Every change runs unit tests and browser tests on GitHub.
+
+```
+content/site.json ──► assets/js/build.js ──► index.html, services/index.html, blog/…/index.html,
+   (your content)       (shared builder)      404.html, sitemap.xml, feed.xml, robots.txt
+        ▲                    ▲     ▲
+   editor.html          Publish   scripts/build.mjs  ◄── GitHub Actions (on push + monthly)
+```
 
 | Path | Purpose |
 | --- | --- |
-| `content/site.json` | All site content, pages, theme and settings (the editor writes this) |
-| `index.html` + `assets/js/site.js` | Public site: loads `site.json` and renders the current page |
-| `editor.html` + `assets/js/editor.js` | The visual editor |
+| `content/site.json` | All content, pages, posts, theme and settings |
+| `assets/js/schema.js` | Content format version, upgrades (migrations) and validation |
+| `assets/js/render.js` | Turns content into HTML. Pure functions, runs in browsers and Node |
 | `assets/js/blocks.js` | Section library: defaults, editor fields and HTML for each section type |
-| `assets/js/render.js` | Shared renderer used by both the site and the editor canvas |
+| `assets/js/build.js` | Builds complete pages, sitemap, RSS feed, robots.txt and 404 page |
+| `assets/js/site.js` | Interactivity on the live site; renders drafts on `preview.html` |
+| `assets/js/editor.js` | The visual editor (`editor.html`) |
 | `assets/js/publish.js` | GitHub integration: publish in one commit, version history, cloud drafts |
 | `assets/js/store.js` | Browser storage (IndexedDB) for drafts and saved versions |
 | `assets/library/` | Built-in images offered in the editor's image library |
-| `assets/css/site.css` | Site styles, driven by theme CSS variables |
-| `assets/css/editor.css`, `editor-canvas.css` | Editor UI and in-canvas selection styles |
+| `scripts/build.mjs` | Command-line build used by GitHub Actions and for local work |
+| `tests/unit/`, `tests/e2e/` | Unit tests (Node's built-in runner) and browser tests (Playwright) |
+| `.github/workflows/` | CI (tests on every change) and automatic page rebuilds |
 
-To add a new section type, add an entry to `BLOCKS` in `assets/js/blocks.js` (plus styles in
-`site.css`) and it shows up in the editor automatically.
+Generated files (`index.html`, the page folders, `404.html`, `sitemap.xml`, `feed.xml`,
+`robots.txt`, `generated.json`) should not be edited by hand. Change `content/site.json` or the
+code and rebuild.
 
-Run locally with any static server, for example `npx http-server .`, then open
-`http://localhost:8080/` and `http://localhost:8080/editor.html`.
+## Working on the code
+
+Requirements: [Node.js](https://nodejs.org) 20 or newer. Nothing else to install.
+
+```sh
+npm run build        # regenerate pages from content/site.json
+npm run check        # fail if generated pages are out of date
+npm test             # unit tests
+npm run serve        # local server at http://localhost:8080 (also /editor.html)
+```
+
+Browser tests need Playwright, which is only used for testing:
+
+```sh
+npm install --no-save playwright && npx playwright install chromium
+npm run test:e2e
+```
+
+### Adding a section type
+
+Add an entry to `BLOCKS` in `assets/js/blocks.js` (defaults, editor fields and a `render`
+function) plus its styles in `assets/css/site.css`. It appears in the editor automatically.
+Add a test if it has any logic.
+
+### Changing the content format
+
+If a change means existing `site.json` files need a different shape:
+
+1. Increase `SCHEMA_VERSION` in `assets/js/schema.js`.
+2. Add a function to `MIGRATIONS` that upgrades content from the previous version.
+3. Add a test in `tests/unit/schema.test.js` with an example of old content.
+4. Run `npm run build`. It upgrades `content/site.json` and rebuilds the pages.
+
+Old drafts, backups and published history are upgraded the same way when opened in the editor,
+so nothing ever has to be converted by hand.
+
+### Old links
+
+Links from the first version of the site (`/#/services`, `/#/post/my-post`) automatically
+redirect to the new addresses.

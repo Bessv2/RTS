@@ -1,0 +1,18 @@
+{
+  "note": "Files generated from content/site.json. Do not edit by hand.",
+  "files": [
+    "404.html",
+    "about/index.html",
+    "blog/5-signs-your-network-needs-an-upgrade/index.html",
+    "blog/index.html",
+    "blog/note-label-every-cable/index.html",
+    "blog/note-password-managers/index.html",
+    "blog/turn-on-multi-factor-authentication/index.html",
+    "contact/index.html",
+    "feed.xml",
+    "index.html",
+    "robots.txt",
+    "services/index.html",
+    "sitemap.xml"
+  ]
+}
