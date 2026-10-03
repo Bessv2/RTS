@@ -1,39 +1,62 @@
-# RTS
+# Roe Technology Services website
 
-Roe Technology Services
-Consulting and Technology Services for Small to Medium Business and Residential
-Owner: ----
+Consulting and technology services for small to medium businesses and residential clients.
+Live at **https://roetechnologyservices.com** (GitHub Pages).
 
-About
-Roe Technology Services is dedicated to providing consulting and technology solutions tailored for small to medium businesses and residential clients. With a focus on delivering reliable and innovative IT services, we help our clients enhance their technology infrastructure and achieve their operational goals efficiently.
+The site has a built-in visual editor, so you can change it without touching code.
 
-Who I Am
-My name is ----, the owner of Roe Technology Services. I bring over 10 years of comprehensive IT experience, from foundational support to advanced technology solutions. I am A+ certified, which supports my solid technical foundation and hands-on expertise. My skills and experience include:
+## Editing the site
 
-Configuring modern firewalls (excluding older models like Cisco ASA) and securing networks
+1. Open **https://roetechnologyservices.com/editor.html** on a laptop or desktop.
+2. Click any text on the page and type. Click a section to change its images, buttons, icons,
+   background and spacing in the panel on the right.
+3. Use the left rail to:
+   - **Add** new sections (hero, services grid, image + text, stats, checklist, steps,
+     testimonials, pricing, FAQ, call to action, contact, text, image)
+   - **Layers**: reorder (drag), hide or delete sections
+   - **Pages**: add, rename, reorder or remove pages and set search-engine titles
+   - **Design**: switch color themes, colors, fonts and corner style
+   - **Settings**: business name, email, phone, location and contact form, plus backups
+4. Your work is saved automatically as a draft in your browser. Use **Preview** to see the
+   real site with your draft.
+5. Click **Publish**. This commits the changes to this repository and GitHub Pages updates the
+   live site about a minute later.
 
-Domain recovery and IT disaster recovery planning
+### One-time publishing setup
 
-Large-scale Windows operating system rollouts and upgrades
+Publishing needs a GitHub fine-grained personal access token:
 
-Apple Business Manager (ABM) setups and iPad deployments for organizational use
+1. Go to GitHub → Settings → Developer settings → [Fine-grained tokens](https://github.com/settings/personal-access-tokens/new).
+2. Repository access: **Only select repositories** → `Bessv2/RTS`.
+3. Permissions → Repository → **Contents: Read and write**.
+4. Paste the token into the Publish dialog. You can choose to remember it on that computer.
 
-Deployment and management of 1,000+ Chromebooks for educational environments
+The token is only sent to GitHub's API. Anyone can open the editor page, but nobody can
+publish without a token that has write access to this repository.
 
-Troubleshooting a broad range of hardware and software issues across desktops, laptops, and mobile devices
+### Contact form
 
-Cybersecurity after-action assessments and vulnerability mitigation
+By default the form opens the visitor's email app addressed to your email. To receive
+messages directly instead, create a free form at a service like [Formspree](https://formspree.io)
+and paste its endpoint URL into **Settings → Form endpoint**.
 
-Network setup and maintenance, including switches, routers, and wireless configurations
+## How it works
 
-Server installation, configuration, and maintenance
+No build step, no framework, just static files GitHub Pages can serve:
 
-End-user support for software applications, system performance, and IT best practices
+| Path | Purpose |
+| --- | --- |
+| `content/site.json` | All site content, pages, theme and settings (the editor writes this) |
+| `index.html` + `assets/js/site.js` | Public site: loads `site.json` and renders the current page |
+| `editor.html` + `assets/js/editor.js` | The visual editor |
+| `assets/js/blocks.js` | Section library: defaults, editor fields and HTML for each section type |
+| `assets/js/render.js` | Shared renderer used by both the site and the editor canvas |
+| `assets/js/publish.js` | Publishes to GitHub in a single commit (images go to `assets/uploads/`) |
+| `assets/css/site.css` | Site styles, driven by theme CSS variables |
+| `assets/css/editor.css`, `editor-canvas.css` | Editor UI and in-canvas selection styles |
 
-Asset management, inventory control, and lifecycle management
+To add a new section type, add an entry to `BLOCKS` in `assets/js/blocks.js` (plus styles in
+`site.css`) and it shows up in the editor automatically.
 
-Installation of security and camera surveillance systems to enhance protection
-
-Project management for new construction buildouts, specializing in cabling infrastructure and requirements
-
-My broad skill set enables me to support clients from ground-level IT needs through high-level system integrations and security solutions, ensuring efficient and secure operations.
+Run locally with any static server, for example `npx http-server .`, then open
+`http://localhost:8080/` and `http://localhost:8080/editor.html`.
