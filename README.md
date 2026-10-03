@@ -36,9 +36,41 @@ publish without a token that has write access to this repository.
 
 ### Contact form
 
-By default the form opens the visitor's email app addressed to your email. To receive
-messages directly instead, create a free form at a service like [Formspree](https://formspree.io)
-and paste its endpoint URL into **Settings → Form endpoint**.
+Messages are delivered through [Formspree](https://formspree.io): the endpoint is set in
+**Settings → Form endpoint** (must start with `https://`). If it is empty, the form opens the
+visitor's email app instead.
+
+## Security and spam protection
+
+Built into the site:
+
+- **Honeypot field**: a hidden field people never see. Bots that fill it are silently ignored
+  (Formspree also recognizes it as `_gotcha`).
+- **Minimum fill time**: submissions made within 3 seconds of the form appearing are treated as bots.
+- **Cooldown**: one message per minute per browser.
+- **Link limit**: messages with more than 2 links are rejected.
+- **Length limits** on every field.
+- Bots get a fake "sent" message, so they get no signal to adapt to.
+- **Content Security Policy** on every page: only the site's own scripts can run, which blocks
+  injected-script attacks. The editor may only talk to `api.github.com`.
+- **The editor refuses to load inside another site's frame** (clickjacking protection), and
+  `robots.txt` keeps it out of search results.
+- Links entered in the editor are restricted to safe types (`https:`, `mailto:`, `tel:`, page links).
+
+Recommended Formspree settings (in your Formspree dashboard, open the form, then Settings):
+
+- Keep **spam filtering** turned on.
+- If your plan offers it, **restrict submissions to your domain** (`roetechnologyservices.com`).
+- Turn on **email notifications** and check the **Spam** tab occasionally for false positives.
+
+Keeping publishing safe:
+
+- Use a fine-grained token limited to this one repository with only **Contents: Read and write**,
+  and give it an expiration date. Only tick "Remember token" on your own computer.
+- Never paste the token anywhere other than the editor's Publish dialog. If it is ever exposed,
+  revoke it on GitHub and create a new one.
+- Turn on **two-factor authentication** for your GitHub account.
+- In the repository's **Settings → Pages**, make sure **Enforce HTTPS** is checked.
 
 ## How it works
 

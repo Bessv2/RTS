@@ -252,6 +252,10 @@ p { margin: 0; }
 .contact__form em { font-weight: 400; color: var(--sec-muted); font-style: normal; }
 .contact__form input, .contact__form textarea { font: inherit; font-size: 16px; padding: 12px 14px; border-radius: calc(var(--radius) * .7); border: 1px solid var(--sec-line); background: var(--c-bg); color: var(--c-text); resize: vertical; transition: border-color .15s, box-shadow .15s; }
 .contact__form input:focus, .contact__form textarea:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-primary) 18%, transparent); }
+/* Honeypot: hidden from people, visible to naive bots */
+.hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+.contact__form { position: relative; }
+.contact__form button:disabled { opacity: .65; cursor: wait; transform: none; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-status { font-size: 14px; min-height: 1em; }
 .form-status.ok { color: #059669; } .form-status.err { color: #dc2626; }

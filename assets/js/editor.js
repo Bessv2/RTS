@@ -4,6 +4,13 @@ import { renderPage, renderSection, themeCSS, fontsHref, getPath, setPath, esc, 
 import { icon, ICON_NAMES } from './icons.js';
 import { publishToGitHub } from './publish.js';
 
+// Refuse to run inside another site's frame (clickjacking protection;
+// GitHub Pages can't send X-Frame-Options headers).
+if (window.top !== window.self) {
+  document.body.innerHTML = '<p style="padding:40px;font-family:system-ui">The editor can only be opened directly.</p>';
+  throw new Error('Editor must not be framed');
+}
+
 const DRAFT_KEY = 'rts-editor-draft';
 const GH_KEY = 'rts-editor-github';
 const DEFAULT_REPO = { owner: 'Bessv2', repo: 'RTS', branch: 'main' };
@@ -813,7 +820,7 @@ function panelSite(box) {
     { key: 'email', label: 'Email', type: 'text' },
     { key: 'phone', label: 'Phone', type: 'text' },
     { key: 'location', label: 'Location / service area', type: 'text' },
-    { key: 'formEndpoint', label: 'Form endpoint (optional)', type: 'text', help: 'Paste a Formspree (or similar) URL to receive form messages by email. Leave empty to open the visitor’s email app instead.' },
+    { key: 'formEndpoint', label: 'Form endpoint (optional)', type: 'text', help: 'Paste your Formspree (or similar) https:// URL to receive form messages by email. Spam protection is built in. Leave empty to open the visitor’s email app instead.' },
   ];
   body.append(el('p', { class: 'p-sub' }, 'Business'));
   renderFields(body, fields, s, () => renderCanvas());

@@ -393,10 +393,11 @@ export const BLOCKS = {
           </ul>
         </div>
         ${d.showForm ? `<form class="contact__form" data-contact-form novalidate>
-          <div class="field-row"><label>Name<input name="name" required autocomplete="name"></label>
-          <label>Email<input name="email" type="email" required autocomplete="email"></label></div>
-          <label><span>Phone <em>(optional)</em></span><input name="phone" type="tel" autocomplete="tel"></label>
-          <label>How can we help?<textarea name="message" rows="5" required></textarea></label>
+          <div class="field-row"><label>Name<input name="name" required maxlength="100" autocomplete="name"></label>
+          <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label></div>
+          <label><span>Phone <em>(optional)</em></span><input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
+          <label>How can we help?<textarea name="message" rows="5" required minlength="10" maxlength="5000"></textarea></label>
+          <div class="hp" aria-hidden="true"><label>Leave this field empty<input name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
           <button class="btn btn--primary btn--block btn--lg" type="submit">${h.t('span', 'button', '', { ph: 'Send' }) || 'Send message'}</button>
           <p class="form-status" role="status"></p>
         </form>` : ''}

@@ -55,7 +55,10 @@ function bind(root) {
     toggle.setAttribute('aria-expanded', String(open));
   });
   root.querySelectorAll('.nav a, .brand').forEach((a) => a.addEventListener('click', () => header.classList.remove('is-open')));
-  root.querySelectorAll('[data-contact-form]').forEach((form) => form.addEventListener('submit', onSubmit));
+  root.querySelectorAll('[data-contact-form]').forEach((form) => {
+    form.dataset.startedAt = String(Date.now());
+    form.addEventListener('submit', onSubmit);
+  });
   reveal(root);
 }
 
@@ -68,31 +71,75 @@ function reveal(root) {
   root.querySelectorAll('.sec').forEach((s) => io.observe(s));
 }
 
+// --- Contact form with lightweight bot protection -----------------------
+// Formspree (or similar) does the heavy spam filtering server-side; these
+// checks stop the bulk of automated junk before it is ever sent.
+const MIN_FILL_MS = 3000; // humans take longer than this to fill the form
+const COOLDOWN_MS = 60_000; // one message per minute per browser
+const MAX_LINKS = 2; // link-stuffed messages are almost always spam
+const LAST_SENT_KEY = 'rts-form-last-sent';
+
+function formEndpoint() {
+  const v = String(doc.site.formEndpoint || '').trim();
+  return /^https:\/\/[^\s/]+\/\S*$/i.test(v) ? v : '';
+}
+
+function lastSent() {
+  try { return Number(localStorage.getItem(LAST_SENT_KEY)) || 0; } catch { return 0; }
+}
+
+function setStatus(status, text, cls = '') {
+  status.className = `form-status${cls ? ` ${cls}` : ''}`;
+  status.textContent = text;
+}
+
 async function onSubmit(e) {
   e.preventDefault();
   const form = e.currentTarget;
   const status = form.querySelector('.form-status');
+  const button = form.querySelector('button[type="submit"]');
+  if (button.disabled) return;
   if (!form.reportValidity()) return;
   const data = Object.fromEntries(new FormData(form));
-  const endpoint = (doc.site.formEndpoint || '').trim();
-  status.className = 'form-status';
+  const looksLikeBot = String(data._gotcha || '').trim() !== ''
+    || Date.now() - Number(form.dataset.startedAt || 0) < MIN_FILL_MS;
+  if (looksLikeBot) {
+    // Pretend it worked so bots get no signal to adapt to.
+    form.reset();
+    setStatus(status, 'Thanks! Your message has been sent.', 'ok');
+    return;
+  }
+  if (Date.now() - lastSent() < COOLDOWN_MS) {
+    setStatus(status, 'Thanks — we just got your message. Please wait a minute before sending another.', 'err');
+    return;
+  }
+  if ((String(data.message).match(/https?:\/\/|www\./gi) || []).length > MAX_LINKS) {
+    setStatus(status, 'Please remove some of the links from your message and try again.', 'err');
+    return;
+  }
+  const endpoint = formEndpoint();
   if (endpoint) {
-    status.textContent = 'Sending…';
+    button.disabled = true;
+    setStatus(status, 'Sending…');
+    const body = new FormData(form);
+    body.set('_subject', `Website inquiry from ${String(data.name).slice(0, 100)}`);
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+      const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body });
       if (!res.ok) throw new Error();
+      try { localStorage.setItem(LAST_SENT_KEY, String(Date.now())); } catch { /* ignore */ }
       form.reset();
-      status.textContent = 'Thanks! Your message has been sent.';
-      status.classList.add('ok');
+      form.dataset.startedAt = String(Date.now());
+      setStatus(status, 'Thanks! Your message has been sent. We’ll be in touch soon.', 'ok');
     } catch {
-      status.textContent = 'Something went wrong. Please email us directly.';
-      status.classList.add('err');
+      setStatus(status, `Something went wrong. Please email us${doc.site.email ? ` at ${doc.site.email}` : ''}.`, 'err');
+    } finally {
+      button.disabled = false;
     }
     return;
   }
-  const body = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\n\n${data.message}`;
-  location.href = `mailto:${doc.site.email || ''}?subject=${encodeURIComponent(`Website inquiry from ${data.name}`)}&body=${encodeURIComponent(body)}`;
-  status.textContent = 'Opening your email app…';
+  const text = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\n\n${data.message}`;
+  location.href = `mailto:${doc.site.email || ''}?subject=${encodeURIComponent(`Website inquiry from ${data.name}`)}&body=${encodeURIComponent(text)}`;
+  setStatus(status, 'Opening your email app…');
 }
 
 try {
