@@ -1562,6 +1562,8 @@ async function boot() {
   await initCanvas();
   refreshAll();
   if (draft?.doc && state.snap !== state.published) toast('Restored your unpublished draft', { action: 'Discard', onAction: resetToPublished });
+  // The editor now lives in its own app; this built-in copy stays for the transition.
+  setTimeout(() => toast('The editor has a new home: editor.roetechnologyservices.com', { action: 'Open it', onAction: () => window.open('https://editor.roetechnologyservices.com/', '_blank', 'noopener') }), 1500);
 
   $$('.ed-rail button').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
   $$('#device-toggle button').forEach((b) => b.addEventListener('click', () => setDevice(b.dataset.device)));

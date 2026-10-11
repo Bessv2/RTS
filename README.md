@@ -7,7 +7,12 @@ The site has a built-in visual editor, so you can change it without touching cod
 
 ## Editing the site
 
-1. Open **https://roetechnologyservices.com/editor.html** on a laptop or desktop.
+The editor is its own app: **https://editor.roetechnologyservices.com**
+(source: [Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)). It loads this site's theme
+from the live site through `assets/js/theme-api.js`, and publishes content and pages back to this
+repository. During the transition the built-in editor at `/editor.html` still works.
+
+1. Open **https://editor.roetechnologyservices.com** on a laptop or desktop.
 2. Click any text on the page and type. Click a section to change its images, buttons, icons,
    background and spacing in the panel on the right.
 3. Use the left rail to:
@@ -140,7 +145,9 @@ content/site.json ──► assets/js/build.js ──► index.html, services/in
 | `assets/js/render.js` | Turns content into HTML. Pure functions, runs in browsers and Node |
 | `assets/js/blocks.js` | Section library: defaults, editor fields and HTML for each section type |
 | `assets/js/build.js` | Builds complete pages, sitemap, RSS feed, robots.txt and 404 page |
-| `assets/js/site.js` | Interactivity on the live site; renders drafts on `preview.html` |
+| `assets/js/theme-api.js` | Versioned entry point the standalone editor loads (see below) |
+| `assets/js/enhance.js` | Interactivity: menu, contact form, gallery, video, tag filter |
+| `assets/js/site.js` | Runs `enhance` on live pages; redirects old `#/` links; draft preview for the built-in editor |
 | `assets/js/editor.js` | The visual editor (`editor.html`) |
 | `assets/js/publish.js` | GitHub integration: publish in one commit, version history, cloud drafts |
 | `assets/js/store.js` | Browser storage (IndexedDB) for drafts and saved versions |
@@ -188,6 +195,19 @@ If a change means existing `site.json` files need a different shape:
 
 Old drafts, backups and published history are upgraded the same way when opened in the editor,
 so nothing ever has to be converted by hand.
+
+### The editor contract (`theme-api.js`)
+
+The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)) imports
+`https://roetechnologyservices.com/assets/js/theme-api.js` at runtime. That file re-exports the
+sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`).
+
+- Adding exports or optional fields is safe.
+- Removing or renaming an export, or changing a function's arguments, is a breaking change: bump
+  `EDITOR_API` and release a matching editor version. The editor refuses to run against a version
+  it doesn't support, rather than corrupting content.
+- `tests/unit/theme-api.test.js` lists everything the editor relies on and fails if any of it
+  disappears. The editor's CI also re-tests weekly against this repo.
 
 ### Old links
 
