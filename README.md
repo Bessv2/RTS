@@ -3,14 +3,16 @@
 Consulting and technology services for small to medium businesses and residential clients.
 Live at **https://roetechnologyservices.com** (GitHub Pages).
 
-The site has a built-in visual editor, so you can change it without touching code.
+The site is edited with a visual editor at **https://editor.roetechnologyservices.com**, so you
+can change it without touching code.
 
 ## Editing the site
 
 The editor is its own app: **https://editor.roetechnologyservices.com**
 (source: [Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)). It loads this site's theme
 from the live site through `assets/js/theme-api.js`, and publishes content and pages back to this
-repository. During the transition the built-in editor at `/editor.html` still works.
+repository. The old built-in editor at `/editor.html` has been retired: that address now points
+to the new editor and offers to download any unpublished work the old editor left in your browser.
 
 1. Open **https://editor.roetechnologyservices.com** on a laptop or desktop.
 2. Click any text on the page and type. Click a section to change its images, buttons, icons,
@@ -118,10 +120,11 @@ Built into the site:
 - **Length limits** on every field.
 - Bots get a fake "sent" message, so they get no signal to adapt to.
 - **Content Security Policy** on every page: only the site's own scripts can run, which blocks
-  injected-script attacks. The editor may only talk to `api.github.com`.
-- **The editor refuses to load inside another site's frame** (clickjacking protection), and
-  `robots.txt` keeps it out of search results.
-- Links entered in the editor are restricted to safe types (`https:`, `mailto:`, `tel:`, page links).
+  injected-script attacks.
+- Links in the content are restricted to safe types (`https:`, `mailto:`, `tel:`, page links), and
+  theme values and section settings can't inject code into pages.
+- The editor's own protections (its security policy, frame blocking, token handling) are
+  described in [Bessv2/rts-editor](https://github.com/Bessv2/rts-editor).
 
 Recommended Formspree settings (in your Formspree dashboard, open the form, then Settings):
 
@@ -158,7 +161,7 @@ The site is designed to keep working for years with as little maintenance as pos
 content/site.json ──► assets/js/build.js ──► index.html, services/index.html, blog/…/index.html,
    (your content)       (shared builder)      404.html, sitemap.xml, feed.xml, robots.txt
         ▲                    ▲     ▲
-   editor.html          Publish   scripts/build.mjs  ◄── GitHub Actions (on push + monthly)
+  editor app           Publish   scripts/build.mjs  ◄── GitHub Actions (on push + monthly)
 ```
 
 | Path | Purpose |
@@ -170,10 +173,9 @@ content/site.json ──► assets/js/build.js ──► index.html, services/in
 | `assets/js/build.js` | Builds complete pages, sitemap, RSS feed, robots.txt and 404 page |
 | `assets/js/theme-api.js` | Versioned entry point the standalone editor loads (see below) |
 | `assets/js/enhance.js` | Interactivity: menu, contact form, gallery, video, tag filter |
-| `assets/js/site.js` | Runs `enhance` on live pages; redirects old `#/` links; draft preview for the built-in editor |
-| `assets/js/editor.js` | The visual editor (`editor.html`) |
-| `assets/js/publish.js` | GitHub integration: publish in one commit, version history, cloud drafts |
-| `assets/js/store.js` | Browser storage (IndexedDB) for drafts and saved versions |
+| `assets/js/audit.js` | Site checkup the editor runs before publishing |
+| `assets/js/site.js` | Runs `enhance` on live pages; redirects old `#/` links |
+| `editor.html`, `assets/js/editor-moved.js` | Points the old editor address to the new editor and rescues old drafts |
 | `assets/library/` | Built-in images offered in the editor's image library |
 | `scripts/build.mjs` | Command-line build used by GitHub Actions and for local work |
 | `tests/unit/`, `tests/e2e/` | Unit tests (Node's built-in runner) and browser tests (Playwright) |
@@ -191,7 +193,7 @@ Requirements: [Node.js](https://nodejs.org) 22 or newer. Nothing else to install
 npm run build        # regenerate pages from content/site.json
 npm run check        # fail if generated pages are out of date
 npm test             # unit tests
-npm run serve        # local server at http://localhost:8080 (also /editor.html)
+npm run serve        # local server at http://localhost:8080
 ```
 
 Browser tests need Playwright, which is only used for testing:

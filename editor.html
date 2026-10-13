@@ -3,75 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.github.com; frame-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; object-src 'none'; form-action 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, nofollow">
-  <title>Site Editor · Roe Technology Services</title>
+  <title>The editor has moved · Roe Technology Services</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111827'/%3E%3Cpath d='M9 22l3-1 9-9-2-2-9 9zM18 9l2-2 3 3-2 2' stroke='white' stroke-width='2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="assets/css/editor.css">
-  <script type="module" src="assets/js/editor.js"></script>
+  <style>
+    :root { color-scheme: light dark; --bg: #f3f4f6; --card: #fff; --text: #111827; --muted: #6b7280; --line: #e5e7eb; --accent: #2563eb; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --card: #111827; --text: #f3f4f6; --muted: #9ca3af; --line: #1f2937; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { width: 100%; max-width: 520px; padding: 32px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 20px 50px -30px rgba(0, 0, 0, .35); }
+    h1 { margin: 0 0 8px; font-size: 22px; }
+    p { margin: 0 0 14px; color: var(--muted); }
+    .btn { display: inline-block; padding: 11px 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .rescue { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .rescue h2 { margin: 0 0 6px; font-size: 16px; }
+    .rescue ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+    .rescue li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .rescue small { color: var(--muted); }
+    .note { font-size: 13px; }
+  </style>
+  <script type="module" src="assets/js/editor-moved.js"></script>
 </head>
 <body>
-  <div class="ed" id="ed">
-    <header class="ed-top">
-      <div class="ed-top__left">
-        <a class="ed-logo" href="./" title="View live site"><span class="ed-logo__mark" data-icon="sparkle"></span><span>Site Editor</span></a>
-        <span class="ed-sep"></span>
-        <label class="ed-page-pick"><span data-icon="file"></span><select id="page-select" aria-label="Current page"></select></label>
-      </div>
-      <div class="ed-top__center">
-        <div class="ed-seg" id="device-toggle" role="group" aria-label="Preview size">
-          <button type="button" data-device="desktop" title="Desktop" class="is-on"><span data-icon="monitor"></span></button>
-          <button type="button" data-device="tablet" title="Tablet"><span data-icon="tablet"></span></button>
-          <button type="button" data-device="mobile" title="Mobile"><span data-icon="smartphone"></span></button>
-        </div>
-      </div>
-      <div class="ed-top__right">
-        <span class="ed-status" id="status"></span>
-        <button type="button" class="ed-icon-btn" id="find" title="Find &amp; replace"><span data-icon="search"></span></button>
-        <button type="button" class="ed-icon-btn" id="undo" title="Undo (Ctrl+Z)"><span data-icon="undo"></span></button>
-        <button type="button" class="ed-icon-btn" id="redo" title="Redo (Ctrl+Shift+Z)"><span data-icon="redo"></span></button>
-        <button type="button" class="ed-btn" id="preview"><span data-icon="eye"></span>Preview</button>
-        <button type="button" class="ed-btn ed-btn--primary" id="publish"><span data-icon="send"></span>Publish</button>
-      </div>
-    </header>
-
-    <nav class="ed-rail" aria-label="Editor panels">
-      <button type="button" data-tab="add" class="is-on"><span data-icon="plus"></span><small>Add</small></button>
-      <button type="button" data-tab="layers"><span data-icon="layers"></span><small>Layers</small></button>
-      <button type="button" data-tab="pages"><span data-icon="file"></span><small>Pages</small></button>
-      <button type="button" data-tab="blog"><span data-icon="pen"></span><small>Blog</small></button>
-      <button type="button" data-tab="media"><span data-icon="image"></span><small>Images</small></button>
-      <button type="button" data-tab="theme"><span data-icon="droplet"></span><small>Design</small></button>
-      <button type="button" data-tab="site"><span data-icon="sliders"></span><small>Settings</small></button>
-      <button type="button" data-tab="history"><span data-icon="history"></span><small>History</small></button>
-      <button type="button" data-tab="help" class="ed-rail__end"><span data-icon="help"></span><small>Help</small></button>
-    </nav>
-
-    <aside class="ed-panel" id="panel" aria-live="polite"></aside>
-
-    <main class="ed-stage" id="stage">
-      <div class="ed-frame" id="frame-wrap" data-device="desktop">
-        <iframe id="canvas" title="Page canvas"></iframe>
-      </div>
-    </main>
-
-    <aside class="ed-inspector" id="inspector"></aside>
-  </div>
-
-  <div class="ed-modal" id="modal" hidden>
-    <div class="ed-modal__backdrop" data-close></div>
-    <div class="ed-modal__card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <header><h2 id="modal-title"></h2><button type="button" class="ed-icon-btn" data-close title="Close"><span data-icon="x"></span></button></header>
-      <div class="ed-modal__body" id="modal-body"></div>
-    </div>
-  </div>
-  <div class="ed-toasts" id="toasts" aria-live="polite"></div>
-  <div class="ed-small-screen">
-    <div><h2>The editor needs a bigger screen</h2><p>Open this page on a laptop or desktop for the best experience.</p><a class="ed-btn ed-btn--primary" href="./">View the site</a></div>
-  </div>
+  <main>
+    <h1>The editor has moved</h1>
+    <p>The site editor now has its own address. Bookmark it and use it from now on.</p>
+    <a class="btn btn--primary" href="https://editor.roetechnologyservices.com/">Open editor.roetechnologyservices.com</a>
+    <section class="rescue" id="rescue" hidden>
+      <h2>Unpublished work from the old editor</h2>
+      <p>This browser still has work saved by the old editor. Download it, then open the new editor and use <strong>Settings → Backup → Restore from file</strong>.</p>
+      <ul id="rescue-list"></ul>
+    </section>
+    <p class="note" id="token-note" hidden>A GitHub token the old editor had saved in this browser was removed for safety. The new editor asks for it separately.</p>
+  </main>
 </body>
 </html>
