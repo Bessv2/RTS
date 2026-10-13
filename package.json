@@ -4,7 +4,7 @@
   "description": "Roe Technology Services website and built-in visual editor. No runtime dependencies.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "build": "node scripts/build.mjs",

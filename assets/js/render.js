@@ -87,16 +87,21 @@ export function fontsHref(theme) {
   return fams.length ? `https://fonts.googleapis.com/css2?${fams.join('&')}&display=swap` : '';
 }
 
+// Theme values end up inside a <style> tag, so only plain colors and font names get through.
+const COLOR = /^#[0-9a-f]{3,8}$/i;
+const fontName = (f) => String(f || '').replace(/[^\w\s-]/g, '').trim() || 'Inter';
+
 export function themeCSS(theme) {
   const t = { ...THEME_PRESETS.midnight, ...theme };
-  return `:root{--c-primary:${t.primary};--c-accent:${t.accent};--c-dark:${t.dark};--c-bg:${t.bg};--c-surface:${t.surface};--c-text:${t.text};`
-    + `--font-head:'${t.headingFont || 'Inter'}',system-ui,sans-serif;--font-body:'${t.bodyFont || 'Inter'}',system-ui,sans-serif;`
+  const c = (k) => (COLOR.test(String(t[k] || '').trim()) ? String(t[k]).trim() : THEME_PRESETS.midnight[k]);
+  return `:root{--c-primary:${c('primary')};--c-accent:${c('accent')};--c-dark:${c('dark')};--c-bg:${c('bg')};--c-surface:${c('surface')};--c-text:${c('text')};`
+    + `--font-head:'${fontName(t.headingFont)}',system-ui,sans-serif;--font-body:'${fontName(t.bodyFont)}',system-ui,sans-serif;`
     + `--radius:${RADII[t.radius] || RADII.soft};--btn-radius:${t.buttons === 'pill' ? '999px' : `var(--radius)`};}`
-    + (t.customCSS ? `\n/* custom */\n${String(t.customCSS).replace(/<\/?style/gi, '')}` : '');
+    + (t.customCSS ? `\n/* custom */\n${String(t.customCSS).replace(/<\/?(style|script)/gi, '')}` : '');
 }
 
 export function pageHref(page, index) {
-  return index === 0 || !page.slug ? '/' : `/${page.slug}/`;
+  return index === 0 || !page.slug ? '/' : `/${encodeURIComponent(page.slug)}/`;
 }
 
 // Unpublished (draft) pages are kept in the content but never built or linked.
@@ -144,11 +149,15 @@ function helpers(data, ctx, sectionPath = '') {
   return h;
 }
 
+// Section settings that end up in class names may only be simple words.
+const MODIFIERS = ['bg', 'pad', 'overlay', 'layout', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'side', 'show', 'limit'];
+
 export function renderSection(section, ctx) {
   const block = BLOCKS[section.type];
   if (!block) return '';
   if (section.hidden && !ctx.edit) return '';
-  const d = section.data || {};
+  const d = { ...(section.data || {}) };
+  for (const k of MODIFIERS) if (d[k] != null && typeof d[k] !== 'object') d[k] = String(d[k]).replace(/[^\w-]/g, '');
   const anchor = anchorId(d.anchor);
   const bgImg = cssUrl(d.bgImage);
   const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${section.hidden ? ' is-hidden' : ''}`;
@@ -318,7 +327,7 @@ export function markdown(src, resolve = (v) => v) {
   return html;
 }
 
-export const postHref = (p) => `/${POSTS_BASE}/${p.slug}/`;
+export const postHref = (p) => `/${POSTS_BASE}/${encodeURIComponent(p.slug)}/`;
 
 // Images inside post text can point at the media library as media:<id>.
 const mediaResolver = (doc) => (v) => (String(v).startsWith('media:') ? (doc.media || []).find((m) => m.id === String(v).slice(6))?.src || '' : v);
