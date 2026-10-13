@@ -1,8 +1,8 @@
 // Static site builder. Turns site.json into finished HTML files.
 // Runs in the browser (the editor's Publish button) and in Node (scripts/build.mjs
 // and GitHub Actions), so the live site is always produced by the same code.
-import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, pageHref, postHref, postTitle, publishedPosts } from './render.js';
-import { POSTS_BASE } from './schema.js';
+import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, safeHref, pageHref, postHref, postTitle, publishedPosts, isLivePage, firstSectionIndex } from './render.js';
+import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 
 export const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
   + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; "
@@ -20,10 +20,10 @@ function siteOrigin(doc, fallback) {
 // JSON-LD must not be able to close its <script> tag.
 const ldJson = (data) => JSON.stringify(data).replace(/</g, '\\u003c');
 const xml = (v) => String(v ?? '').replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
-const plain = (t) => String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`]+/g, '').replace(/\s+/g, ' ').trim();
+const plain = (t) => String(t || '').replace(/```[\w+#.-]*|\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/gi, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`]+/g, '').replace(/\s+/g, ' ').trim();
 
 // One complete HTML document. `body` is the rendered page markup.
-export function documentHTML(doc, { path, title, description, body, image, type = 'website', jsonLd = [], noindex = false, origin }) {
+export function documentHTML(doc, { path, title, description, body, image, type = 'website', jsonLd = [], noindex = false, preload = '', origin }) {
   const s = doc.site || {};
   const t = doc.theme || {};
   const abs = (p) => (!p ? '' : /^https?:\/\//i.test(p) ? p : `${origin}${p.startsWith('/') ? '' : '/'}${p}`);
@@ -56,6 +56,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   ${fonts ? `<link rel="stylesheet" href="${esc(fonts)}">` : ''}
   <link rel="stylesheet" href="/assets/css/site.css">
+  ${preload ? `<link rel="preload" as="image" href="${esc(preload)}" fetchpriority="high">` : ''}
   <style id="theme-vars">${themeCSS(t)}</style>
   ${jsonLd.map((d) => `<script type="application/ld+json">${ldJson(d)}</script>`).join('\n  ')}
   <script type="module" src="/assets/js/site.js"></script>
@@ -66,6 +67,33 @@ export function documentHTML(doc, { path, title, description, body, image, type 
 </body>
 </html>
 `;
+}
+
+// A tiny page that forwards visitors (and search engines) to a new address.
+export function redirectHTML(doc, to, origin) {
+  const abs = /^https?:\/\//i.test(to) ? to : `${origin}${to}`;
+  return `<!doctype html>
+<html lang="${esc(doc.site?.lang || 'en')}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="${CSP}">
+  <meta name="robots" content="noindex">
+  <title>This page has moved | ${esc(doc.site?.name)}</title>
+  <link rel="canonical" href="${esc(abs)}">
+  <meta http-equiv="refresh" content="0; url=${esc(to)}">
+</head>
+<body>
+  <main id="main"><p>This page has moved to <a href="${esc(to)}">${esc(abs)}</a>.</p></main>
+</body>
+</html>
+`;
+}
+
+// Background image of the first section: worth fetching before the stylesheet asks for it.
+function heroImage(page) {
+  const first = page.sections?.[firstSectionIndex(page)];
+  const src = safeSrc(first?.data?.bgImage);
+  return src && !src.startsWith('data:') ? src : '';
 }
 
 function organization(doc, origin) {
@@ -121,13 +149,16 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
   const urls = [];
 
   doc.pages.forEach((page, i) => {
+    if (!isLivePage(page, i)) return;
     const path = pageHref(page, i);
     const title = page.seoTitle || (i === 0 ? s.name : `${page.title} | ${s.name}`);
     files.set(i === 0 ? 'index.html' : `${page.slug}/index.html`, documentHTML(doc, {
       path, title, description: page.seoDescription || s.description || '', body: renderPage(doc, i), origin,
+      noindex: !!page.noindex, preload: heroImage(page),
       jsonLd: i === 0 ? [organization(doc, origin), { '@context': 'https://schema.org', '@type': 'WebSite', name: s.name, url: `${origin}/` }] : [],
     }));
-    if (page.showInNav !== false || i === 0) urls.push({ loc: `${origin}${path}` });
+    // Pages hidden from the menu are still public; only "hide from search engines" leaves the sitemap.
+    if (!page.noindex) urls.push({ loc: `${origin}${path}` });
   });
 
   for (const post of publishedPosts(doc)) {
@@ -145,6 +176,14 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
       }],
     }));
     urls.push({ loc: `${origin}${path}`, lastmod: post.date });
+  }
+
+  // Redirects never replace a real page or post.
+  for (const r of doc.redirects || []) {
+    const from = redirectFrom(r.from);
+    const file = from && `${from}/index.html`;
+    if (!file || files.has(file) || !String(r.to || '').trim()) continue;
+    files.set(file, redirectHTML(doc, safeHref(redirectTo(r.to)), origin));
   }
 
   files.set('404.html', documentHTML(doc, { path: '/404.html', title: `Page not found | ${s.name}`, description: s.description || '', body: renderNotFound(doc), origin, noindex: true }));

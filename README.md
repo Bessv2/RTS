@@ -48,12 +48,35 @@ repository. During the transition the built-in editor at `/editor.html` still wo
    cover image and a one-line summary.
 3. Write in the text box. The toolbar adds **bold**, *italic*, links, headings, lists, quotes
    and images, and the preview in the middle updates as you type.
-4. Turn off **Show on website** to keep something as a private draft.
+4. Turn off **Show on website** to keep working on something without it appearing on the site.
+   This hides it from visitors, but it is **not private**: this repository is public, so
+   unpublished posts and pages can be read in `content/site.json` once you publish.
+
+Post text also supports `inline code`, code blocks fenced with three backticks (optionally
+followed by a language name, e.g. ```` ```powershell ````) and callout boxes:
+
+```
+> [!TIP]
+> Turn on automatic updates.
+```
+
+`[!NOTE]` and `[!WARNING]` work the same way.
 5. Click **Publish**. Posts show up wherever a **Blog feed** section is placed (the Blog page
    and the "Latest" strip on the home page), newest first. Each post gets its own page at
    `/blog/your-post-title/`.
 
 Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a feed reader.
+
+### Page options
+
+- **Unpublished pages** (`"draft": true` on a page) are kept in the content but never built,
+  linked from the menu or listed in the sitemap. Publishing removes a page that was live before.
+- **Hide from search engines** (`"noindex": true`) keeps the page on the site but asks search
+  engines not to list it, and leaves it out of `sitemap.xml`. Pages hidden from the menu are
+  still listed in the sitemap.
+- **Redirects** (`"redirects": [{ "from": "/old-page/", "to": "/new-page/" }]` in `site.json`)
+  publish a small forwarding page at the old address, so links people saved keep working after
+  a page or post is renamed. A real page or post at the same address always wins.
 
 ### Where your work is stored
 
@@ -200,7 +223,9 @@ so nothing ever has to be converted by hand.
 
 The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)) imports
 `https://roetechnologyservices.com/assets/js/theme-api.js` at runtime. That file re-exports the
-sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`).
+sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
+a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`) the
+editor switches on only when the site supports them.
 
 - Adding exports or optional fields is safe.
 - Removing or renaming an export, or changing a function's arguments, is a breaking change: bump

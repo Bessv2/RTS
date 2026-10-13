@@ -1,7 +1,7 @@
 // Shared renderer used by the static build, the preview page and the editor canvas.
 // Pure functions only (no DOM access), so it runs the same in browsers and Node.
 import { BLOCKS } from './blocks.js';
-import { POSTS_BASE } from './schema.js';
+import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 
 export const FONTS = {
@@ -30,17 +30,20 @@ export function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// Lightweight formatting for paragraphs: **bold**, *italic*, [link](url).
-// Text is escaped first, so only these three patterns ever become HTML.
+// Lightweight formatting for paragraphs: **bold**, *italic*, `code`, [link](url).
+// Text is escaped first, so only these patterns ever become HTML.
 export function rich(v) {
-  return esc(v)
+  const code = [];
+  return esc(String(v ?? '').replace(/\0/g, ''))
+    .replace(/`([^`\n]+)`/g, (m, c) => `\0${code.push(c) - 1}\0`)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[\s(])\*(?![\s*])([^*\n]+?)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>')
     .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, text, href) => {
       const url = safeHref(href.replace(/&amp;/g, '&'));
       const ext = /^https?:/i.test(url) ? ' target="_blank" rel="noopener"' : '';
       return `<a href="${esc(url)}"${ext}>${text}</a>`;
-    });
+    })
+    .replace(/\0(\d+)\0/g, (m, i) => `<code>${code[i]}</code>`);
 }
 
 export function cssUrl(src) {
@@ -96,8 +99,18 @@ export function pageHref(page, index) {
   return index === 0 || !page.slug ? '/' : `/${page.slug}/`;
 }
 
+// Unpublished (draft) pages are kept in the content but never built or linked.
+// The home page is always live.
+export const isLivePage = (page, index) => index === 0 || !page.draft;
+const inNav = (page, index) => page.showInNav !== false && isLivePage(page, index);
+
+// Section anchors can only contain letters, numbers, dashes and underscores.
+export const anchorId = (v) => String(v || '').replace(/^#/, '').replace(/[^\w-]/g, '');
+
 function helpers(data, ctx, sectionPath = '') {
   const edit = !!ctx.edit;
+  // The first section on a page carries its main headline (h1) and loads its images first.
+  let h1 = !!ctx.first;
   const attr = (path, opts = {}) => edit
     ? ` data-edit="${esc(sectionPath + path)}" data-ph="${esc(opts.ph || 'Type here…')}"${opts.ml ? ' data-ml' : ''}`
     : '';
@@ -109,12 +122,14 @@ function helpers(data, ctx, sectionPath = '') {
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
+      if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; }
       const body = opts.ml ? rich(v) : esc(v);
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && opts.ml ? ' data-rich' : ''}>${body}</${tag}>`;
     },
     img(path, cls, alt = '') {
       const src = safeSrc(getPath(data, path));
-      return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy">` : '';
+      const load = ctx.first ? 'fetchpriority="high"' : 'loading="lazy"';
+      return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" ${load} decoding="async">` : '';
     },
     btns(...specs) {
       const out = specs.map(([path, cls]) => {
@@ -134,7 +149,7 @@ export function renderSection(section, ctx) {
   if (!block) return '';
   if (section.hidden && !ctx.edit) return '';
   const d = section.data || {};
-  const anchor = String(d.anchor || '').replace(/[^\w-]/g, '');
+  const anchor = anchorId(d.anchor);
   const bgImg = cssUrl(d.bgImage);
   const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${section.hidden ? ' is-hidden' : ''}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
@@ -145,7 +160,7 @@ export function renderSection(section, ctx) {
 export function renderHeader(doc, pageIndex, ctx) {
   const s = doc.site;
   const h = helpers(s, ctx);
-  const navPages = doc.pages.map((p, i) => ({ p, i })).filter(({ p }) => p.showInNav !== false);
+  const navPages = doc.pages.map((p, i) => ({ p, i })).filter(({ p, i }) => inNav(p, i));
   const logo = s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`;
   const cta = s.headerCta && (s.headerCta.label || '').trim()
     ? `<a class="btn btn--primary btn--sm header__cta" href="${esc(safeHref(s.headerCta.href))}"><span${ctx.edit ? ' data-edit="headerCta.label" data-ph="Button"' : ''}>${esc(s.headerCta.label)}</span></a>` : '';
@@ -173,7 +188,7 @@ export function renderFooter(doc, ctx) {
         ${h.t('p', 'tagline', 'site-footer__tagline', { ph: 'Short tagline', ml: true })}
         ${socialLinks(s)}
       </div>
-      <div><h4>Pages</h4><ul>${doc.pages.map((p, i) => (p.showInNav !== false ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
+      <div><h4>Pages</h4><ul>${doc.pages.map((p, i) => (inNav(p, i) ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
       <div><h4>Contact</h4><ul>
         ${s.email ? `<li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>` : ''}
         ${s.phone ? `<li><a href="tel:${esc(s.phone.replace(/[^+\d]/g, ''))}">${esc(s.phone)}</a></li>` : ''}
@@ -190,27 +205,36 @@ function socialLinks(s) {
     `<li><a href="${esc(s.social[k].trim())}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${icon(k)}</a></li>`).join('')}</ul>` : '';
 }
 
+// Index of the section that renders first on the live site (or in the editor).
+export function firstSectionIndex(page, edit = false) {
+  return (page.sections || []).findIndex((s) => BLOCKS[s.type] && (edit || !s.hidden));
+}
+
 export function renderPage(doc, pageIndex, ctx = {}) {
   const c = { ...ctx, site: doc };
   const page = doc.pages[pageIndex];
+  const first = firstSectionIndex(page, !!ctx.edit);
   return renderHeader(doc, pageIndex, c)
-    + `<main id="main">${(page.sections || []).map((s) => renderSection(s, c)).join('')}</main>`
+    + `<main id="main">${(page.sections || []).map((s, i) => renderSection(s, i === first ? { ...c, first: true } : c)).join('')}</main>`
     + renderFooter(doc, c);
 }
 
-// Resolves a URL path (/services/, /blog/my-post/) to a page or post.
-export function findRoute(doc, path) {
+// Resolves a URL path (/services/, /blog/my-post/) to a page, post or redirect.
+// Unpublished pages and posts are only found with { drafts: true } (previews).
+export function findRoute(doc, path, { drafts = false } = {}) {
   const parts = String(path || '/').split(/[?#]/)[0].split('/').filter(Boolean);
   if (!parts.length) return { type: 'page', index: 0 };
   if (parts.length === 2 && parts[0] === POSTS_BASE) {
-    const post = (doc.posts || []).find((p) => p.slug === parts[1] && p.published !== false);
-    return post ? { type: 'post', post } : null;
+    const post = (doc.posts || []).find((p) => p.slug === parts[1] && (drafts || p.published !== false));
+    if (post) return { type: 'post', post };
   }
   if (parts.length === 1) {
-    const index = doc.pages.findIndex((p, i) => i > 0 && p.slug === parts[0]);
-    return index > 0 ? { type: 'page', index } : null;
+    const index = doc.pages.findIndex((p, i) => i > 0 && p.slug === parts[0] && (drafts || !p.draft));
+    if (index > 0) return { type: 'page', index };
   }
-  return null;
+  const from = redirectFrom(parts.join('/'));
+  const r = from && (doc.redirects || []).find((x) => redirectFrom(x.from) === from);
+  return r && String(r.to || '').trim() ? { type: 'redirect', to: safeHref(redirectTo(r.to)) } : null;
 }
 
 export function renderNotFound(doc) {
@@ -226,20 +250,50 @@ export function renderNotFound(doc) {
 
 // ---------------------------------------------------------------------------
 // Blog
-// Block-level markdown for post bodies: ## headings, lists, > quotes,
-// ![images](src), --- rules and blank-line paragraphs. Inline formatting
-// goes through rich(), which escapes everything first.
+// Callout boxes: a quote whose first line is [!TIP], [!NOTE] or [!WARNING]
+// (the same syntax GitHub uses; IMPORTANT and CAUTION also work).
+const CALLOUTS = {
+  NOTE: ['note', 'Note', 'info'], IMPORTANT: ['note', 'Important', 'info'],
+  TIP: ['tip', 'Tip', 'bulb'], WARNING: ['warning', 'Warning', 'alert'], CAUTION: ['warning', 'Caution', 'alert'],
+};
+
+// Block-level markdown for post bodies: ## headings, lists, > quotes and
+// callouts, ``` code blocks, ![images](src), --- rules and blank-line
+// paragraphs. Inline formatting goes through rich(), which escapes everything first.
 export function markdown(src, resolve = (v) => v) {
   const lines = String(src || '').replace(/\r/g, '').split('\n');
   let html = '';
   let para = [];
   let list = null;
+  let quote = null;
+  let fence = null;
   const inline = (t) => rich(t).replace(/\n/g, '<br>');
+  const paras = (ls) => ls.join('\n').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean).map((t) => `<p>${inline(t)}</p>`).join('');
   const flushP = () => { if (para.length) { html += `<p>${inline(para.join('\n'))}</p>`; para = []; } };
   const flushL = () => { if (list) { html += `<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join('')}</${list.tag}>`; list = null; } };
-  const block = () => { flushP(); flushL(); };
+  const flushQ = () => {
+    if (!quote) return;
+    const m = quote[0].match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/i);
+    if (m) {
+      const [cls, label, ic] = CALLOUTS[m[1].toUpperCase()];
+      html += `<aside class="callout callout--${cls}"><p class="callout__title">${icon(ic)}${label}</p>${paras([m[2], ...quote.slice(1)])}</aside>`;
+    } else html += `<blockquote>${paras(quote)}</blockquote>`;
+    quote = null;
+  };
+  const flushF = () => {
+    html += `<pre class="code"${fence.lang ? ` data-lang="${esc(fence.lang)}"` : ''}><code>${esc(fence.lines.join('\n'))}</code></pre>`;
+    fence = null;
+  };
+  const block = () => { flushP(); flushL(); flushQ(); };
   for (const line of lines) {
     let m;
+    if (fence) {
+      if (/^\s*```\s*$/.test(line)) flushF(); else fence.lines.push(line);
+      continue;
+    }
+    if ((m = line.match(/^\s*```\s*([\w+#.-]{0,20})\s*$/))) { block(); fence = { lang: m[1], lines: [] }; continue; }
+    if ((m = line.match(/^>\s?(.*)/))) { flushP(); flushL(); (quote ||= []).push(m[1]); continue; }
+    flushQ();
     if (!line.trim()) { block(); continue; }
     if ((m = line.match(/^(#{2,4})\s+(.*)/))) { block(); html += `<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`; continue; }
     if ((m = line.match(/^\s*[-*]\s+(.*)/)) || (m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
@@ -249,7 +303,6 @@ export function markdown(src, resolve = (v) => v) {
       list.items.push(m[1]);
       continue;
     }
-    if ((m = line.match(/^>\s?(.*)/))) { block(); html += `<blockquote><p>${inline(m[1])}</p></blockquote>`; continue; }
     if ((m = line.match(/^!\[([^\]]*)\]\(([^)\s]+)\)\s*$/))) {
       block();
       const s = safeSrc(resolve(m[2]));
@@ -260,6 +313,7 @@ export function markdown(src, resolve = (v) => v) {
     flushL();
     para.push(line);
   }
+  if (fence) flushF();
   block();
   return html;
 }
@@ -282,7 +336,7 @@ export function publishedPosts(doc, kind = 'all') {
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 }
 
-const plain = (t) => String(t || '').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`-]+/g, ' ').replace(/\s+/g, ' ').trim();
+const plain = (t) => String(t || '').replace(/```[\w+#.-]*|\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/gi, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`-]+/g, ' ').replace(/\s+/g, ' ').trim();
 export function postTitle(p) {
   if (p.title) return p.title;
   const t = plain(p.body);
@@ -316,13 +370,13 @@ export function renderPostCard(p, doc = {}) {
 }
 
 export function blogPageIndex(doc) {
-  return doc.pages.findIndex((p) => (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
+  return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
 }
 
 export function renderPostPage(doc, post, ctx = {}) {
   const c = { ...ctx, edit: false, site: doc };
   let bi = blogPageIndex(doc);
-  if (bi < 0) bi = doc.pages.findIndex((p) => (p.sections || []).some((s) => s.type === 'blogfeed'));
+  if (bi < 0) bi = doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed'));
   const back = bi >= 0 ? pageHref(doc.pages[bi], bi) : '/';
   const all = publishedPosts(doc, 'post');
   const i = all.findIndex((p) => p.id === post.id);
@@ -338,7 +392,7 @@ export function renderPostPage(doc, post, ctx = {}) {
         <h1 class="post__title">${esc(postTitle(post))}</h1>
         ${post.summary ? `<p class="lead post__summary">${esc(post.summary)}</p>` : ''}
       </header>
-      ${img ? `<figure class="wrap post__cover"><img src="${esc(img)}" alt=""></figure>` : ''}
+      ${img ? `<figure class="wrap post__cover"><img src="${esc(img)}" alt="" fetchpriority="high" decoding="async"></figure>` : ''}
       <div class="wrap wrap--narrow post__body">${markdown(post.body, mediaResolver(doc)) || (ctx.preview ? '<p class="post__empty">Start writing in the panel on the left…</p>' : '')}
         ${host ? `<p class="post__src"><a href="${esc(safeHref(post.link))}" target="_blank" rel="noopener">Source: ${esc(host)} ${icon('external')}</a></p>` : ''}</div>
       ${newer || older ? `<nav class="wrap wrap--narrow post__nav" aria-label="More posts">
