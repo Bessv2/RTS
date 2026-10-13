@@ -224,8 +224,13 @@ so nothing ever has to be converted by hand.
 The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)) imports
 `https://roetechnologyservices.com/assets/js/theme-api.js` at runtime. That file re-exports the
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
-a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`) the
-editor switches on only when the site supports them.
+a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
+`audit`) the editor switches on only when the site supports them.
+
+`assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and
+anchors, buttons without links, pages without a main headline, leftover sample text, missing
+search descriptions, a contact form with nowhere to send messages, and more. Errors block
+publishing; warnings and tips are shown with a “Show me” button.
 
 - Adding exports or optional fields is safe.
 - Removing or renaming an export, or changing a function's arguments, is a breaking change: bump
