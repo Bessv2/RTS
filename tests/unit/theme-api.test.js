@@ -11,7 +11,7 @@ const REQUIRED = {
   postTitle: 'function', formatDate: 'function', themeCSS: 'function', fontsHref: 'function', getPath: 'function', setPath: 'function',
   esc: 'function', pageHref: 'function', rich: 'function', safeSrc: 'function', icon: 'function',
   migrate: 'function', validate: 'function', buildSite: 'function', staleFiles: 'function', enhance: 'function',
-  FEATURES: 'object', isLivePage: 'function', anchorId: 'function', redirectFrom: 'function', redirectTo: 'function',
+  FEATURES: 'object', isLivePage: 'function', anchorId: 'function', redirectFrom: 'function', redirectTo: 'function', audit: 'function',
 };
 
 test('theme API exposes everything the editor needs', () => {
