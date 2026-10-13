@@ -1563,7 +1563,11 @@ async function boot() {
   refreshAll();
   if (draft?.doc && state.snap !== state.published) toast('Restored your unpublished draft', { action: 'Discard', onAction: resetToPublished });
   // The editor now lives in its own app; this built-in copy stays for the transition.
-  setTimeout(() => toast('The editor has a new home: editor.roetechnologyservices.com', { action: 'Open it', onAction: () => window.open('https://editor.roetechnologyservices.com/', '_blank', 'noopener') }), 1500);
+  // Drafts don't move between the two editors, so say how to bring unpublished work along.
+  const open = () => window.open('https://editor.roetechnologyservices.com/', '_blank', 'noopener');
+  setTimeout(() => (state.snap !== state.published
+    ? toast('The editor has moved to editor.roetechnologyservices.com. Your unpublished draft here does not move by itself: publish it, or use Settings → Backup → Download backup and then Restore from file in the new editor.', { action: 'Open it', onAction: open })
+    : toast('The editor has a new home: editor.roetechnologyservices.com', { action: 'Open it', onAction: open })), 1500);
 
   $$('.ed-rail button').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
   $$('#device-toggle button').forEach((b) => b.addEventListener('click', () => setDevice(b.dataset.device)));

@@ -185,7 +185,7 @@ code and rebuild.
 
 ## Working on the code
 
-Requirements: [Node.js](https://nodejs.org) 20 or newer. Nothing else to install.
+Requirements: [Node.js](https://nodejs.org) 22 or newer. Nothing else to install.
 
 ```sh
 npm run build        # regenerate pages from content/site.json

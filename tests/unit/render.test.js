@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rich, markdown, safeHref, safeSrc, cssUrl, findRoute, renderPage } from '../../assets/js/render.js';
+import { rich, markdown, safeHref, safeSrc, cssUrl, findRoute, renderPage, themeCSS } from '../../assets/js/render.js';
 import { migrate } from '../../assets/js/schema.js';
 
 test('rich text escapes HTML and only allows safe formatting', () => {
@@ -46,4 +46,16 @@ test('hidden sections are skipped on the live site', () => {
   const html = renderPage(doc, 0);
   assert.match(html, /Visible/);
   assert.doesNotMatch(html, /Secret/);
+});
+
+test('theme values and section settings cannot break out of their place', () => {
+  const css = themeCSS({ primary: 'red;}</style><script>alert(1)</script>', headingFont: "Inter',x:url(//evil)", customCSS: 'a{color:red}</style><script>x</script>' });
+  assert.doesNotMatch(css, /<\/?(style|script)|url\(|alert\(1\)/i);
+  assert.match(css, /--c-primary:#2563eb/);
+  const doc = migrate({ version: 2, site: { name: 'x' }, pages: [{ title: 'Home', sections: [{ id: 'a', type: 'services', data: { bg: 'dark" onclick="x', columns: '3"><script>', items: [] } }] },
+    { title: 'Odd', slug: 'a"b<c', sections: [] }] });
+  const html = renderPage(doc, 0);
+  assert.doesNotMatch(html, /onclick=|<script|"b<c/);
+  assert.match(html, /sec--darkonclickx/);
+  assert.match(html, /href="\/a%22b%3Cc\/"/);
 });

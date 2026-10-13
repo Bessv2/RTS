@@ -47,7 +47,8 @@ async function bootPreview() {
   // Keep site links inside the preview.
   app.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="/"]');
-    if (!a || a.target === '_blank' || /\.(xml|json|txt)$/.test(a.getAttribute('href'))) return;
+    // Files (images, the gallery lightbox, feed.xml) are not pages.
+    if (!a || e.defaultPrevented || a.target === '_blank' || a.hasAttribute('data-lightbox') || /\.[a-z0-9]{2,5}$/i.test(a.getAttribute('href').split(/[?#]/)[0])) return;
     e.preventDefault();
     const href = a.getAttribute('href');
     const [path, hash] = href.split('#');
