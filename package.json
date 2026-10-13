@@ -1,6 +1,7 @@
 {
   "name": "roe-technology-services-site",
   "private": true,
+  "license": "UNLICENSED",
   "description": "Roe Technology Services website and built-in visual editor. No runtime dependencies.",
   "type": "module",
   "engines": {

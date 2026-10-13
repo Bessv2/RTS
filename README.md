@@ -245,3 +245,9 @@ publishing; warnings and tips are shown with a “Show me” button.
 
 Links from the first version of the site (`/#/services`, `/#/post/my-post`) automatically
 redirect to the new addresses.
+
+## License
+
+Proprietary. All rights reserved. This code is not open source: it may not be copied, reused or
+redistributed without written permission. See [`LICENSE`](LICENSE) and
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
