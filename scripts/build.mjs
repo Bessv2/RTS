@@ -51,7 +51,7 @@ if (check) {
 
 if (outDir !== root) {
   // Copy the static assets so the output folder is a complete, servable site.
-  for (const p of ['assets', 'editor.html', 'preview.html', 'CNAME', '.nojekyll']) {
+  for (const p of ['assets', 'editor.html', 'CNAME', '.nojekyll']) {
     await cp(join(root, p), join(outDir, p), { recursive: true }).catch(() => {});
   }
   await mkdir(join(outDir, 'content'), { recursive: true });

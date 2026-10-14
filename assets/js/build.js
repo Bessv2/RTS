@@ -193,7 +193,7 @@ ${urls.map((u) => `  <url><loc>${xml(u.loc)}</loc>${u.lastmod ? `<lastmod>${xml(
 </urlset>
 `);
   files.set('feed.xml', rssFeed(doc, origin));
-  files.set('robots.txt', `User-agent: *\nDisallow: /editor.html\nDisallow: /preview.html\n\nSitemap: ${origin}/sitemap.xml\n`);
+  files.set('robots.txt', `User-agent: *\nDisallow: /editor.html\n\nSitemap: ${origin}/sitemap.xml\n`);
   const paths = [...files.keys()].sort();
   files.set(GENERATED_LIST, `${JSON.stringify({ note: 'Files generated from content/site.json. Do not edit by hand.', files: paths }, null, 2)}\n`);
   return { files, paths: [...paths, GENERATED_LIST] };

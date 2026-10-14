@@ -1,6 +1,6 @@
-// Browser tests for the built site, the editor and publishing.
+// Browser tests for the built site and the old editor address.
 // Run: npm run test:e2e   (needs Playwright: npm install --no-save playwright && npx playwright install chromium)
-// GitHub and the form service are mocked, so nothing real is ever published or sent.
+// The form service is mocked, so nothing real is ever sent.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -10,7 +10,6 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.xml': 'application/xml', '.txt': 'text/plain', '.png': 'image/png', '.webp': 'image/webp' };
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
 // Minimal static server that behaves like GitHub Pages (folder index.html, 404.html).
 const server = createServer(async (req, res) => {
@@ -115,74 +114,42 @@ test('contact form blocks bots and sends real messages', async () => {
   await ctx.close();
 });
 
-test('editor edits, previews and publishes the full site', async () => {
-  const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
-  const tree = [];
-  const blobs = [];
-  await ctx.route('https://api.github.com/**', async (r) => {
-    const path = new URL(r.request().url()).pathname.replace(/^\/repos\/[^/]+\/[^/]+/, '');
-    const json = (o, status = 200) => r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(o) });
-    if (path === '/git/ref/heads/main') return json({ object: { sha: 'c0' } });
-    if (path === '/git/commits/c0') return json({ tree: { sha: 't0' } });
-    if (path === '/git/blobs') { blobs.push(JSON.parse(r.request().postData())); return json({ sha: `b${blobs.length - 1}` }); }
-    if (path === '/contents/generated.json') return r.fulfill({ status: 200, contentType: 'text/plain', body: JSON.stringify({ files: ['index.html', 'old-page/index.html'] }) });
-    if (path === '/git/trees') { tree.push(...JSON.parse(r.request().postData()).tree); return json({ sha: 't1' }); }
-    if (path === '/git/commits') return json({ sha: 'c1c1c1c1', html_url: 'https://github.com/x' });
-    if (path === '/git/refs/heads/main') return json({});
-    return json({ message: 'Not Found' }, 404);
-  });
+test('the old editor address points to the new editor and rescues old drafts', async () => {
+  const ctx = await browser.newContext({ acceptDownloads: true });
   const p = await page(ctx);
-  p.on('dialog', (d) => d.accept());
-  await p.goto(`${base}/editor.html`, { waitUntil: 'load' });
-  const canvas = p.frameLocator('#canvas');
-  await canvas.locator('.hero__title').first().waitFor();
-
-  // Inline text editing
-  await canvas.locator('.hero__title').first().click();
-  await p.keyboard.press('Control+a');
-  await p.keyboard.type('Future-proof IT for everyone');
-  await canvas.locator('.blk-services').first().click();
-
-  // Add a section from the library
-  await p.click('.ed-rail button[data-tab="add"]');
-  await p.click('.block-card:has-text("Gallery")');
-  assert.ok(await canvas.locator('.blk-gallery').count());
-
-  // Upload an image into the library
-  await p.click('.ed-rail button[data-tab="media"]');
-  const [chooser] = await Promise.all([p.waitForEvent('filechooser'), p.click('.p-head button:has-text("Upload")')]);
-  await chooser.setFiles({ name: 'photo.png', mimeType: 'image/png', buffer: PNG });
-  await p.locator('.ed-panel .media-grid').first().locator('.media-tile').first().waitFor();
-
-  // Preview shows the unpublished draft
-  const [preview] = await Promise.all([ctx.waitForEvent('page'), p.click('#preview')]);
-  await preview.waitForLoadState('load');
-  await preview.locator('.hero__title').first().waitFor();
-  assert.match(await preview.locator('.hero__title').first().innerText(), /Future-proof IT/);
-  await preview.click('.nav__list a:has-text("Services")');
-  assert.match(preview.url(), /path=%2Fservices%2F/);
-
-  // Publish
-  await p.click('#publish');
-  await p.fill('.ed-modal input[type=password]', 'github_pat_TEST');
-  await p.click('button:has-text("Publish now")');
-  await p.locator('.log .ok', { hasText: 'Done' }).waitFor();
-  const paths = tree.map((t) => t.path);
-  for (const f of ['content/site.json', 'index.html', 'services/index.html', 'blog/index.html', 'sitemap.xml', 'feed.xml', 'generated.json']) assert.ok(paths.includes(f), f);
-  assert.ok(paths.some((f) => /^assets\/uploads\/[0-9a-f]+\.(webp|png)$/.test(f)), 'uploaded image committed');
-  assert.deepEqual(tree.filter((t) => t.sha === null).map((t) => t.path), ['old-page/index.html'], 'removed pages are deleted');
-  const home = Buffer.from(blobs[Number(tree.find((t) => t.path === 'index.html').sha.slice(1))].content, 'base64').toString();
-  assert.match(home, /Future-proof IT for everyone/);
-  const content = Buffer.from(blobs[Number(tree.find((t) => t.path === 'content/site.json').sha.slice(1))].content, 'base64').toString();
-  assert.doesNotMatch(content, /data:image/);
+  // What the retired built-in editor may have left in this browser
+  await p.goto(`${base}/`);
+  await p.evaluate(() => new Promise((resolve) => {
+    localStorage.setItem('rts-editor-github', JSON.stringify({ owner: 'Bessv2', repo: 'RTS', token: 'github_pat_OLD' }));
+    const req = indexedDB.open('rts-editor', 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore('kv'); req.result.createObjectStore('versions', { keyPath: 'id' }); };
+    req.onsuccess = () => {
+      const tx = req.result.transaction(['kv', 'versions'], 'readwrite');
+      tx.objectStore('kv').put({ savedAt: Date.now(), json: JSON.stringify({ site: { name: 'Draft biz' }, pages: [{ title: 'Home', sections: [] }] }) }, 'draft');
+      tx.objectStore('versions').put({ id: 'v1', name: 'Before redesign', savedAt: Date.now() - 1000, json: JSON.stringify({ site: { name: 'Old' }, pages: [{ title: 'Home', sections: [] }] }) });
+      tx.oncomplete = () => { req.result.close(); resolve(); };
+    };
+  }));
+  await p.goto(`${base}/editor.html`);
+  assert.equal(await p.locator('a.btn--primary').getAttribute('href'), 'https://editor.roetechnologyservices.com/');
+  await p.locator('#rescue li').first().waitFor();
+  assert.equal(await p.locator('#rescue li').count(), 2, 'the draft and the saved version');
+  assert.ok(await p.locator('#token-note').isVisible());
+  assert.equal(await p.evaluate(() => localStorage.getItem('rts-editor-github')), null, 'the saved token is removed');
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.locator('#rescue li').first().locator('button').click()]);
+  assert.equal(JSON.parse(await readFile(await dl.path(), 'utf8')).site.name, 'Draft biz');
   assert.deepEqual(p.errors, []);
   await ctx.close();
 });
 
-test('the editor refuses to run inside another site', async () => {
+test('the moved page stays quiet when there is nothing to rescue', async () => {
   const p = await page();
-  await p.setContent(`<iframe src="${base}/editor.html"></iframe>`);
-  const frame = p.frames()[1];
-  await frame.waitForLoadState('load');
-  await frame.waitForFunction(() => document.body.innerText.includes('only be opened directly'));
+  await p.goto(`${base}/editor.html`);
+  await p.waitForTimeout(300);
+  assert.ok(await p.locator('#rescue').isHidden());
+  assert.ok(await p.locator('#token-note').isHidden());
+  const dbs = await p.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
+  assert.ok(!dbs.includes('rts-editor'), 'no empty database is left behind');
+  assert.deepEqual(p.errors, []);
+  await p.close();
 });
