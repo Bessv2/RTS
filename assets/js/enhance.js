@@ -137,7 +137,7 @@ async function onSubmit(e, preview) {
       try { localStorage.setItem(LAST_SENT_KEY, String(Date.now())); } catch { /* ignore */ }
       form.reset();
       form.dataset.startedAt = String(Date.now());
-      setStatus(status, 'Thanks! Your message has been sent. We’ll be in touch soon.', 'ok');
+      setStatus(status, form.dataset.sent || 'Thanks! Your message has been sent. We’ll be in touch soon.', 'ok');
     } catch {
       setStatus(status, `Something went wrong. Please email us${email ? ` at ${email}` : ''}.`, 'err');
     } finally {

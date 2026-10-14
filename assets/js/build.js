@@ -22,6 +22,17 @@ const ldJson = (data) => JSON.stringify(data).replace(/</g, '\\u003c');
 const xml = (v) => String(v ?? '').replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
 const plain = (t) => String(t || '').replace(/```[\w+#.-]*|\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/gi, ' ').replace(/!\[[^\]]*\]\([^)]*\)/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/[#>*_`]+/g, '').replace(/\s+/g, ' ').trim();
 
+const pageLang = (s) => (/^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i.test(String(s.lang || '')) ? s.lang : 'en');
+const token = (v) => String(v || '').trim().replace(/[^\w-]/g, '');
+
+// Search engine ownership checks (Google Search Console, Bing Webmaster Tools), on the home page.
+function verification(s) {
+  const out = [];
+  if (token(s.googleVerification)) out.push(`<meta name="google-site-verification" content="${token(s.googleVerification)}">`);
+  if (token(s.bingVerification)) out.push(`<meta name="msvalidate.01" content="${token(s.bingVerification)}">`);
+  return out.join('\n  ');
+}
+
 // One complete HTML document. `body` is the rendered page markup.
 export function documentHTML(doc, { path, title, description, body, image, type = 'website', jsonLd = [], noindex = false, preload = '', origin }) {
   const s = doc.site || {};
@@ -33,7 +44,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   const fonts = fontsHref(t);
   const url = abs(path);
   return `<!doctype html>
-<html lang="${esc(s.lang || 'en')}">
+<html lang="${esc(pageLang(s))}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,7 +52,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}">
-  ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`}
+  ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`}${path === '/' && verification(s) ? `\n  ${verification(s)}` : ''}
   <meta property="og:type" content="${type}">
   <meta property="og:site_name" content="${esc(s.name)}">
   <meta property="og:title" content="${esc(title)}">
@@ -73,7 +84,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
 export function redirectHTML(doc, to, origin) {
   const abs = /^https?:\/\//i.test(to) ? to : `${origin}${to}`;
   return `<!doctype html>
-<html lang="${esc(doc.site?.lang || 'en')}">
+<html lang="${esc(pageLang(doc.site || {}))}">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="${CSP}">
@@ -154,7 +165,7 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
     const title = page.seoTitle || (i === 0 ? s.name : `${page.title} | ${s.name}`);
     files.set(i === 0 ? 'index.html' : `${page.slug}/index.html`, documentHTML(doc, {
       path, title, description: page.seoDescription || s.description || '', body: renderPage(doc, i), origin,
-      noindex: !!page.noindex, preload: heroImage(page),
+      noindex: !!page.noindex, preload: heroImage(page), image: page.shareImage,
       jsonLd: i === 0 ? [organization(doc, origin), { '@context': 'https://schema.org', '@type': 'WebSite', name: s.name, url: `${origin}/` }] : [],
     }));
     // Pages hidden from the menu are still public; only "hide from search engines" leaves the sitemap.

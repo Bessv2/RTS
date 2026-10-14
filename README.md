@@ -69,6 +69,9 @@ followed by a language name, e.g. ```` ```powershell ````) and callout boxes:
 
 Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a feed reader.
 
+**Scheduling:** give a post a future date and it stays off the site until that day (UTC). GitHub
+rebuilds the site every morning, so it goes live by itself without anyone pressing Publish.
+
 ### Page options
 
 - **Unpublished pages** (`"draft": true` on a page) are kept in the content but never built,
@@ -76,6 +79,13 @@ Publishing also updates `feed.xml`, an RSS feed people can subscribe to in a fee
 - **Hide from search engines** (`"noindex": true`) keeps the page on the site but asks search
   engines not to list it, and leaves it out of `sitemap.xml`. Pages hidden from the menu are
   still listed in the sitemap.
+- **Share image per page** (`"shareImage"` on a page) replaces the site's share image when that
+  page is shared on social media or in messages.
+- **Show on** (a section setting: all devices, computers or phones) hides a section on screens
+  narrower or wider than 760px. The editor always shows both, with a label.
+- **Search engine settings** (`"lang"`, `"googleVerification"`, `"bingVerification"` in `site`)
+  set the page language and add the Google Search Console and Bing Webmaster Tools ownership
+  tags to the home page.
 - **Redirects** (`"redirects": [{ "from": "/old-page/", "to": "/new-page/" }]` in `site.json`)
   publish a small forwarding page at the old address, so links people saved keep working after
   a page or post is renamed. A real page or post at the same address always wins.
@@ -227,7 +237,8 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 `https://roetechnologyservices.com/assets/js/theme-api.js` at runtime. That file re-exports the
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
-`audit`) the editor switches on only when the site supports them.
+`audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`) the editor
+switches on only when the site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and
 anchors, buttons without links, pages without a main headline, leftover sample text, missing

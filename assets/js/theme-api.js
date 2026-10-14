@@ -14,14 +14,14 @@ export const EDITOR_API = 1;
 
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
-export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit'];
+export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels'];
 
 export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, parseVideo } from './blocks.js';
 export {
   FONTS, THEME_PRESETS, esc, rich, cssUrl, getPath, setPath, safeHref, safeSrc, fontsHref, themeCSS,
   pageHref, renderSection, renderHeader, renderFooter, renderPage, findRoute, renderNotFound, markdown,
   postHref, formatDate, postTags, publishedPosts, postTitle, renderPostCard, renderPostPage,
-  isLivePage, anchorId, firstSectionIndex,
+  isLivePage, anchorId, firstSectionIndex, isLivePost, today,
 } from './render.js';
 export { icon, ICON_NAMES, SOCIAL } from './icons.js';
 export { SCHEMA_VERSION, POSTS_BASE, hashToPath, migrate, normalize, validate, redirectFrom, redirectTo } from './schema.js';

@@ -457,6 +457,10 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .post__nav small { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--sec-muted); }
 @media (max-width: 560px) { .post__nav { grid-template-columns: 1fr; } .post__nav a.next { text-align: left; } }
 
+/* Sections shown only on computers or only on phones (the editor shows both) */
+@media (max-width: 759.98px) { body:not(.edit-mode) .show-on--desktop { display: none; } }
+@media (min-width: 760px) { body:not(.edit-mode) .show-on--mobile { display: none; } }
+
 /* Accessibility ------------------------------------------------------------ */
 .skip-link { position: absolute; left: 12px; top: -60px; z-index: 300; padding: 10px 16px; border-radius: 8px; background: var(--c-primary); color: #fff; font-weight: 600; text-decoration: none; transition: top .15s; }
 .skip-link:focus { top: 12px; }
