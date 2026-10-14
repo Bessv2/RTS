@@ -150,7 +150,7 @@ function helpers(data, ctx, sectionPath = '') {
 }
 
 // Section settings that end up in class names may only be simple words.
-const MODIFIERS = ['bg', 'pad', 'overlay', 'layout', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'side', 'show', 'limit'];
+const MODIFIERS = ['bg', 'pad', 'overlay', 'layout', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'side', 'show', 'limit', 'showOn'];
 
 export function renderSection(section, ctx) {
   const block = BLOCKS[section.type];
@@ -160,7 +160,8 @@ export function renderSection(section, ctx) {
   for (const k of MODIFIERS) if (d[k] != null && typeof d[k] !== 'object') d[k] = String(d[k]).replace(/[^\w-]/g, '');
   const anchor = anchorId(d.anchor);
   const bgImg = cssUrl(d.bgImage);
-  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${section.hidden ? ' is-hidden' : ''}`;
+  const device = d.showOn === 'desktop' || d.showOn === 'mobile' ? ` show-on--${d.showOn}` : '';
+  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
     + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
   return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, helpers(d, ctx))}</section>`;
@@ -234,7 +235,7 @@ export function findRoute(doc, path, { drafts = false } = {}) {
   const parts = String(path || '/').split(/[?#]/)[0].split('/').filter(Boolean);
   if (!parts.length) return { type: 'page', index: 0 };
   if (parts.length === 2 && parts[0] === POSTS_BASE) {
-    const post = (doc.posts || []).find((p) => p.slug === parts[1] && (drafts || p.published !== false));
+    const post = (doc.posts || []).find((p) => p.slug === parts[1] && (drafts || isLivePost(p)));
     if (post) return { type: 'post', post };
   }
   if (parts.length === 1) {
@@ -339,9 +340,15 @@ export function formatDate(d) {
 
 export const postTags = (p) => String(p.tags || '').split(',').map((t) => t.trim()).filter(Boolean);
 
+// Today's date (UTC) as YYYY-MM-DD. Posts dated later are scheduled: they go
+// live on that day, when the site is next built (GitHub rebuilds it daily).
+export const today = () => new Date().toISOString().slice(0, 10);
+export const isLivePost = (p, day = today()) => p.published !== false && !(String(p.date || '').slice(0, 10) > day);
+
 export function publishedPosts(doc, kind = 'all') {
+  const day = today();
   return (doc.posts || [])
-    .filter((p) => p.published !== false && (kind === 'all' || (p.kind || 'post') === kind))
+    .filter((p) => isLivePost(p, day) && (kind === 'all' || (p.kind || 'post') === kind))
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 }
 

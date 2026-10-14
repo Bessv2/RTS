@@ -52,6 +52,7 @@ export const BLOCKS = {
       { key: 'primary', label: 'Primary button', type: 'button' },
       { key: 'secondary', label: 'Secondary button', type: 'button' },
       { key: 'image', label: 'Image (split layout)', type: 'image', help: 'Leave empty to show the status card instead.' },
+      { key: 'imageAlt', label: 'Image description', type: 'text', when: (d) => !!d.image, help: 'What the image shows, for people using screen readers and for search engines. Leave empty if it is only decoration.' },
       { key: 'cardTitle', label: 'Status card title', type: 'text', when: (d) => d.layout === 'split' && !d.image },
       { key: 'highlights', label: 'Status card items', type: 'list', itemLabel: 'text',
         when: (d) => d.layout === 'split' && !d.image,
@@ -59,7 +60,7 @@ export const BLOCKS = {
     ],
     render(d, h) {
       const media = d.layout !== 'split' ? '' : d.image
-        ? `<div class="hero__media">${h.img('image', 'hero__img', d.heading)}</div>`
+        ? `<div class="hero__media">${h.img('image', 'hero__img', d.imageAlt ?? d.heading)}</div>`
         : `<div class="hero__media"><div class="status-card">
             <div class="status-card__top"><span class="dots"><i></i><i></i><i></i></span>${h.t('span', 'cardTitle', 'status-card__title', { ph: 'Card title' })}</div>
             <ul class="status-card__list">${h.list('highlights').map((_, i) =>
@@ -159,12 +160,13 @@ export const BLOCKS = {
         itemFields: [{ key: 'text', label: 'Text', type: 'text' }] },
       { key: 'button', label: 'Button', type: 'button' },
       { key: 'image', label: 'Image', type: 'image', help: 'Without an image, a branded panel is shown.' },
+      { key: 'imageAlt', label: 'Image description', type: 'text', when: (d) => !!d.image, help: 'What the image shows, for people using screen readers and for search engines. Leave empty if it is only decoration.' },
       { key: 'panelIcon', label: 'Panel icon', type: 'icon', when: (d) => !d.image },
       { key: 'panelText', label: 'Panel caption', type: 'text', when: (d) => !d.image },
     ],
     render(d, h) {
       const media = d.image
-        ? h.img('image', 'split__img', d.heading)
+        ? h.img('image', 'split__img', d.imageAlt ?? d.heading)
         : `<div class="split__panel"><span class="split__panel-icon">${h.icon(d.panelIcon || 'cpu')}</span>${h.t('p', 'panelText', 'split__panel-text', { ph: 'Optional caption' })}</div>`;
       return `<div class="wrap split split--${d.side === 'left' ? 'left' : 'right'}">
         <div class="split__copy">
@@ -513,6 +515,7 @@ export const BLOCKS = {
       bg: 'light', pad: 'normal', anchor: 'contact', showForm: true,
       eyebrow: 'Contact', heading: 'Let’s talk', text: 'Tell us about your project and we’ll get back to you within one business day.',
       hours: 'Mon–Fri, 8am–6pm', button: 'Send message',
+      sentText: 'Thanks! Your message has been sent. We’ll be in touch soon.',
     }),
     fields: [
       { key: 'eyebrow', label: 'Eyebrow', type: 'text' },
@@ -521,6 +524,7 @@ export const BLOCKS = {
       { key: 'hours', label: 'Business hours', type: 'text' },
       { key: 'showForm', label: 'Show contact form', type: 'toggle' },
       { key: 'button', label: 'Form button text', type: 'text', when: (d) => d.showForm },
+      { key: 'sentText', label: 'Message after sending', type: 'text', when: (d) => d.showForm, help: 'Shown to visitors once their message has been sent.' },
       { type: 'note', text: 'Email, phone and location come from Site settings, so they stay the same everywhere.' },
     ],
     render(d, h) {
@@ -538,7 +542,7 @@ export const BLOCKS = {
             ${d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', '', { ph: 'Business hours' })}</div></li>` : ''}
           </ul>
         </div>
-        ${d.showForm ? `<form class="contact__form" data-contact-form data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}" novalidate>
+        ${d.showForm ? `<form class="contact__form" data-contact-form data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}"${d.sentText ? ` data-sent="${h.esc(d.sentText)}"` : ''} novalidate>
           <div class="field-row"><label>Name<input name="name" required maxlength="100" autocomplete="name"></label>
           <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label></div>
           <label><span>Phone <em>(optional)</em></span><input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
@@ -577,12 +581,13 @@ export const BLOCKS = {
     defaults: () => ({ bg: 'light', pad: 'normal', width: 'wide', image: '', caption: '' }),
     fields: [
       { key: 'image', label: 'Image', type: 'image' },
+      { key: 'imageAlt', label: 'Image description', type: 'text', when: (d) => !!d.image, help: 'What the image shows, for people using screen readers and for search engines. Leave empty if it is only decoration.' },
       { key: 'width', label: 'Width', type: 'segmented', options: [['narrow', 'Narrow'], ['wide', 'Wide']] },
       { key: 'caption', label: 'Caption', type: 'text' },
     ],
     render(d, h) {
       return `<figure class="wrap${d.width === 'narrow' ? ' wrap--narrow' : ''} figure">
-        ${d.image ? h.img('image', 'figure__img', d.caption) : `<div class="figure__empty">${h.icon('image')}<span>${h.edit ? 'Choose an image in the panel on the right' : ''}</span></div>`}
+        ${d.image ? h.img('image', 'figure__img', d.imageAlt || d.caption) : `<div class="figure__empty">${h.icon('image')}<span>${h.edit ? 'Choose an image in the panel on the right' : ''}</span></div>`}
         ${h.t('figcaption', 'caption', '', { ph: 'Caption (optional)' })}</figure>`;
     },
   },
@@ -593,6 +598,7 @@ export const STYLE_FIELDS = [
   { key: 'bgImage', label: 'Background image', type: 'image', help: 'Text turns white over the image for readability.' },
   { key: 'overlay', label: 'Image darkness', type: 'segmented', options: [['light', 'Light'], ['medium', 'Medium'], ['strong', 'Strong']], when: (d) => !!d.bgImage },
   { key: 'pad', label: 'Spacing', type: 'segmented', options: [['compact', 'S'], ['normal', 'M'], ['spacious', 'L']] },
+  { key: 'showOn', label: 'Show on', type: 'segmented', options: [['all', 'All devices'], ['desktop', 'Computers'], ['mobile', 'Phones']], help: 'Phones means screens narrower than 760px.' },
   { key: 'anchor', label: 'Anchor ID', type: 'text', help: 'Lets buttons link here, e.g. #contact' },
 ];
 

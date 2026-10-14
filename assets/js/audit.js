@@ -11,7 +11,7 @@
 //          inside the section data (or site/post object), e.g. 'items.0.text'.
 import { BLOCKS } from './blocks.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
-import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex } from './render.js';
+import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS } from './render.js';
 
 const LEVELS = ['error', 'warning', 'tip'];
 const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
@@ -47,6 +47,15 @@ function eachValue(node, path, visit, visitButton) {
     for (const [k, v] of Object.entries(node)) if (k !== 'href') eachValue(v, path ? `${path}.${k}` : k, visit, visitButton);
   } else if (typeof node === 'string') visit(node, path, path.split('.').pop());
 }
+
+// WCAG contrast ratio between two #rrggbb colors (1 to 21).
+function luminance(hex) {
+  const h = hex.slice(1);
+  const full = h.length === 3 ? [...h].map((c) => c + c).join('') : h.slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const contrast = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 
 const short = (t, n = 40) => { const s = String(t).replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1)}…` : s; };
 
@@ -101,6 +110,20 @@ export function audit(doc) {
   if (s.announcement?.enabled && s.announcement.link) checkLink(s.announcement.link, s.announcement.linkText || s.announcement.link, 'in the announcement bar', { kind: 'site', field: 'announcement.link' });
   for (const f of ['tagline', 'footerText']) if (s[f]) checkText(s[f], 'in the footer', { kind: 'site', field: f });
 
+  // Theme colors people have to read
+  const theme = { ...THEME_PRESETS.midnight, ...doc.theme };
+  const color = (k) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(String(theme[k] || '')) ? theme[k] : THEME_PRESETS.midnight[k]);
+  const design = { kind: 'site', field: 'theme' };
+  const ratio = (v) => `${(Math.floor(v * 10) / 10).toFixed(1)}:1`;
+  for (const [bg, where] of [['bg', 'the page background'], ['surface', 'tinted sections']]) {
+    const r = contrast(color('text'), color(bg));
+    if (r < 4.5) add('warning', 'contrast', `Text is hard to read on ${where} (contrast ${ratio(r)}; aim for at least 4.5:1). Pick a darker text color or a lighter background in Design.`, design);
+  }
+  const onDark = contrast('#f8fafc', color('dark'));
+  if (onDark < 4.5) add('warning', 'contrast', `Text in dark sections is hard to read (contrast ${ratio(onDark)}; aim for at least 4.5:1). Pick a darker “Dark sections” color in Design.`, design);
+  const onBrand = contrast('#ffffff', color('primary'));
+  if (onBrand < 3) add('warning', 'contrast', `White text on your brand color is hard to read (contrast ${ratio(onBrand)}; aim for at least 3:1). Buttons and brand sections use it, so pick a darker brand color in Design.`, design);
+
   // Pages
   const titles = new Map();
   let formPage = -1;
@@ -126,7 +149,8 @@ export function audit(doc) {
     for (const sec of page.sections || []) {
       const block = BLOCKS[sec.type];
       if (!block || sec.hidden) continue;
-      const place = `in “${block.label}” on ${name}`;
+      const secName = String(sec.label || '').trim() || block.label;
+      const place = `in “${secName}” on ${name}`;
       const where = { ...at, section: sec.id };
       const leftover = [];
       eachValue(sec.data || {}, '', (v, path, key) => {
@@ -135,10 +159,17 @@ export function audit(doc) {
         checkText(v, place, { ...where, field: path });
       }, (b, path) => { if (String(b.label || '').trim()) checkLink(b.href, b.label, place, { ...where, field: path }, { button: true }); });
       if (leftover.length) {
-        add('warning', 'sample-text', `“${block.label}” on ${name} still has sample text: “${short(leftover[0][1], 50)}”${leftover.length > 1 ? ` and ${leftover.length - 1} more` : ''}.`,
+        add('warning', 'sample-text', `“${secName}” on ${name} still has sample text: “${short(leftover[0][1], 50)}”${leftover.length > 1 ? ` and ${leftover.length - 1} more` : ''}.`,
           { ...where, field: leftover[0][0], fields: leftover.map(([p]) => p) });
       }
       if (sec.type === 'contact' && sec.data?.showForm && formPage < 0) formPage = i;
+      if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
+        add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
+      }
+      if (sec.type === 'gallery') {
+        const bare = (sec.data?.items || []).filter((it) => it.image && !String(it.caption || '').trim()).length;
+        if (bare) add('tip', 'image-description', `${bare} photo${bare === 1 ? '' : 's'} in “${secName}” on ${name} ${bare === 1 ? 'has' : 'have'} no caption. Captions also describe photos for screen readers.`, where);
+      }
     }
   });
 

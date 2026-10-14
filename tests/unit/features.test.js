@@ -94,3 +94,74 @@ test('redirect addresses are checked', () => {
   assert.match(problems, /Two redirects/);
   assert.doesNotMatch(buildSite(site({ redirects: [{ from: 'z', to: 'javascript:alert(1)' }] }), {}).files.get('z/index.html'), /url=javascript:|href="javascript:/i);
 });
+
+test('scheduled posts go live on their date', async () => {
+  const { today, isLivePost, publishedPosts } = await import('../../assets/js/render.js');
+  const day = today();
+  assert.match(day, /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(isLivePost({ date: '2000-01-01' }), true);
+  assert.equal(isLivePost({ date: '2999-01-01' }), false);
+  assert.equal(isLivePost({ date: '2999-01-01' }, '2999-01-01'), true);
+  assert.equal(isLivePost({ date: '2000-01-01', published: false }), false);
+  const doc = site({ posts: [
+    { id: 'a', kind: 'post', slug: 'now', title: 'Now', date: day, body: 'x' },
+    { id: 'b', kind: 'post', slug: 'later', title: 'Later post', date: '2999-01-01', body: 'x' },
+  ] });
+  assert.deepEqual(publishedPosts(doc).map((p) => p.id), ['a']);
+  assert.equal(findRoute(doc, '/blog/later/'), null);
+  assert.equal(findRoute(doc, '/blog/later/', { drafts: true }).post.id, 'b');
+  const { files } = buildSite(doc, { origin: 'https://x.com' });
+  assert.ok(files.has('blog/now/index.html'));
+  for (const [, c] of files) assert.doesNotMatch(c, /Later post|\/blog\/later\//);
+});
+
+test('sections can be shown on computers or phones only', () => {
+  const doc = site();
+  doc.pages[0].sections.push({ id: 'd', type: 'text', data: { heading: 'Desk', showOn: 'desktop' } }, { id: 'm', type: 'text', data: { heading: 'Mob', showOn: 'mobile"x' } });
+  const html = renderPage(doc, 0);
+  assert.match(html, /class="sec [^"]*show-on--desktop/);
+  assert.doesNotMatch(html, /show-on--mobile"x|show-on--mobilex/, 'unknown values add nothing');
+});
+
+test('per-page share images, search engine verification and language', () => {
+  const doc = site();
+  doc.site.lang = 'es';
+  doc.site.googleVerification = 'abc_123"><script>';
+  doc.site.bingVerification = 'B1N6';
+  doc.pages[1].shareImage = 'assets/about-card.png';
+  const { files } = buildSite(doc, { origin: 'https://x.com' });
+  const home = files.get('index.html');
+  assert.match(home, /<html lang="es">/);
+  assert.match(home, /<meta name="google-site-verification" content="abc_123script">/);
+  assert.match(home, /<meta name="msvalidate.01" content="B1N6">/);
+  assert.doesNotMatch(files.get('about/index.html'), /site-verification/, 'only on the home page');
+  assert.match(files.get('about/index.html'), /<meta property="og:image" content="https:\/\/x.com\/assets\/about-card.png">/);
+  doc.site.lang = 'en"><b>';
+  assert.match(buildSite(doc, {}).files.get('index.html'), /<html lang="en">/);
+});
+
+test('image descriptions and the contact form message', async () => {
+  const doc = site();
+  doc.pages[0].sections = [
+    { id: 'h', type: 'hero', data: { layout: 'split', heading: 'Welcome', image: 'assets/a.png', imageAlt: 'Our team at work' } },
+    { id: 'i', type: 'image', data: { image: 'assets/b.png' } },
+    { id: 'c', type: 'contact', data: { heading: 'Hi', showForm: true, sentText: 'Got it, thanks!' } },
+  ];
+  const html = renderPage(doc, 0);
+  assert.match(html, /alt="Our team at work"/);
+  assert.match(html, /data-sent="Got it, thanks!"/);
+  const { audit } = await import('../../assets/js/audit.js');
+  doc.site.email = 'a@b.c';
+  assert.ok(audit(doc).some((r) => r.code === 'image-description' && r.where.section === 'i'));
+});
+
+test('hard-to-read theme colors are flagged', async () => {
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.theme = { text: '#bbbbbb', bg: '#ffffff', primary: '#ffee00', dark: '#9a9a9a' };
+  const msgs = audit(doc).filter((r) => r.code === 'contrast').map((r) => r.message).join('\n');
+  assert.match(msgs, /page background/);
+  assert.match(msgs, /dark sections/);
+  assert.match(msgs, /White text on your brand color/);
+  assert.equal(audit(doc).find((r) => r.code === 'contrast').where.field, 'theme');
+});
