@@ -166,6 +166,9 @@ export function audit(doc) {
       if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
         add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
       }
+      if (sec.type === 'booking' && !String(sec.data?.url || '').trim()) {
+        add('warning', 'booking-link', `“${secName}” on ${name} has no booking link yet, so it shows nothing on the live site.`, { ...where, field: 'url' });
+      }
       if (sec.type === 'gallery') {
         const bare = (sec.data?.items || []).filter((it) => it.image && !String(it.caption || '').trim()).length;
         if (bare) add('tip', 'image-description', `${bare} photo${bare === 1 ? '' : 's'} in “${secName}” on ${name} ${bare === 1 ? 'has' : 'have'} no caption. Captions also describe photos for screen readers.`, where);

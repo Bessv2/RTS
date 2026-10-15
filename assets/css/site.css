@@ -457,6 +457,16 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .post__nav small { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--sec-muted); }
 @media (max-width: 560px) { .post__nav { grid-template-columns: 1fr; } .post__nav a.next { text-align: left; } }
 
+/* Booking calendar */
+.booking__frame { display: block; width: 100%; height: 680px; border: 0; border-radius: var(--radius); background: #fff; box-shadow: 0 20px 50px -30px rgba(15, 23, 42, .4); }
+.booking--short .booking__frame { height: 520px; }
+.booking--tall .booking__frame { height: 860px; }
+.booking__alt { margin: 12px 0 0; text-align: center; font-size: 14px; }
+.booking__alt a { color: var(--c-primary); }
+.booking__alt .ico { width: 14px; height: 14px; vertical-align: -2px; }
+.booking__btns { justify-content: center; }
+.booking .map__placeholder { min-height: 260px; border-radius: calc(var(--radius) * 1.5); border: 1px dashed var(--sec-line); background: var(--c-surface); }
+
 /* Sections shown only on computers or only on phones (the editor shows both) */
 @media (max-width: 759.98px) { body:not(.edit-mode) .show-on--desktop { display: none; } }
 @media (min-width: 760px) { body:not(.edit-mode) .show-on--mobile { display: none; } }

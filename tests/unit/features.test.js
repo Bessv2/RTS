@@ -165,3 +165,34 @@ test('hard-to-read theme colors are flagged', async () => {
   assert.match(msgs, /White text on your brand color/);
   assert.equal(audit(doc).find((r) => r.code === 'contrast').where.field, 'theme');
 });
+
+test('booking calendars embed known providers and link to anything else', async () => {
+  const { parseBooking, BLOCKS } = await import('../../assets/js/blocks.js');
+  const { CSP } = await import('../../assets/js/build.js');
+  assert.deepEqual(parseBooking('https://calendly.com/roe/30min'), { provider: 'Calendly', embed: 'https://calendly.com/roe/30min', link: 'https://calendly.com/roe/30min' });
+  assert.equal(parseBooking('https://calendar.google.com/calendar/appointments/schedules/AbC').embed, 'https://calendar.google.com/calendar/appointments/schedules/AbC?gv=true');
+  assert.equal(parseBooking('https://cal.com/roe').embed, 'https://cal.com/roe?embed=true');
+  assert.equal(parseBooking('https://outlook.office365.com/owa/calendar/Roe@x.com/bookings/').provider, 'Microsoft Bookings');
+  assert.deepEqual(parseBooking('https://example.com/book'), { provider: '', embed: '', link: 'https://example.com/book' });
+  assert.equal(parseBooking('http://calendly.com/roe'), null);
+  assert.equal(parseBooking('javascript:alert(1)'), null);
+  assert.equal(parseBooking('https://calendly.com.evil.com/x').embed, '', 'look-alike hosts are only linked');
+  for (const origin of ['https://calendly.com', 'https://outlook.office365.com', 'https://calendar.google.com']) assert.ok(CSP.includes(origin), origin);
+
+  const doc = site();
+  doc.site.email = 'a@b.c';
+  doc.pages[0].sections = [
+    { id: 'h', type: 'hero', data: { heading: 'Hi' } },
+    { id: 'b1', type: 'booking', data: { ...BLOCKS.booking.defaults(), url: 'https://calendly.com/roe/30min' } },
+    { id: 'b2', type: 'booking', data: { ...BLOCKS.booking.defaults(), url: 'https://example.com/book', button: 'Schedule now' } },
+    { id: 'b3', type: 'booking', data: { ...BLOCKS.booking.defaults(), url: '' } },
+  ];
+  const live = renderPage(doc, 0);
+  assert.match(live, /<iframe class="booking__frame" src="https:\/\/calendly.com\/roe\/30min" title="Book a time \(Calendly\)" loading="lazy">/);
+  assert.match(live, /<a class="btn btn--primary btn--lg" href="https:\/\/example.com\/book" target="_blank" rel="noopener">Schedule now/);
+  const editing = renderPage(doc, 0, { edit: true });
+  assert.doesNotMatch(editing, /<iframe/, 'the editor shows a placeholder instead of the calendar');
+  assert.match(editing, /Calendly calendar/);
+  const { audit } = await import('../../assets/js/audit.js');
+  assert.deepEqual(audit(doc).filter((r) => r.code === 'booking-link').map((r) => r.where.section), ['b3']);
+});

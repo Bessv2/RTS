@@ -14,6 +14,29 @@ export function parseVideo(url) {
   return null;
 }
 
+// Booking calendars that allow being shown inside a page. Any other link
+// becomes a "Book a time" button. Keep in sync with the editor's preview CSP.
+const withParam = (u, k, v) => { const c = new URL(u.href); c.searchParams.set(k, v); return c.href; };
+const BOOKING = [
+  [/^calendly\.com$/, 'Calendly', (u) => u.href],
+  [/^cal\.com$/, 'Cal.com', (u) => withParam(u, 'embed', 'true')],
+  [/^outlook\.office(365)?\.com$/, 'Microsoft Bookings', (u) => u.href],
+  [/^calendar\.google\.com$/, 'Google Calendar', (u) => withParam(u, 'gv', 'true')],
+  [/^meetings\.hubspot\.com$/, 'HubSpot', (u) => withParam(u, 'embed', 'true')],
+  [/^app\.acuityscheduling\.com$/, 'Acuity Scheduling', (u) => u.href],
+];
+export const BOOKING_ORIGINS = ['https://calendly.com', 'https://cal.com', 'https://app.cal.com', 'https://outlook.office365.com', 'https://outlook.office.com',
+  'https://calendar.google.com', 'https://meetings.hubspot.com', 'https://app.acuityscheduling.com'];
+
+// { provider, embed, link } for an https booking link (embed is '' when it can only be linked to), or null.
+export function parseBooking(url) {
+  let u;
+  try { u = new URL(String(url || '').trim()); } catch { return null; }
+  if (u.protocol !== 'https:' || u.username || u.password) return null;
+  const p = BOOKING.find(([rx]) => rx.test(u.hostname));
+  return p ? { provider: p[1], embed: p[2](u), link: u.href } : { provider: '', embed: '', link: u.href };
+}
+
 const SECTION_HEADER_FIELDS = [
   { key: 'eyebrow', label: 'Eyebrow', type: 'text' },
   { key: 'heading', label: 'Heading', type: 'text' },
@@ -503,6 +526,39 @@ export const BLOCKS = {
         <div>${h.t('h2', 'heading', 'cta__title', { ph: 'Heading' })}${h.t('p', 'text', 'cta__text', { ph: 'Text', ml: true })}</div>
         ${h.btns(['primary', 'btn--light btn--lg'], ['secondary', 'btn--ghost btn--lg'])}
       </div>`;
+    },
+  },
+
+  booking: {
+    label: 'Booking calendar',
+    group: 'Conversion',
+    icon: 'calendar',
+    description: 'Let visitors book a call or appointment',
+    defaults: () => ({
+      bg: 'light', pad: 'normal', height: 'medium', url: '', button: 'Book a time',
+      eyebrow: 'Book a call', heading: 'Pick a time that works for you', intro: 'Choose a time for a free consultation. You’ll get a confirmation by email.',
+    }),
+    fields: [
+      { key: 'url', label: 'Booking link', type: 'text', help: 'Paste your Calendly, Microsoft Bookings, Google Calendar appointment page, Cal.com, HubSpot or Acuity link. Other booking links show as a button.' },
+      ...SECTION_HEADER_FIELDS,
+      { key: 'height', label: 'Calendar height', type: 'segmented', options: [['short', 'S'], ['medium', 'M'], ['tall', 'L']] },
+      { key: 'button', label: 'Button text', type: 'text', help: 'Used when the calendar can’t be shown inside the page.' },
+    ],
+    render(d, h) {
+      const b = parseBooking(d.url);
+      const label = h.esc(String(d.button || '').trim() || 'Book a time');
+      let body = '';
+      if (!b) {
+        body = h.edit ? `<div class="map__placeholder">${h.icon('calendar')}<strong>Paste your booking link in the panel on the right</strong></div>` : '';
+      } else if (b.embed && h.edit) {
+        body = `<div class="map__placeholder">${h.icon('calendar')}<strong>${h.esc(b.provider)} calendar</strong><small>The calendar appears on your published site and in Preview</small></div>`;
+      } else if (b.embed) {
+        body = `<iframe class="booking__frame" src="${h.esc(b.embed)}" title="Book a time (${h.esc(b.provider)})" loading="lazy"></iframe>
+          <p class="booking__alt"><a href="${h.esc(b.link)}" target="_blank" rel="noopener">Trouble seeing the calendar? Open it in a new tab ${h.icon('external')}</a></p>`;
+      } else {
+        body = `<div class="btns booking__btns"><a class="btn btn--primary btn--lg" href="${h.esc(b.link)}" target="_blank" rel="noopener">${label} ${h.icon('external')}</a></div>`;
+      }
+      return `<div class="wrap">${sectionHeader(h)}<div class="booking booking--${d.height || 'medium'}">${body}</div></div>`;
     },
   },
 
