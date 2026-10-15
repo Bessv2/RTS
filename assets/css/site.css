@@ -509,6 +509,52 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .el-spacer--medium { height: 32px; }
 .el-spacer--large { height: 72px; }
 
+/* Quote request form */
+.quote .sec-head { margin-bottom: 32px; }
+.contact__form select { font: inherit; font-size: 16px; padding: 12px 14px; border-radius: calc(var(--radius) * .7); border: 1px solid var(--sec-line); background: var(--c-bg); color: var(--c-text); }
+.contact__form select:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-primary) 18%, transparent); }
+.choices { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.choices legend { width: 100%; margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 600; }
+.contact__form .choice { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border: 1px solid var(--sec-line); border-radius: 999px; background: var(--c-bg); font-weight: 500; cursor: pointer; transition: border-color .15s, background .15s; }
+.contact__form .choice input { width: auto; margin: 0; padding: 0; accent-color: var(--c-primary); }
+.contact__form .choice:has(input:checked) { border-color: var(--c-primary); background: color-mix(in srgb, var(--c-primary) 8%, var(--c-bg)); }
+.contact__form .choice:has(input:focus-visible) { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-primary) 18%, transparent); }
+
+/* Business hours and “Open now” */
+.open-status { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; vertical-align: 1px; }
+.open-status:empty { display: none; }
+.open-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.open-status.is-open { color: #047857; background: #d1fae5; }
+.open-status.is-closed { color: #9f1239; background: #ffe4e6; }
+.contact__list .open-status { margin: 6px 0 0; }
+.contact__list div > .open-status { display: flex; width: fit-content; }
+.contact__list div > .open-status:empty { display: none; }
+.site-footer__hours .open-status { margin: 6px 0 0; font-size: 12px; }
+.hours { display: grid; gap: 4px; margin: 10px 0 0; max-width: 360px; }
+.el--center .hours { margin-inline: auto; }
+.el--right .hours { margin-left: auto; }
+.hours__row { display: flex; justify-content: space-between; gap: 16px; padding: 8px 12px; border-radius: calc(var(--radius) * .6); }
+.hours__row dt { font-weight: 600; color: var(--sec-text); }
+.hours__row dd { margin: 0; color: var(--sec-muted); text-align: right; }
+.hours__row.is-today { background: color-mix(in srgb, var(--c-primary) 10%, transparent); }
+.hours__row.is-today dd { color: var(--sec-text); font-weight: 600; }
+.el-hours .open-status { margin-left: 0; }
+.el-hours__line { margin-top: 8px; font-size: 17px; color: var(--sec-text); }
+.el-hours__note { margin-top: 10px; font-size: 15px; color: var(--sec-muted); }
+
+/* Floating “Call now” button */
+.callbar { position: fixed; z-index: 60; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; }
+.callbar__btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 999px; background: var(--c-primary); color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; box-shadow: 0 14px 30px -10px color-mix(in srgb, var(--c-primary) 70%, #000); }
+.callbar__btn .ico { width: 20px; height: 20px; }
+.callbar__btn--alt { flex: 0 1 auto; background: #fff; color: var(--c-dark); box-shadow: 0 14px 30px -12px rgba(15, 23, 42, .45); }
+.callbar-space { height: 76px; background: var(--c-dark); }
+@media (min-width: 760px) {
+  .callbar--phones, .callbar-space { display: none; }
+  .callbar--all { left: auto; right: 24px; bottom: 24px; }
+  .callbar--all .callbar__btn { flex: 0 0 auto; }
+}
+@media print { .callbar, .callbar-space { display: none; } }
+
 /* Sections shown only on computers or only on phones (the editor shows both) */
 @media (max-width: 759.98px) { body:not(.edit-mode) .show-on--desktop { display: none; } }
 @media (min-width: 760px) { body:not(.edit-mode) .show-on--mobile { display: none; } }

@@ -3,6 +3,7 @@
 // reveal-on-scroll. No side effects on import; call enhance(root).
 import { esc } from './render.js';
 import { icon } from './icons.js';
+import { openStatus, localNow, DAYS } from './hours.js';
 
 export function enhance(root = document, { preview = false } = {}) {
   const header = root.querySelector('.site-header');
@@ -32,7 +33,33 @@ export function enhance(root = document, { preview = false } = {}) {
     e.preventDefault();
     openLightbox([...g.querySelectorAll('a[data-lightbox]')], Number(a.dataset.lightbox));
   }));
+  showOpenStatus(root);
   reveal(root);
+}
+
+// “Open now · until 6pm” and today's row in hours lists, worked out in the
+// visitor's browser for the business's time zone, refreshed every minute.
+function showOpenStatus(root) {
+  const badges = [...root.querySelectorAll('[data-open-status]')];
+  const tables = [...root.querySelectorAll('.hours')];
+  if (!badges.length && !tables.length) return;
+  const paint = () => {
+    for (const b of badges) {
+      let hours;
+      try { hours = JSON.parse(b.dataset.hours); } catch { continue; }
+      const st = openStatus(hours);
+      if (!st) continue;
+      b.textContent = st.text;
+      b.classList.toggle('is-open', st.open);
+      b.classList.toggle('is-closed', !st.open);
+    }
+    for (const t of tables) {
+      const today = DAYS[localNow(t.dataset.tz).day]?.[0];
+      t.querySelectorAll('[data-day]').forEach((row) => row.classList.toggle('is-today', row.dataset.day === today));
+    }
+  };
+  paint();
+  setInterval(paint, 60_000);
 }
 
 function playVideo(v) {
@@ -106,6 +133,13 @@ async function onSubmit(e, preview) {
   const button = form.querySelector('button[type="submit"]');
   if (button.disabled) return;
   if (!form.reportValidity()) return;
+  // “Pick any” questions that must be answered need at least one tick.
+  const unanswered = [...form.querySelectorAll('fieldset[data-required]')].find((f) => !f.querySelector('input:checked'));
+  if (unanswered) {
+    setStatus(status, `Please answer: ${unanswered.querySelector('legend')?.textContent.replace(/\s*\(optional\)$/, '') || 'all required questions'}`, 'err');
+    unanswered.querySelector('input')?.focus();
+    return;
+  }
   const data = Object.fromEntries(new FormData(form));
   const looksLikeBot = String(data._gotcha || '').trim() !== ''
     || Date.now() - Number(form.dataset.startedAt || 0) < MIN_FILL_MS;
@@ -130,7 +164,7 @@ async function onSubmit(e, preview) {
     button.disabled = true;
     setStatus(status, 'Sending…');
     const body = new FormData(form);
-    body.set('_subject', `Website inquiry from ${String(data.name).slice(0, 100)}`);
+    body.set('_subject', `${form.dataset.subject || 'Website inquiry'} from ${String(data.name).slice(0, 100)}`);
     try {
       const res = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body });
       if (!res.ok) throw new Error();
@@ -145,7 +179,18 @@ async function onSubmit(e, preview) {
     }
     return;
   }
-  const text = `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\n\n${data.message}`;
-  location.href = `mailto:${email}?subject=${encodeURIComponent(`Website inquiry from ${data.name}`)}&body=${encodeURIComponent(text)}`;
+  const text = form.dataset.subject ? answersText(form) : `Name: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone || '-'}\n\n${data.message}`;
+  location.href = `mailto:${email}?subject=${encodeURIComponent(`${form.dataset.subject || 'Website inquiry'} from ${data.name}`)}&body=${encodeURIComponent(text)}`;
   setStatus(status, 'Opening your email app…');
+}
+
+// Every answer as “Question: answer” lines; ticked boxes are joined.
+function answersText(form) {
+  const answers = new Map();
+  for (const [k, v] of new FormData(form)) {
+    if (k.startsWith('_') || !String(v).trim()) continue;
+    answers.set(k, answers.has(k) ? `${answers.get(k)}, ${v}` : String(v));
+  }
+  const label = { name: 'Name', email: 'Email', phone: 'Phone', message: 'Anything else' };
+  return [...answers].map(([k, v]) => `${label[k] || k}: ${v}`).join('\n');
 }

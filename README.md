@@ -86,6 +86,15 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
 - **Search engine settings** (`"lang"`, `"googleVerification"`, `"bingVerification"` in `site`)
   set the page language and add the Google Search Console and Bing Webmaster Tools ownership
   tags to the home page.
+- **Call button** (`"callButton": { "enabled": true, "label", "text", "textLabel", "show": "phones" | "all" }` in
+  `site`): a floating “Call now” (and optional “Text us”) button using the site phone number,
+  on phones or on every screen.
+- **Business hours** (`"hours": { "enabled", "timezone", "note", "week": { "mon": "08:00-18:00", …, "sun": "" } }`
+  in `site`, an empty day is closed): shown in the Contact section and the footer, as an
+  **Opening hours** element, and in Google's business details. The live site works out
+  “Open now · until 6pm” in the visitor's browser for the business's time zone.
+- **Quote request** (section): name, email and phone plus your own questions (short or long
+  answer, dropdown, pick one, pick any), sent like the contact form.
 - **Elements** (`"elements": [{ "type": "text", … }]` in any section's data): headings, text,
   images, buttons, lines and space added below a section's own content. Each has an alignment
   and a width (full, ⅔, ½, ⅓), and narrower ones sit side by side on computers. The **Empty
@@ -245,7 +254,7 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
 `audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`,
-`elements`) the editor
+`elements`, `call-button`, `hours`, `quote-form`) the editor
 switches on only when the site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and

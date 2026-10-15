@@ -3,6 +3,7 @@
 import { BLOCKS, renderElements } from './blocks.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
+import { hasHours, hoursSummary, openBadge } from './hours.js';
 
 export const FONTS = {
   'Inter': 'Inter:wght@400;500;600;700;800',
@@ -204,11 +205,23 @@ export function renderFooter(doc, ctx) {
       <div><h4>Contact</h4><ul>
         ${s.email ? `<li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>` : ''}
         ${s.phone ? `<li><a href="tel:${esc(s.phone.replace(/[^+\d]/g, ''))}">${esc(s.phone)}</a></li>` : ''}
-        ${s.location ? `<li>${esc(s.location)}</li>` : ''}
+        ${s.location ? `<li>${esc(s.location)}</li>` : ''}${hasHours(s.hours) ? `\n        <li class="site-footer__hours">${esc(hoursSummary(s.hours))} ${openBadge(s.hours, esc, ctx.edit)}</li>` : ''}
       </ul></div>
     </div>
     <div class="wrap site-footer__bottom"><span>© ${year} ${esc(s.name)}</span>${h.t('span', 'footerText', '', { ph: 'Footer note' })}</div>
-  </footer>`;
+  </footer>${callBar(s)}`;
+}
+
+// The floating “Call now” (and “Text us”) button, on phones or on every screen.
+function callBar(s) {
+  const c = s.callButton || {};
+  const tel = String(s.phone || '').replace(/[^+\d]/g, '');
+  if (!c.enabled || tel.replace(/\D/g, '').length < 3) return '';
+  const where = c.show === 'all' ? 'all' : 'phones';
+  return `<div class="callbar-space callbar--${where}" aria-hidden="true"></div><div class="callbar callbar--${where}">`
+    + `<a class="callbar__btn" href="tel:${esc(tel)}">${icon('phone')}<span>${esc(String(c.label || '').trim() || 'Call now')}</span></a>`
+    + (c.text ? `<a class="callbar__btn callbar__btn--alt" href="sms:${esc(tel)}">${icon('message')}<span>${esc(String(c.textLabel || '').trim() || 'Text us')}</span></a>` : '')
+    + '</div>';
 }
 
 function socialLinks(s) {

@@ -10,6 +10,7 @@
 //          page is a page index, section and post are ids, field is a path
 //          inside the section data (or site/post object), e.g. 'items.0.text'.
 import { BLOCKS, ELEMENTS } from './blocks.js';
+import { hoursProblems } from './hours.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
 import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS } from './render.js';
 
@@ -33,7 +34,10 @@ function sampleTexts() {
     else if (typeof node === 'string' && !NOT_TEXT.has(key) && node.trim().length >= min && /\s|[.?]$/.test(node.trim())) samples.add(node.trim());
   };
   for (const b of Object.values(BLOCKS)) {
-    walk(b.defaults(), 24);
+    // Defaults meant to be kept (the quote form's starter questions) don't count.
+    const d = b.defaults();
+    for (const f of b.fields) if (f.keepDefaults) delete d[f.key];
+    walk(d, 24);
     for (const f of b.fields) if (typeof f.item === 'function') walk(f.item(), 1);
   }
   for (const e of Object.values(ELEMENTS)) walk(e.defaults(), 1);
@@ -106,6 +110,10 @@ export function audit(doc) {
 
   // Site settings, header and footer
   if (!String(s.description || '').trim()) add('warning', 'site-description', 'Add a site description in Settings. Search engines show it under your site’s name.', { kind: 'site', field: 'description' });
+  if (s.callButton?.enabled && String(s.phone || '').replace(/\D/g, '').length < 3) {
+    add('warning', 'call-button', 'The call button is turned on but there is no phone number in Settings → Business, so it isn’t shown.', { kind: 'site', field: 'phone' });
+  }
+  for (const p of hoursProblems(s.hours)) add('warning', 'hours', p.message, { kind: 'site', field: p.day ? `hours.week.${p.day}` : 'hours' });
   if (!s.shareImage) add('tip', 'share-image', 'Add a share image in Settings so links to your site look good on social media and in messages.', { kind: 'site', field: 'shareImage' });
   if (String(s.headerCta?.label || '').trim()) checkLink(s.headerCta.href, s.headerCta.label, 'in the header', { kind: 'site', field: 'headerCta' }, { button: true });
   if (s.announcement?.enabled && s.announcement.link) checkLink(s.announcement.link, s.announcement.linkText || s.announcement.link, 'in the announcement bar', { kind: 'site', field: 'announcement.link' });
@@ -128,6 +136,7 @@ export function audit(doc) {
   // Pages
   const titles = new Map();
   let formPage = -1;
+  let formName = 'contact form';
   doc.pages.forEach((page, i) => {
     if (!isLivePage(page, i)) return;
     const name = `“${page.title}”`;
@@ -163,7 +172,7 @@ export function audit(doc) {
         add('warning', 'sample-text', `“${secName}” on ${name} still has sample text: “${short(leftover[0][1], 50)}”${leftover.length > 1 ? ` and ${leftover.length - 1} more` : ''}.`,
           { ...where, field: leftover[0][0], fields: leftover.map(([p]) => p) });
       }
-      if (sec.type === 'contact' && sec.data?.showForm && formPage < 0) formPage = i;
+      if (((sec.type === 'contact' && sec.data?.showForm) || sec.type === 'quote') && formPage < 0) { formPage = i; formName = sec.type === 'quote' ? 'quote request form' : 'contact form'; }
       if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
         add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
       }
@@ -187,10 +196,10 @@ export function audit(doc) {
     const endpoint = String(s.formEndpoint || '').trim();
     const where = { kind: 'site', field: endpoint ? 'formEndpoint' : 'email' };
     if (endpoint && !VALID_ENDPOINT.test(endpoint)) {
-      if (s.email) add('warning', 'form-endpoint', 'The form endpoint in Settings must be a full https:// address. Until it is fixed, the contact form opens the visitor’s email app instead.', where);
-      else add('error', 'form-endpoint', 'The contact form can’t send messages: the form endpoint in Settings must be a full https:// address.', where);
+      if (s.email) add('warning', 'form-endpoint', `The form endpoint in Settings must be a full https:// address. Until it is fixed, the ${formName} opens the visitor’s email app instead.`, where);
+      else add('error', 'form-endpoint', `The ${formName} can’t send messages: the form endpoint in Settings must be a full https:// address.`, where);
     } else if (!endpoint && !String(s.email || '').trim()) {
-      add('error', 'form-destination', 'The contact form has nowhere to send messages. Add your email address or a form endpoint in Settings.', where);
+      add('error', 'form-destination', `The ${formName} has nowhere to send messages. Add your email address or a form endpoint in Settings.`, where);
     }
   }
 
