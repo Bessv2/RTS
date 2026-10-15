@@ -196,3 +196,52 @@ test('booking calendars embed known providers and link to anything else', async 
   const { audit } = await import('../../assets/js/audit.js');
   assert.deepEqual(audit(doc).filter((r) => r.code === 'booking-link').map((r) => r.where.section), ['b3']);
 });
+
+test('elements add headings, text, images, buttons, lines and space to any section', async () => {
+  const { BLOCKS, ELEMENTS } = await import('../../assets/js/blocks.js');
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.pages[0].sections = [
+    { id: 'h', type: 'hero', data: { heading: 'Hi' } },
+    { id: 'e', type: 'blank', data: { elements: [
+      { type: 'heading', text: 'Our promise', size: 'large', align: 'center' },
+      { type: 'text', text: 'Fast **help**.\nSecond line', width: 'half' },
+      { type: 'image', image: 'assets/img/x.png', alt: 'Our office', size: 'small', width: 'half', align: 'right' },
+      { type: 'button', label: 'Call us', href: '/contact/', style: 'outline' },
+      { type: 'divider' }, { type: 'spacer', size: 'large' },
+      { type: 'script', text: '<script>alert(1)</script>' },
+      { type: 'heading', text: '<b>x</b>', size: 'huge"><script>', align: 'left" onclick="x', width: '9' },
+    ] } },
+  ];
+  const live = renderPage(doc, 0);
+  assert.match(live, /<div class="el el--full el--center"><h2 class="el-heading el-heading--large">Our promise<\/h2><\/div>/);
+  assert.match(live, /<div class="el el--half el--left"><div class="el-text"><p>Fast <strong>help<\/strong>\.<br>Second line<\/p><\/div><\/div>/);
+  assert.match(live, /<div class="el el--half el--right"><figure class="el-figure el-figure--small el-figure--round"><img src="\/assets\/img\/x.png" alt="Our office"/);
+  assert.match(live, /<a class="btn btn--outline" href="\/contact\/"><span>Call us<\/span><\/a>/);
+  assert.match(live, /<hr class="el-divider">/);
+  assert.match(live, /el-spacer--large/);
+  assert.doesNotMatch(live, /<script>alert|onclick|huge/, 'unknown types and settings are dropped, text is escaped');
+  assert.match(live, /el-heading--medium">&lt;b&gt;x&lt;\/b&gt;/);
+  assert.doesNotMatch(live, /data-el=/, 'editor markers only appear while editing');
+
+  // Elements work on every section, after its own content, and are editable in the editor
+  doc.pages[0].sections[0].data.elements = [{ type: 'text', text: 'Under the hero' }];
+  const editing = renderPage(doc, 0, { edit: true });
+  assert.match(editing, /data-el="0"><div class="el-text" data-edit="elements\.0\.text" data-ph="Text" data-ml data-rich data-md><p>Under the hero/);
+  assert.match(renderPage(doc, 0), /<\/div><div class="wrap"><div class="elements"><div class="el el--full el--left"><div class="el-text"><p>Under the hero/);
+  doc.pages[0].sections[0].data.elements = [{ type: 'text', text: '- One\n- Two\n\n![Logo](assets/img/l.png)' }];
+  assert.match(renderPage(doc, 0), /<ul><li>One<\/li><li>Two<\/li><\/ul><figure><img src="\/assets\/img\/l.png"/, 'lists and images work in text');
+
+  // An empty section shows a hint while editing and nothing on the live site
+  doc.pages[0].sections[1].data.elements = [];
+  assert.match(renderPage(doc, 0, { edit: true }), /Empty section/);
+  assert.doesNotMatch(renderPage(doc, 0), /Empty section|class="elements"[^]*Under the hero[^]*class="elements"/);
+
+  // Checkup: placeholder text, image descriptions and button links
+  doc.pages[0].sections[1].data = BLOCKS.blank.defaults();
+  doc.pages[0].sections[1].data.elements.push({ ...ELEMENTS.image.defaults(), image: 'assets/img/x.png' }, { ...ELEMENTS.button.defaults(), href: '/missing/' });
+  const found = audit(doc);
+  assert.deepEqual(found.find((r) => r.code === 'sample-text' && r.where.section === 'e').where.fields, ['elements.0.text', 'elements.1.text']);
+  assert.equal(found.find((r) => r.code === 'image-description' && r.where.section === 'e').where.field, 'elements.2.alt');
+  assert.equal(found.find((r) => r.code === 'broken-link' && r.where.section === 'e').where.field, 'elements.3');
+});

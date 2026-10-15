@@ -9,7 +9,7 @@
 //   where: { kind: 'site' | 'page' | 'post', page?, section?, post?, field?, fields? }
 //          page is a page index, section and post are ids, field is a path
 //          inside the section data (or site/post object), e.g. 'items.0.text'.
-import { BLOCKS } from './blocks.js';
+import { BLOCKS, ELEMENTS } from './blocks.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
 import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS } from './render.js';
 
@@ -17,7 +17,7 @@ const LEVELS = ['error', 'warning', 'tip'];
 const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
 // Keys that hold settings, not words visitors read.
 const NOT_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'href', 'anchor', 'bg', 'pad', 'overlay', 'layout', 'side', 'columns',
-  'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon']);
+  'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size']);
 const VALID_ENDPOINT = /^https:\/\/[^\s/]+\/\S*$/i;
 
 // Words the section library fills in for new sections. Seeing them on a live
@@ -36,6 +36,7 @@ function sampleTexts() {
     walk(b.defaults(), 24);
     for (const f of b.fields) if (typeof f.item === 'function') walk(f.item(), 1);
   }
+  for (const e of Object.values(ELEMENTS)) walk(e.defaults(), 1);
   return samples;
 }
 
@@ -166,6 +167,11 @@ export function audit(doc) {
       if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
         add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
       }
+      (Array.isArray(sec.data?.elements) ? sec.data.elements : []).forEach((el, n) => {
+        if (el?.type === 'image' && el.image && !String(el.alt || el.caption || '').trim()) {
+          add('tip', 'image-description', `An image added to “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `elements.${n}.alt` });
+        }
+      });
       if (sec.type === 'booking' && !String(sec.data?.url || '').trim()) {
         add('warning', 'booking-link', `“${secName}” on ${name} has no booking link yet, so it shows nothing on the live site.`, { ...where, field: 'url' });
       }

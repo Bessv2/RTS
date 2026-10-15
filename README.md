@@ -86,6 +86,10 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
 - **Search engine settings** (`"lang"`, `"googleVerification"`, `"bingVerification"` in `site`)
   set the page language and add the Google Search Console and Bing Webmaster Tools ownership
   tags to the home page.
+- **Elements** (`"elements": [{ "type": "text", … }]` in any section's data): headings, text,
+  images, buttons, lines and space added below a section's own content. Each has an alignment
+  and a width (full, ⅔, ½, ⅓), and narrower ones sit side by side on computers. The **Empty
+  section** is made only of elements.
 - **Booking calendar** (section): paste a Calendly, Microsoft Bookings, Google Calendar
   appointment page, Cal.com, HubSpot or Acuity link and the calendar is shown on the page (these
   providers are allowed in the security policy's `frame-src`). Any other link becomes a button.
@@ -240,7 +244,8 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 `https://roetechnologyservices.com/assets/js/theme-api.js` at runtime. That file re-exports the
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
-`audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`) the editor
+`audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`,
+`elements`) the editor
 switches on only when the site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and
