@@ -647,7 +647,110 @@ export const BLOCKS = {
         ${h.t('figcaption', 'caption', '', { ph: 'Caption (optional)' })}</figure>`;
     },
   },
+
+  blank: {
+    label: 'Empty section',
+    group: 'Basic',
+    icon: 'layout',
+    description: 'Build your own from text, images and buttons',
+    defaults: () => ({ bg: 'light', pad: 'normal', elements: [ELEMENTS.heading.defaults(), ELEMENTS.text.defaults()] }),
+    fields: [{ type: 'note', text: 'Add headings, text, images, buttons and more under “Elements” below.' }],
+    render(d, h) {
+      // The elements themselves are added by renderSection, like on every section.
+      return h.edit && !h.list('elements').length
+        ? `<div class="wrap"><div class="map__placeholder">${h.icon('plus')}<strong>Empty section</strong><small>Add text, images or buttons in the panel on the right</small></div></div>`
+        : '';
+    },
+  },
 };
+
+// Elements: small pieces (a heading, text, an image, a button, a line or some
+// space) that can be added to any section, below its own content. Each one is
+// a plain object in the section's data.elements list: { type, ...fields }.
+const ALIGN = { key: 'align', label: 'Alignment', type: 'segmented', options: [['left', 'Left'], ['center', 'Center'], ['right', 'Right']] };
+const WIDTH = { key: 'width', label: 'Width', type: 'segmented', options: [['full', 'Full'], ['twothirds', '⅔'], ['half', '½'], ['third', '⅓']], help: 'Narrower elements sit side by side on computers.' };
+export const ELEMENTS = {
+  heading: {
+    label: 'Heading', icon: 'heading',
+    defaults: () => ({ type: 'heading', text: 'A new heading', size: 'medium', align: 'left', width: 'full' }),
+    fields: [{ key: 'text', label: 'Heading', type: 'text' }, { key: 'size', label: 'Size', type: 'segmented', options: [['small', 'S'], ['medium', 'M'], ['large', 'L']] }, ALIGN, WIDTH],
+  },
+  text: {
+    label: 'Text', icon: 'align-left',
+    defaults: () => ({ type: 'text', text: 'Write your text here. Use **bold**, *italic* and links.', align: 'left', width: 'full' }),
+    fields: [{ key: 'text', label: 'Text', type: 'markdown', rows: 6 }, ALIGN, WIDTH],
+  },
+  image: {
+    label: 'Image', icon: 'image',
+    defaults: () => ({ type: 'image', image: '', alt: '', caption: '', size: 'medium', align: 'center', width: 'full', round: true }),
+    fields: [
+      { key: 'image', label: 'Image', type: 'image' },
+      { key: 'alt', label: 'Image description', type: 'text', help: 'What the image shows, for screen readers and search engines.' },
+      { key: 'caption', label: 'Caption', type: 'text' },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['small', 'S'], ['medium', 'M'], ['large', 'L'], ['fill', 'Fill']] },
+      { key: 'round', label: 'Rounded corners', type: 'toggle' },
+      ALIGN, WIDTH,
+    ],
+  },
+  button: {
+    label: 'Button', icon: 'button',
+    defaults: () => ({ type: 'button', label: 'Get in touch', href: '/contact/', style: 'primary', align: 'left', width: 'full' }),
+    fields: [
+      { key: 'label', label: 'Button text', type: 'text' },
+      { key: 'href', label: 'Link', type: 'link' },
+      { key: 'style', label: 'Style', type: 'segmented', options: [['primary', 'Solid'], ['outline', 'Outline'], ['ghost', 'Plain']] },
+      ALIGN, WIDTH,
+    ],
+  },
+  divider: {
+    label: 'Line', icon: 'minus',
+    defaults: () => ({ type: 'divider', width: 'full' }),
+    fields: [WIDTH],
+  },
+  spacer: {
+    label: 'Space', icon: 'spacing',
+    defaults: () => ({ type: 'spacer', size: 'medium', width: 'full' }),
+    fields: [{ key: 'size', label: 'Height', type: 'segmented', options: [['small', 'S'], ['medium', 'M'], ['large', 'L']] }],
+  },
+};
+
+const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);
+
+// The section's elements, or '' when it has none. Uses the section's helpers,
+// so text is editable in the editor and the first heading on a page is its h1.
+export function renderElements(d, h) {
+  const list = h.list('elements');
+  const out = list.map((el, i) => {
+    if (!el || !ELEMENTS[el.type]) return '';
+    const p = `elements.${i}`;
+    const align = pick(el.align, ['left', 'center', 'right'], 'left');
+    const width = pick(el.width, ['full', 'twothirds', 'half', 'third'], 'full');
+    let body = '';
+    if (el.type === 'heading') {
+      const size = pick(el.size, ['small', 'medium', 'large'], 'medium');
+      body = h.t(size === 'small' ? 'h3' : 'h2', `${p}.text`, `el-heading el-heading--${size}`, { ph: 'Heading' });
+    } else if (el.type === 'text') {
+      body = h.t('div', `${p}.text`, 'el-text', { ph: 'Text', ml: true, md: true });
+    } else if (el.type === 'image') {
+      const src = h.src(el.image);
+      const size = pick(el.size, ['small', 'medium', 'large', 'fill'], 'medium');
+      if (src) {
+        body = `<figure class="el-figure el-figure--${size}${el.round === false ? '' : ' el-figure--round'}"><img src="${h.esc(src)}" alt="${h.esc(el.alt || '')}" loading="lazy" decoding="async">${h.t('figcaption', `${p}.caption`, '', { ph: 'Caption (optional)' })}</figure>`;
+      } else if (h.edit) {
+        body = `<div class="figure__empty el-figure--${size}">${h.icon('image')}<span>Click to choose an image</span></div>`;
+      }
+    } else if (el.type === 'button') {
+      const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
+      body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
+    } else if (el.type === 'divider') {
+      body = '<hr class="el-divider">';
+    } else if (el.type === 'spacer') {
+      body = `<div class="el-spacer el-spacer--${pick(el.size, ['small', 'medium', 'large'], 'medium')}"></div>`;
+    }
+    return body ? `<div class="el el--${width} el--${align}"${h.edit ? ` data-el="${i}"` : ''}>${body}</div>` : '';
+  }).join('');
+  return out ? `<div class="wrap"><div class="elements">${out}</div></div>` : '';
+}
 
 export const STYLE_FIELDS = [
   { key: 'bg', label: 'Background', type: 'swatches', options: [['light', 'Light'], ['alt', 'Tint'], ['dark', 'Dark'], ['brand', 'Brand']] },

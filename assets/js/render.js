@@ -1,6 +1,6 @@
 // Shared renderer used by the static build, the preview page and the editor canvas.
 // Pure functions only (no DOM access), so it runs the same in browsers and Node.
-import { BLOCKS } from './blocks.js';
+import { BLOCKS, renderElements } from './blocks.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 
@@ -128,8 +128,9 @@ function helpers(data, ctx, sectionPath = '') {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
       if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; }
-      const body = opts.ml ? rich(v) : esc(v);
-      return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && opts.ml ? ' data-rich' : ''}>${body}</${tag}>`;
+      // md: paragraphs, lists and subheadings (markdown); ml: one formatted paragraph.
+      const body = opts.md ? markdown(v, safeSrc) : opts.ml ? rich(v) : esc(v);
+      return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && (opts.ml || opts.md) ? ' data-rich' : ''}${edit && opts.md ? ' data-md' : ''}>${body}</${tag}>`;
     },
     img(path, cls, alt = '') {
       const src = safeSrc(getPath(data, path));
@@ -164,7 +165,8 @@ export function renderSection(section, ctx) {
   const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
     + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
-  return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, helpers(d, ctx))}</section>`;
+  const h = helpers(d, ctx);
+  return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, h)}${renderElements(d, h)}</section>`;
 }
 
 export function renderHeader(doc, pageIndex, ctx) {
