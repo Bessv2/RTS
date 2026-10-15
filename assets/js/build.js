@@ -3,10 +3,11 @@
 // and GitHub Actions), so the live site is always produced by the same code.
 import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, safeHref, pageHref, postHref, postTitle, publishedPosts, isLivePage, firstSectionIndex } from './render.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
+import { BOOKING_ORIGINS } from './blocks.js';
 
 export const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
   + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; "
-  + "frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com; base-uri 'self'; object-src 'none'; form-action 'self'";
+  + `frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com ${BOOKING_ORIGINS.join(' ')}; base-uri 'self'; object-src 'none'; form-action 'self'`;
 
 export const DEFAULT_FAVICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M10 9h7a5 5 0 0 1 0 10h-1l5 5M10 9v15' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
 

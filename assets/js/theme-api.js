@@ -14,9 +14,9 @@ export const EDITOR_API = 1;
 
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
-export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels'];
+export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking'];
 
-export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, parseVideo } from './blocks.js';
+export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
 export {
   FONTS, THEME_PRESETS, esc, rich, cssUrl, getPath, setPath, safeHref, safeSrc, fontsHref, themeCSS,
   pageHref, renderSection, renderHeader, renderFooter, renderPage, findRoute, renderNotFound, markdown,
