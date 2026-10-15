@@ -2,6 +2,8 @@
 // Each block has defaults (new-section content), fields (editor inspector)
 // and render(data, h) which returns the inner HTML of the section.
 
+import { hasHours, hoursSummary, hoursTable, openBadge } from './hours.js';
+
 const btn = (label, href) => ({ label, href });
 
 // Turns a YouTube/Vimeo page link into a privacy-friendly embed URL.
@@ -562,6 +564,78 @@ export const BLOCKS = {
     },
   },
 
+  quote: {
+    label: 'Quote request',
+    group: 'Conversion',
+    icon: 'clipboard',
+    description: 'A form that asks the right questions',
+    defaults: () => ({
+      bg: 'alt', pad: 'normal', anchor: 'quote',
+      eyebrow: 'Free quote', heading: 'Request a quote', intro: 'Answer a few quick questions and we’ll get back to you within one business day.',
+      questions: [
+        { label: 'Is this for your home or a business?', type: 'radio', options: 'Home, Business', required: true },
+        { label: 'What do you need help with?', type: 'checkboxes', options: 'Network & Wi-Fi, Computers & laptops, Security cameras, Backups, Email & Microsoft 365, Something else', required: true },
+        { label: 'How many devices?', type: 'select', options: '1–5, 6–20, 21–50, More than 50', required: false },
+        { label: 'Best time to reach you', type: 'select', options: 'Morning, Afternoon, Evening', required: false },
+      ],
+      details: true, button: 'Request my quote',
+      sentText: 'Thanks! We’ve got your request and will reply within one business day.',
+    }),
+    fields: [
+      ...SECTION_HEADER_FIELDS,
+      { key: 'questions', label: 'Questions', type: 'list', itemLabel: 'label', keepDefaults: true,
+        item: () => ({ label: 'New question', type: 'text', options: '', required: false }),
+        itemFields: [
+          { key: 'label', label: 'Question', type: 'text' },
+          { key: 'type', label: 'Answer', type: 'select', options: [['text', 'Short answer'], ['textarea', 'Long answer'], ['select', 'Dropdown list'], ['radio', 'Pick one'], ['checkboxes', 'Pick any']] },
+          { key: 'options', label: 'Choices', type: 'text', help: 'Separate the choices with commas.', when: (q) => ['select', 'radio', 'checkboxes'].includes(q.type) },
+          { key: 'required', label: 'Must be answered', type: 'toggle' },
+        ] },
+      { key: 'details', label: 'Ask “Anything else we should know?”', type: 'toggle' },
+      { key: 'button', label: 'Button text', type: 'text' },
+      { key: 'sentText', label: 'Message after sending', type: 'text', keepDefaults: true, help: 'Shown to visitors once their request has been sent.' },
+      { type: 'note', text: 'Name, email and phone are always asked. Requests go to the form endpoint in Settings, or open the visitor’s email app addressed to your email.' },
+    ],
+    render(d, h) {
+      const used = new Set(['name', 'email', 'phone', 'message']);
+      const fieldName = (label, i) => {
+        let n = String(label || '').replace(/\s+/g, ' ').trim().slice(0, 80) || `Question ${i + 1}`;
+        while (used.has(n.toLowerCase()) || n.startsWith('_')) n = `${n.replace(/^_+/, '')} (${i + 1})`;
+        used.add(n.toLowerCase());
+        return n;
+      };
+      const qs = h.list('questions').map((q, i) => {
+        const label = String(q?.label || '').trim();
+        if (!label) return '';
+        const n = h.esc(fieldName(label, i));
+        const req = q.required ? ' required' : '';
+        const mark = q.required ? '' : ' <em>(optional)</em>';
+        const opts = String(q.options || '').split(',').map((o) => o.trim()).filter(Boolean).slice(0, 30);
+        if (['radio', 'checkboxes'].includes(q.type) && opts.length) {
+          const type = q.type === 'radio' ? 'radio' : 'checkbox';
+          return `<fieldset class="choices"${q.required && type === 'checkbox' ? ' data-required' : ''}><legend>${h.esc(label)}${mark}</legend>${opts.map((o, j) =>
+            `<label class="choice"><input type="${type}" name="${n}" value="${h.esc(o)}"${type === 'radio' && j === 0 ? req : ''}><span>${h.esc(o)}</span></label>`).join('')}</fieldset>`;
+        }
+        if (q.type === 'select' && opts.length) {
+          return `<label><span>${h.esc(label)}${mark}</span><select name="${n}"${req}><option value="">Choose…</option>${opts.map((o) => `<option>${h.esc(o)}</option>`).join('')}</select></label>`;
+        }
+        if (q.type === 'textarea') return `<label><span>${h.esc(label)}${mark}</span><textarea name="${n}" rows="4" maxlength="3000"${req}></textarea></label>`;
+        return `<label><span>${h.esc(label)}${mark}</span><input name="${n}" maxlength="200"${req}></label>`;
+      }).join('');
+      return `<div class="wrap wrap--narrow quote">${sectionHeader(h)}
+        <form class="contact__form quote__form" data-contact-form data-subject="Quote request" data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}"${d.sentText ? ` data-sent="${h.esc(d.sentText)}"` : ''} novalidate>
+          <div class="field-row"><label>Name<input name="name" required maxlength="100" autocomplete="name"></label>
+          <label>Email<input name="email" type="email" required maxlength="200" autocomplete="email"></label></div>
+          <label><span>Phone <em>(optional)</em></span><input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
+          ${qs}
+          ${d.details ? '<label><span>Anything else we should know? <em>(optional)</em></span><textarea name="message" rows="4" maxlength="5000"></textarea></label>' : ''}
+          <div class="hp" aria-hidden="true"><label>Leave this field empty<input name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+          <button class="btn btn--primary btn--block btn--lg" type="submit">${h.t('span', 'button', '', { ph: 'Send' }) || 'Request my quote'}</button>
+          <p class="form-status" role="status"></p>
+        </form></div>`;
+    },
+  },
+
   contact: {
     label: 'Contact',
     group: 'Conversion',
@@ -577,10 +651,10 @@ export const BLOCKS = {
       { key: 'eyebrow', label: 'Eyebrow', type: 'text' },
       { key: 'heading', label: 'Heading', type: 'text' },
       { key: 'text', label: 'Text', type: 'textarea' },
-      { key: 'hours', label: 'Business hours', type: 'text' },
+      { key: 'hours', label: 'Business hours', type: 'text', help: 'Used only while business hours aren’t set in Settings.' },
       { key: 'showForm', label: 'Show contact form', type: 'toggle' },
       { key: 'button', label: 'Form button text', type: 'text', when: (d) => d.showForm },
-      { key: 'sentText', label: 'Message after sending', type: 'text', when: (d) => d.showForm, help: 'Shown to visitors once their message has been sent.' },
+      { key: 'sentText', label: 'Message after sending', type: 'text', keepDefaults: true, when: (d) => d.showForm, help: 'Shown to visitors once their message has been sent.' },
       { type: 'note', text: 'Email, phone and location come from Site settings, so they stay the same everywhere.' },
     ],
     render(d, h) {
@@ -595,7 +669,9 @@ export const BLOCKS = {
             ${row('mail', 'Email', s.email, s.email && `mailto:${s.email}`)}
             ${row('phone', 'Phone', s.phone, s.phone && `tel:${s.phone.replace(/[^+\d]/g, '')}`)}
             ${row('map-pin', 'Service area', s.location)}
-            ${d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', '', { ph: 'Business hours' })}</div></li>` : ''}
+            ${hasHours(s.hours)
+    ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small><span>${h.esc(hoursSummary(s.hours))}</span>${openBadge(s.hours, h.esc, h.edit)}</div></li>`
+    : d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', '', { ph: 'Business hours' })}</div></li>` : ''}
           </ul>
         </div>
         ${d.showForm ? `<form class="contact__form" data-contact-form data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}"${d.sentText ? ` data-sent="${h.esc(d.sentText)}"` : ''} novalidate>
@@ -702,6 +778,15 @@ export const ELEMENTS = {
       ALIGN, WIDTH,
     ],
   },
+  hours: {
+    label: 'Opening hours', icon: 'clock',
+    defaults: () => ({ type: 'hours', show: 'week', align: 'left', width: 'full' }),
+    fields: [
+      { type: 'note', text: 'The hours come from Settings → Business hours, so they stay the same everywhere.' },
+      { key: 'show', label: 'Show', type: 'segmented', options: [['week', 'Whole week'], ['summary', 'One line']] },
+      ALIGN, WIDTH,
+    ],
+  },
   divider: {
     label: 'Line', icon: 'minus',
     defaults: () => ({ type: 'divider', width: 'full' }),
@@ -742,6 +827,13 @@ export function renderElements(d, h) {
     } else if (el.type === 'button') {
       const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
       body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
+    } else if (el.type === 'hours') {
+      const hours = h.site.hours;
+      if (hasHours(hours)) {
+        body = `<div class="el-hours">${openBadge(hours, h.esc, h.edit)}${el.show === 'summary' ? `<p class="el-hours__line">${h.esc(hoursSummary(hours))}</p>` : hoursTable(hours, h.esc)}${hours.note ? `<p class="el-hours__note">${h.esc(hours.note)}</p>` : ''}</div>`;
+      } else if (h.edit) {
+        body = `<div class="figure__empty el-hours--empty">${h.icon('clock')}<span>Set your hours in Settings → Business hours</span></div>`;
+      }
     } else if (el.type === 'divider') {
       body = '<hr class="el-divider">';
     } else if (el.type === 'spacer') {

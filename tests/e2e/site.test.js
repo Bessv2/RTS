@@ -114,6 +114,59 @@ test('contact form blocks bots and sends real messages', async () => {
   await ctx.close();
 });
 
+test('quote form, “Open now” and the call button work in the browser', async () => {
+  const { migrate, buildSite, BLOCKS } = await import('../../assets/js/theme-api.js');
+  const doc = migrate(JSON.parse(await readFile(join(ROOT, 'content/site.json'), 'utf8')));
+  doc.site.phone = '(555) 123-4567';
+  doc.site.formEndpoint = 'https://formspree.io/f/test';
+  doc.site.callButton = { enabled: true, text: true };
+  doc.site.hours = { enabled: true, timezone: 'America/New_York', week: { mon: '08:00-18:00', tue: '08:00-18:00', wed: '08:00-18:00', thu: '08:00-18:00', fri: '08:00-18:00', sat: '09:00-13:00', sun: '' } };
+  doc.pages[0].sections.push({ id: 'q', type: 'quote', data: { ...BLOCKS.quote.defaults(), elements: [{ type: 'hours' }] } });
+  const html = buildSite(doc, { origin: base }).files.get('index.html');
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 800 } });
+  await ctx.clock.setFixedTime(new Date('2026-10-17T15:00:00Z')); // Saturday 11am in New York
+  await ctx.route(`${base}/quote-test/`, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
+  const sent = [];
+  await ctx.route('https://formspree.io/**', (r) => { sent.push(r.request().postData()); return r.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); });
+  const p = await page(ctx);
+  await p.goto(`${base}/quote-test/`);
+
+  // Open now, worked out in the browser for the business's time zone
+  assert.equal(await p.locator('.el-hours .open-status').innerText(), 'Open now · until 1pm');
+  assert.equal(await p.locator('.site-footer__hours .open-status').innerText(), 'Open now · until 1pm');
+  assert.equal(await p.locator('.hours__row.is-today dt').innerText(), 'Saturday');
+
+  // The call button floats at the bottom on phones
+  const call = p.locator('.callbar');
+  assert.ok(await call.isVisible());
+  assert.equal(await call.locator('a').first().getAttribute('href'), 'tel:5551234567');
+  assert.equal(await call.locator('a').nth(1).getAttribute('href'), 'sms:5551234567');
+
+  // The quote form needs its required answers, then sends everything
+  const form = p.locator('.quote__form');
+  await form.locator('[name=name]').fill('Pat');
+  await form.locator('[name=email]').fill('pat@example.com');
+  await form.locator('.choice', { hasText: 'Business' }).click();
+  await form.evaluate((f) => { f.dataset.startedAt = '0'; });
+  await form.locator('button[type=submit]').click();
+  assert.match(await form.locator('.form-status').innerText(), /Please answer: What do you need help with\?/);
+  assert.equal(sent.length, 0);
+  await form.locator('.choice', { hasText: 'Security cameras' }).click();
+  await form.locator('.choice', { hasText: 'Backups' }).click();
+  await form.locator('select').first().selectOption('6–20');
+  await form.locator('button[type=submit]').click();
+  await p.waitForFunction(() => document.querySelector('.quote__form .form-status').classList.contains('ok'));
+  assert.equal(sent.length, 1);
+  for (const part of ['Quote request from Pat', 'Business', 'Security cameras', 'Backups', '6–20', 'pat@example.com']) assert.ok(sent[0].includes(part), part);
+  assert.match(await form.locator('.form-status').innerText(), /We’ve got your request/);
+
+  // Not on computers (unless chosen)
+  await p.setViewportSize({ width: 1280, height: 800 });
+  assert.ok(await call.isHidden());
+  assert.deepEqual(p.errors, []);
+  await ctx.close();
+});
+
 test('the old editor address points to the new editor and rescues old drafts', async () => {
   const ctx = await browser.newContext({ acceptDownloads: true });
   const p = await page(ctx);

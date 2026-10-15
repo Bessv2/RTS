@@ -4,6 +4,7 @@
 import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, safeHref, pageHref, postHref, postTitle, publishedPosts, isLivePage, firstSectionIndex } from './render.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { BOOKING_ORIGINS } from './blocks.js';
+import { openingHoursLd } from './hours.js';
 
 export const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
   + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; "
@@ -122,6 +123,7 @@ function organization(doc, origin) {
     ...(s.location ? { areaServed: s.location } : {}),
     ...(s.logo && !String(s.logo).startsWith('data:') ? { logo: `${origin}${safeSrc(s.logo)}` } : {}),
     ...(sameAs.length ? { sameAs } : {}),
+    ...(openingHoursLd(s.hours).length ? { openingHoursSpecification: openingHoursLd(s.hours) } : {}),
   };
 }
 

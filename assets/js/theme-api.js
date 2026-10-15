@@ -14,7 +14,7 @@ export const EDITOR_API = 1;
 
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
-export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements'];
+export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements', 'call-button', 'hours', 'quote-form'];
 
 export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, ELEMENTS, renderElements, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
 export {
@@ -28,3 +28,4 @@ export { SCHEMA_VERSION, POSTS_BASE, hashToPath, migrate, normalize, validate, r
 export { CSP, buildSite, staleFiles, documentHTML, rssFeed, redirectHTML } from './build.js';
 export { enhance } from './enhance.js';
 export { audit } from './audit.js';
+export { DAYS, parseRange, hoursSummary, openStatus } from './hours.js';

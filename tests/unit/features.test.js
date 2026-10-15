@@ -245,3 +245,109 @@ test('elements add headings, text, images, buttons, lines and space to any secti
   assert.equal(found.find((r) => r.code === 'image-description' && r.where.section === 'e').where.field, 'elements.2.alt');
   assert.equal(found.find((r) => r.code === 'broken-link' && r.where.section === 'e').where.field, 'elements.3');
 });
+
+test('business hours: summary, open now in the business time zone, Google details and checks', async () => {
+  const H = await import('../../assets/js/hours.js');
+  const hours = { enabled: true, timezone: 'America/New_York', note: 'Emergencies by appointment.',
+    week: { mon: '08:00-18:00', tue: '08:00-18:00', wed: '08:00-18:00', thu: '08:00-18:00', fri: '08:00-17:30', sat: '09:00-13:00', sun: '' } };
+  assert.deepEqual(H.parseRange('08:00-18:00'), [480, 1080]);
+  assert.deepEqual(H.parseRange('20:00-00:00'), [1200, 1440], 'closing at midnight');
+  assert.equal(H.parseRange('18:00-08:00'), null);
+  assert.equal(H.parseRange('8am-6pm'), null);
+  assert.equal(H.fmtTime(480), '8am');
+  assert.equal(H.fmtTime(810), '1:30pm');
+  assert.equal(H.fmtTime(1440), 'midnight');
+  assert.equal(H.hoursSummary(hours), 'Mon–Thu 8am–6pm · Fri 8am–5:30pm · Sat 9am–1pm · Sun closed');
+  assert.equal(H.hoursSummary({ ...hours, enabled: false }), '');
+  // Saturday 11:00 in New York (15:00 UTC)
+  assert.deepEqual(H.openStatus(hours, new Date('2026-10-17T15:00:00Z')), { open: true, text: 'Open now · until 1pm' });
+  // Saturday 7:00 in New York
+  assert.deepEqual(H.openStatus(hours, new Date('2026-10-17T11:00:00Z')), { open: false, text: 'Closed · opens 9am' });
+  // Friday 19:00 in New York, 23:00 UTC
+  assert.deepEqual(H.openStatus(hours, new Date('2026-10-16T23:00:00Z')), { open: false, text: 'Closed · opens tomorrow 9am' });
+  // Sunday noon: next opening is Monday
+  assert.deepEqual(H.openStatus(hours, new Date('2026-10-18T16:00:00Z')), { open: false, text: 'Closed · opens tomorrow 8am' });
+  assert.deepEqual(H.openStatus({ ...hours, week: { ...hours.week, mon: '' } }, new Date('2026-10-18T16:00:00Z')), { open: false, text: 'Closed · opens Tue 8am' });
+  assert.equal(H.openStatus({ ...hours, timezone: 'Not/AZone' }, new Date()) !== null, true, 'a broken time zone falls back to the browser’s');
+  assert.deepEqual(H.openingHoursLd(hours), [
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '08:00', closes: '18:00' },
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Friday'], opens: '08:00', closes: '17:30' },
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Saturday'], opens: '09:00', closes: '13:00' },
+  ]);
+  assert.deepEqual(H.hoursProblems({ ...hours, week: { ...hours.week, tue: '18:00-09:00' } }).map((p) => p.day), ['tue']);
+  assert.match(H.hoursProblems({ enabled: true, week: {} })[0].message, /every day is closed/);
+
+  // On the site: contact section, footer, the hours element and Google's details
+  const { BLOCKS } = await import('../../assets/js/blocks.js');
+  const doc = site();
+  doc.site.hours = hours;
+  doc.pages[0].sections.push({ id: 'c', type: 'contact', data: { ...BLOCKS.contact.defaults(), hours: 'Old text' } },
+    { id: 'e', type: 'blank', data: { elements: [{ type: 'hours', show: 'week' }, { type: 'hours', show: 'summary' }] } });
+  const live = renderPage(doc, 0);
+  assert.match(live, /<small>Hours<\/small><span>Mon–Thu 8am–6pm · Fri 8am–5:30pm · Sat 9am–1pm · Sun closed<\/span><span class="open-status" data-open-status data-hours="\{&quot;enabled&quot;:true,&quot;timezone&quot;:&quot;America\/New_York&quot;/);
+  assert.doesNotMatch(live, /Old text/, 'set hours replace the section’s own text');
+  assert.match(live, /class="site-footer__hours">Mon–Thu/);
+  assert.match(live, /<dl class="hours" data-tz="America\/New_York"><div class="hours__row" data-day="mon"><dt>Monday<\/dt><dd>8am–6pm<\/dd>/);
+  assert.match(live, /data-day="sun"><dt>Sunday<\/dt><dd>Closed<\/dd>/);
+  assert.match(live, /<p class="el-hours__line">Mon–Thu/);
+  assert.match(live, /<p class="el-hours__note">Emergencies by appointment\.<\/p>/);
+  assert.match(renderPage(doc, 0, { edit: true }), /class="open-status is-(open|closed)"[^>]*>(Open now|Closed)/, 'the editor shows the status right away');
+  const built = buildSite(doc, { origin: 'https://x.com' }).files.get('index.html');
+  assert.match(built, /"openingHoursSpecification":\[\{"@type":"OpeningHoursSpecification","dayOfWeek":\["Monday","Tuesday","Wednesday","Thursday"\],"opens":"08:00","closes":"18:00"\}/);
+  doc.site.hours.enabled = false;
+  assert.match(renderPage(doc, 0), /<small>Hours<\/small><span>Old text<\/span>/, 'without hours the section text is used');
+});
+
+test('call button: floating on phones (or everywhere), needs a phone number', async () => {
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.site.callButton = { enabled: true };
+  assert.doesNotMatch(renderPage(doc, 0), /callbar/, 'no phone, no button');
+  assert.equal(audit(doc).find((r) => r.code === 'call-button').where.field, 'phone');
+  doc.site.phone = '+1 (555) 123-4567';
+  assert.match(renderPage(doc, 0), /<div class="callbar callbar--phones"><a class="callbar__btn" href="tel:\+15551234567"><svg[^]*?<span>Call now<\/span><\/a><\/div>/);
+  doc.site.callButton = { enabled: true, label: 'Ring <us>', text: true, show: 'all' };
+  const html = renderPage(doc, 0);
+  assert.match(html, /callbar callbar--all/);
+  assert.match(html, /<span>Ring &lt;us&gt;<\/span>/);
+  assert.match(html, /<a class="callbar__btn callbar__btn--alt" href="sms:\+15551234567">[^]*?<span>Text us<\/span>/);
+  assert.equal(audit(doc).filter((r) => r.code === 'call-button').length, 0);
+  doc.site.callButton.enabled = false;
+  assert.doesNotMatch(renderPage(doc, 0), /callbar/);
+});
+
+test('quote request form asks the chosen questions and counts as a form', async () => {
+  const { BLOCKS } = await import('../../assets/js/blocks.js');
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.site.email = 'a@b.c';
+  doc.pages[0].sections.push({ id: 'q', type: 'quote', data: { ...BLOCKS.quote.defaults(), intro: 'Tell us more.', questions: [
+    { label: 'Home or business?', type: 'radio', options: 'Home, Business', required: true },
+    { label: 'Services', type: 'checkboxes', options: 'Wi-Fi, <b>Cameras</b>', required: true },
+    { label: 'Devices', type: 'select', options: '1–5, 6+' },
+    { label: 'Name', type: 'text' },
+    { label: '_gotcha', type: 'textarea', required: true },
+    { label: '   ', type: 'text' },
+    { label: 'Pick one', type: 'radio', options: '' },
+  ] } });
+  const html = renderPage(doc, 0);
+  const form = html.match(/<form class="contact__form quote__form"[^]*?<\/form>/)[0];
+  assert.match(form, /data-subject="Quote request" data-endpoint="" data-email="a@b.c"/);
+  assert.match(form, /<legend>Home or business\?<\/legend><label class="choice"><input type="radio" name="Home or business\?" value="Home" required>/);
+  assert.match(form, /<fieldset class="choices" data-required><legend>Services<\/legend>/);
+  assert.match(form, /value="&lt;b&gt;Cameras&lt;\/b&gt;"><span>&lt;b&gt;Cameras&lt;\/b&gt;<\/span>/);
+  assert.match(form, /<span>Devices <em>\(optional\)<\/em><\/span><select name="Devices"><option value="">Choose…<\/option><option>1–5<\/option><option>6\+<\/option><\/select>/);
+  assert.match(form, /<input name="Name \(4\)"/, 'a question can’t take over the name field');
+  assert.match(form, /<textarea name="gotcha \(5\)" rows="4" maxlength="3000" required>/, 'or the spam trap');
+  assert.match(form, /<span>Pick one <em>\(optional\)<\/em><\/span><input name="Pick one"/, 'a choice without choices becomes a text box');
+  assert.equal((form.match(/<label/g) || []).length, 13, 'the blank question is left out');
+  assert.match(form, /name="message"/);
+
+  // Without an endpoint and without an email the form can't send anything
+  delete doc.site.email;
+  assert.match(audit(doc).find((r) => r.code === 'form-destination' && r.level === 'error').message, /^The quote request form has nowhere to send/);
+  // The starter questions and the thank-you message are fine as they are
+  doc.site.email = 'a@b.c';
+  doc.pages[0].sections[1].data = { ...BLOCKS.quote.defaults(), heading: 'Get a price', intro: 'Quick questions.' };
+  assert.equal(audit(doc).filter((r) => r.code === 'sample-text' && r.where.section === 'q').length, 0);
+});
