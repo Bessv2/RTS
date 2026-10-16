@@ -117,6 +117,9 @@ function helpers(data, ctx, sectionPath = '') {
   const edit = !!ctx.edit;
   // The first section on a page carries its main headline (h1) and loads its images first.
   let h1 = !!ctx.first;
+  // Item titles are h3 under the section's h2 heading; in a section without one they move up to h2,
+  // so headings never skip a level (screen reader users move around a page by its headings).
+  let sawH2 = false;
   const attr = (path, opts = {}) => edit
     ? ` data-edit="${esc(sectionPath + path)}" data-ph="${esc(opts.ph || 'Type here…')}"${opts.ml ? ' data-ml' : ''}`
     : '';
@@ -126,10 +129,11 @@ function helpers(data, ctx, sectionPath = '') {
     src: (v) => safeSrc(v),
     safeHref: (v) => safeHref(v),
     list: (path) => (Array.isArray(getPath(data, path)) ? getPath(data, path) : []),
+    sub: () => (sawH2 ? 'h3' : 'h2'),
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
-      if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; }
+      if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
       // md: paragraphs, lists and subheadings (markdown); ml: one formatted paragraph.
       const body = opts.md ? markdown(v, safeSrc) : opts.ml ? rich(v) : esc(v);
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && (opts.ml || opts.md) ? ' data-rich' : ''}${edit && opts.md ? ' data-md' : ''}>${body}</${tag}>`;
@@ -222,8 +226,8 @@ export function renderFooter(doc, ctx) {
         ${h.t('p', 'tagline', 'site-footer__tagline', { ph: 'Short tagline', ml: true })}
         ${socialLinks(s)}
       </div>
-      <div><h4>Pages</h4><ul>${doc.pages.map((p, i) => (inNav(p, i) ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
-      <div><h4>Contact</h4><ul>
+      <div><h2 class="site-footer__title">Pages</h2><ul>${doc.pages.map((p, i) => (inNav(p, i) ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
+      <div><h2 class="site-footer__title">Contact</h2><ul>
         ${s.email ? `<li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>` : ''}
         ${s.phone ? `<li><a href="tel:${esc(s.phone.replace(/[^+\d]/g, ''))}">${esc(s.phone)}</a></li>` : ''}
         ${s.location ? `<li>${esc(s.location)}</li>` : ''}${hasHours(s.hours) ? `\n        <li class="site-footer__hours">${esc(hoursSummary(s.hours))} ${openBadge(s.hours, esc, ctx.edit)}</li>` : ''}
@@ -464,14 +468,15 @@ function tagChips(p) {
 }
 
 // search: also carry the words a blog search box looks through.
-export function renderPostCard(p, doc = {}, { search = false } = {}) {
+// level: the title's heading tag (h3 under a section heading, h2 without one).
+export function renderPostCard(p, doc = {}, { search = false, level = 'h3' } = {}) {
   const tags = esc(postTags(p).join('|').toLowerCase()) + (search ? `" data-text="${esc(searchText(p))}` : '');
   const meta = `<div class="post-meta"><time datetime="${esc(p.date)}">${formatDate(p.date)}</time>${tagChips(p)}</div>`;
   if ((p.kind || 'post') === 'blurb') {
     let host = '';
     try { host = p.link ? new URL(p.link).hostname.replace(/^www\./, '') : ''; } catch { host = ''; }
     return `<article class="blurb-card" data-tags="${tags}"><span class="blurb-card__icon">${icon('sparkle')}</span>${meta}
-      ${p.title ? `<h3 class="blurb-card__title">${esc(p.title)}</h3>` : ''}
+      ${p.title ? `<${level} class="blurb-card__title">${esc(p.title)}</${level}>` : ''}
       <div class="blurb-card__text">${markdown(p.body, mediaResolver(doc))}</div>
       ${host ? `<a class="blurb-card__src" href="${esc(safeHref(p.link))}" target="_blank" rel="noopener">via ${esc(host)} ${icon('external')}</a>` : ''}</article>`;
   }
@@ -479,7 +484,7 @@ export function renderPostCard(p, doc = {}, { search = false } = {}) {
   return `<article class="post-card" data-tags="${tags}">
     <a class="post-card__img" href="${postHref(p)}" tabindex="-1" aria-hidden="true">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : `<span class="post-card__ph">${icon('pen')}</span>`}</a>
     <div class="post-card__body">${meta}
-      <h3 class="post-card__title"><a href="${postHref(p)}">${esc(postTitle(p))}</a></h3>
+      <${level} class="post-card__title"><a href="${postHref(p)}">${esc(postTitle(p))}</a></${level}>
       ${p.summary ? `<p class="post-card__sum">${esc(p.summary)}</p>` : ''}
       <a class="post-card__more" href="${postHref(p)}">Read more ${icon('arrow-right')}</a>
     </div></article>`;

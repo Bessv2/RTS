@@ -458,7 +458,7 @@ test('icon box, checklist, quote and video elements', async () => {
     { type: 'video', url: 'not a video' },
   ] } });
   const html = renderPage(doc, 0);
-  assert.match(html, /<div class="el el--third el--left"><div class="el-feature"><span class="el-feature__icon"><svg[^]*?<\/span><h3 class="el-feature__title">Fast Wi-Fi<\/h3><p class="el-feature__text">Coverage in every room\.<\/p>/);
+  assert.match(html, /<div class="el el--third el--left"><div class="el-feature"><span class="el-feature__icon"><svg[^]*?<\/span><h2 class="el-feature__title">Fast Wi-Fi<\/h2><p class="el-feature__text">Coverage in every room\.<\/p>/);
   assert.match(html, /<ul class="el-list el-list--check"><li><span class="el-list__mark"><svg[^]*?<\/span><span>Backups<\/span><\/li><li><span class="el-list__mark">[^]*?<span>Updates &lt;b&gt;<\/span><\/li><\/ul>/);
   assert.equal((html.match(/el-list--check[^]*?<\/ul>/)[0].match(/<li>/g) || []).length, 2, 'empty points are left out');
   assert.match(html, /<ol class="el-list el-list--number"><li><span>One<\/span><\/li><\/ol>/);
@@ -582,4 +582,25 @@ test('posts can show when they were last updated', async () => {
   const plain = buildSite(doc, { origin: 'https://example.com' }).files.get('blog/a/index.html');
   assert.doesNotMatch(plain, /post-meta__updated/);
   assert.match(plain, /"dateModified":"2026-10-01"/);
+});
+
+test('headings never skip a level: item titles move up when a section has no heading', async () => {
+  const { BLOCKS } = await import('../../assets/js/blocks.js');
+  const doc = site();
+  const services = { ...BLOCKS.services.defaults() };
+  doc.pages[1].sections = [
+    { id: 'h', type: 'hero', data: { heading: 'About us' } },
+    { id: 'a', type: 'services', data: { ...services, heading: 'What we do' } },
+    { id: 'b', type: 'services', data: { ...services, eyebrow: '', heading: '', intro: '' } },
+    { id: 'c', type: 'resources', data: { heading: '', items: [{ title: 'A', url: 'https://a.example', category: 'One' }, { title: 'B', url: 'https://b.example', category: 'Two' }] } },
+  ];
+  const html = renderPage(doc, 1);
+  const levels = [...html.matchAll(/<h([1-6])[\s>]/g)].map((m) => Number(m[1]));
+  levels.forEach((n, i) => assert.ok(i === 0 || n <= levels[i - 1] + 1, `h${levels[i - 1]} is followed by h${n}`));
+  assert.match(html, /<h2 class="sec-title">What we do<\/h2>[^]*?<h3 class="feature__title">/, 'under a heading, items are h3');
+  const b = html.split('blk-services')[2];
+  assert.match(b, /<h2 class="feature__title">/, 'without a heading, items are h2');
+  assert.match(html, /<h2 class="res-group__title">One<\/h2>/);
+  assert.match(html, /<h2 class="site-footer__title">Pages<\/h2>/);
+  assert.doesNotMatch(html, /<h4/);
 });

@@ -277,7 +277,7 @@ p { margin: 0; }
 .site-footer__grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
 .site-footer .brand { color: #fff; }
 .site-footer__tagline { margin-top: 16px; max-width: 360px; color: #94a3b8; }
-.site-footer h4 { color: #fff; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+.site-footer__title { color: #fff; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
 .site-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .site-footer a { text-decoration: none; color: #cbd5e1; }
 .site-footer a:hover { color: #fff; }

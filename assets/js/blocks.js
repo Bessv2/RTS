@@ -338,6 +338,7 @@ export const BLOCKS = {
       { key: 'search', label: 'Add a search box', type: 'toggle', help: 'Visitors type a word and see the matching posts. Best with “All”.' },
     ],
     render(d, h) {
+      const head = sectionHeader(h);
       const all = h.blog.publishedPosts(h.doc, d.show || 'all');
       const items = d.limit === 'all' ? all : all.slice(0, Number(d.limit) || 3);
       const tags = [...new Set(items.flatMap((p) => h.blog.postTags(p)))].sort((a, b) => a.localeCompare(b));
@@ -349,10 +350,10 @@ export const BLOCKS = {
         ? `<div class="blog-search"><label>${h.icon('search')}<input type="search" placeholder="Search posts" aria-label="Search the blog" autocomplete="off" data-blog-search></label></div>`
         : '';
       const body = items.length
-        ? `<div class="blogfeed blogfeed--${d.layout === 'list' ? 'list' : 'grid'}">${items.map((p) => h.blog.renderPostCard(p, h.doc, { search })).join('')}</div>`
+        ? `<div class="blogfeed blogfeed--${d.layout === 'list' ? 'list' : 'grid'}">${items.map((p) => h.blog.renderPostCard(p, h.doc, { search, level: h.sub() })).join('')}</div>`
           + (search || filter ? '<p class="blogfeed__none" role="status" aria-live="polite"></p>' : '')
         : `<div class="blogfeed__empty">${h.icon('pen')}<span>${h.edit ? 'No posts yet. Write your first one in the Blog tab.' : 'New posts are coming soon.'}</span></div>`;
-      return `<div class="wrap">${sectionHeader(h)}${box}${filter}${body}</div>`;
+      return `<div class="wrap">${head}${box}${filter}${body}</div>`;
     },
   },
 
@@ -627,9 +628,11 @@ export const BLOCKS = {
           ${host ? `<small class="res__src">${h.esc(host)} ${h.icon('external')}</small>` : ''}</span></a>`;
       };
       const many = groups.size > 1 || (groups.size === 1 && !groups.has(''));
-      const body = [...groups].map(([g, items]) => `<div class="res-group">${many && g ? `<h3 class="res-group__title">${h.esc(g)}</h3>` : ''}
+      const head = sectionHeader(h);
+      const tag = h.sub();
+      const body = [...groups].map(([g, items]) => `<div class="res-group">${many && g ? `<${tag} class="res-group__title">${h.esc(g)}</${tag}>` : ''}
         <div class="res-list res-list--${d.layout === 'list' ? 'list' : 'grid'}">${items.map(card).join('')}</div></div>`).join('');
-      return `<div class="wrap">${sectionHeader(h)}${body || (h.edit ? '<p class="res-empty">Add links in the panel on the right.</p>' : '')}</div>`;
+      return `<div class="wrap">${head}${body || (h.edit ? '<p class="res-empty">Add links in the panel on the right.</p>' : '')}</div>`;
     },
   },
 
