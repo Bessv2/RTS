@@ -38,5 +38,10 @@
     "src": "assets/library/hex-shield.svg",
     "name": "Security shield",
     "tags": "dark security"
+  },
+  {
+    "src": "assets/library/share-card.jpg",
+    "name": "Share card",
+    "tags": "share social brand card"
   }
 ]
