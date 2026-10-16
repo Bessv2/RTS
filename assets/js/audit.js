@@ -181,6 +181,15 @@ export function audit(doc) {
           add('tip', 'image-description', `An image added to “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `elements.${n}.alt` });
         }
       });
+      if (sec.type === 'resources') {
+        (Array.isArray(sec.data?.items) ? sec.data.items : []).forEach((it, n) => {
+          const url = String(it?.url || '').trim();
+          if (!String(it?.title || '').trim()) return;
+          if (!/^(https?:\/\/[^\s/]+\.[^\s]+|\/|#|mailto:|tel:)/i.test(url)) {
+            add('warning', 'resource-link', `The link “${short(it.title, 40)}” in “${secName}” on ${name} needs a web address (starting with https://).`, { ...where, field: `items.${n}.url` });
+          } else if (/^[/#]/.test(url)) checkLink(url, it.title, place, { ...where, field: `items.${n}.url` });
+        });
+      }
       if (sec.type === 'booking' && !String(sec.data?.url || '').trim()) {
         add('warning', 'booking-link', `“${secName}” on ${name} has no booking link yet, so it shows nothing on the live site.`, { ...where, field: 'url' });
       }

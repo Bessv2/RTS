@@ -109,6 +109,31 @@ function heroImage(page) {
   return src && !src.startsWith('data:') ? src : '';
 }
 
+// “Home › Services” trails for search results.
+function breadcrumbs(origin, trail) {
+  return {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: trail.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name: String(name || '').trim() || 'Page', item: `${origin}${path}` })),
+  };
+}
+
+// The blog page in a post's trail, when the site has one.
+function blogCrumb(doc) {
+  const i = doc.pages.findIndex((p, n) => n > 0 && isLivePage(p, n) && (p.sections || []).some((sec) => sec.type === 'blogfeed'));
+  return i > 0 ? [[doc.pages[i].title, pageHref(doc.pages[i], i)]] : [];
+}
+
+// Questions and answers from the page's visible FAQ sections, for search engines and assistants.
+function faqPage(page) {
+  const qa = (page.sections || []).filter((sec) => sec.type === 'faq' && !sec.hidden)
+    .flatMap((sec) => (Array.isArray(sec.data?.items) ? sec.data.items : []))
+    .map((it) => [plain(it?.q), plain(it?.a)]).filter(([q, a]) => q && a);
+  return qa.length ? [{
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: qa.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+  }] : [];
+}
+
 function organization(doc, origin) {
   const s = doc.site || {};
   const sameAs = Object.values(s.social || {}).filter((v) => /^https?:\/\//i.test(String(v)));
@@ -169,7 +194,11 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
     files.set(i === 0 ? 'index.html' : `${page.slug}/index.html`, documentHTML(doc, {
       path, title, description: page.seoDescription || s.description || '', body: renderPage(doc, i), origin,
       noindex: !!page.noindex, preload: heroImage(page), image: page.shareImage,
-      jsonLd: i === 0 ? [organization(doc, origin), { '@context': 'https://schema.org', '@type': 'WebSite', name: s.name, url: `${origin}/` }] : [],
+      jsonLd: [
+        ...(i === 0 ? [organization(doc, origin), { '@context': 'https://schema.org', '@type': 'WebSite', name: s.name, url: `${origin}/` }]
+          : [breadcrumbs(origin, [[s.name, '/'], [page.title, path]])]),
+        ...faqPage(page),
+      ],
     }));
     // Pages hidden from the menu are still public; only "hide from search engines" leaves the sitemap.
     if (!page.noindex) urls.push({ loc: `${origin}${path}` });
@@ -181,13 +210,14 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
     const image = safeSrc(post.image);
     files.set(`${POSTS_BASE}/${post.slug}/index.html`, documentHTML(doc, {
       path, title: `${title} | ${s.name}`, description: post.summary || plain(post.body).slice(0, 160) || s.description || '',
-      body: renderPostPage(doc, post), image: post.image, type: 'article', origin,
+      body: renderPostPage(doc, post, { origin }), image: post.image, type: 'article', origin,
       jsonLd: [{
         '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, datePublished: post.date,
         description: post.summary || undefined, url: `${origin}${path}`,
         ...(image && !image.startsWith('data:') ? { image: `${origin}${image}` } : {}),
         author: { '@type': 'Organization', name: s.name }, publisher: { '@type': 'Organization', name: s.name },
-      }],
+        wordCount: plain(post.body).split(' ').filter(Boolean).length || undefined,
+      }, breadcrumbs(origin, [[s.name, '/'], ...blogCrumb(doc), [title, path]])],
     }));
     urls.push({ loc: `${origin}${path}`, lastmod: post.date });
   }

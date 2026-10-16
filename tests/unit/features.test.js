@@ -351,3 +351,53 @@ test('quote request form asks the chosen questions and counts as a form', async 
   doc.pages[0].sections[1].data = { ...BLOCKS.quote.defaults(), heading: 'Get a price', intro: 'Quick questions.' };
   assert.equal(audit(doc).filter((r) => r.code === 'sample-text' && r.where.section === 'q').length, 0);
 });
+
+test('resource links group by topic, show where they lead and are checked', async () => {
+  const { BLOCKS } = await import('../../assets/js/blocks.js');
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.pages[0].sections.push({ id: 'r', type: 'resources', data: { ...BLOCKS.resources.defaults(), items: [
+    { title: 'Secure Our World', text: 'Four easy ways.', url: 'https://www.cisa.gov/secure-our-world', category: 'Safety', icon: 'shield-check' },
+    { title: 'Our services', text: 'What we do.', url: '/about/', category: 'Safety' },
+    { title: 'Report fraud', text: '', url: 'https://reportfraud.ftc.gov/', category: 'Help' },
+    { title: 'Bad', url: 'javascript:alert(1)', category: 'Help' },
+    { title: 'Missing page', url: '/nope/', category: 'Help' },
+    { title: '', url: 'https://x.com' },
+  ] } });
+  const html = renderPage(doc, 0);
+  assert.match(html, /<h3 class="res-group__title">Safety<\/h3>[^]*Secure Our World[^]*Our services[^]*<h3 class="res-group__title">Help<\/h3>[^]*Report fraud/);
+  assert.match(html, /<a class="res" href="https:\/\/www.cisa.gov\/secure-our-world" target="_blank" rel="noopener">/);
+  assert.match(html, /<small class="res__src">cisa.gov <svg/);
+  assert.match(html, /<a class="res" href="\/about\/"><span/, 'links on the site open in the same tab');
+  assert.doesNotMatch(html, /javascript:/);
+  assert.equal((html.match(/class="res"/g) || []).length, 5, 'untitled links are left out');
+  const found = audit(doc);
+  assert.deepEqual(found.filter((r) => r.code === 'resource-link').map((r) => r.where.field), ['items.3.url']);
+  assert.equal(found.find((r) => r.code === 'broken-link' && r.where.field === 'items.4.url')?.where.section, 'r');
+  assert.equal(found.filter((r) => r.code === 'sample-text' && r.where.fields?.some((f) => f.startsWith('items'))).length, 0, 'the starter links are real');
+});
+
+test('blog posts: reading time, share links, related posts and richer search data', async () => {
+  const doc = site({ posts: [
+    { id: 'a', slug: 'a', kind: 'post', title: 'Backups 101', date: '2026-10-01', published: true, tags: 'Security, Backups', body: Array(450).fill('word').join(' ') },
+    { id: 'b', slug: 'b', kind: 'post', title: 'Wi-Fi tips', date: '2026-10-05', published: true, tags: 'Networking', body: 'Short.' },
+    { id: 'c', slug: 'c', kind: 'post', title: 'Ransomware', date: '2026-09-01', published: true, tags: 'security', body: 'Text.' },
+    { id: 'd', slug: 'd', kind: 'post', title: 'Draft', date: '2026-09-02', published: false, tags: 'Security', body: 'x' },
+  ] });
+  doc.pages[1].sections.push({ id: 'f', type: 'faq', data: { items: [{ q: 'Do you **really** help homes?', a: 'Yes, [we do](/contact/).' }, { q: '', a: 'skip' }] } });
+  doc.pages.push({ title: 'Blog', slug: 'blog', sections: [{ id: 'bf', type: 'blogfeed', data: {} }] });
+  const { files } = buildSite(doc, { origin: 'https://example.com' });
+  const a = files.get('blog/a/index.html');
+  assert.match(a, /<span class="post-meta__read">2 min read<\/span>/);
+  assert.match(a, /href="https:\/\/www.linkedin.com\/sharing\/share-offsite\/\?url=https%3A%2F%2Fexample.com%2Fblog%2Fa%2F"/);
+  assert.match(a, /data-copy="https:\/\/example.com\/blog\/a\/"/);
+  const related = a.match(/<section class="sec sec--alt pad--normal related"[^]*?<\/section>/)[0];
+  assert.ok(related.indexOf('Ransomware') < related.indexOf('Wi-Fi tips'), 'shared tags first');
+  assert.doesNotMatch(related, /Draft|Backups 101/);
+  assert.match(a, /"@type":"BreadcrumbList".*"name":"Blog","item":"https:\/\/example.com\/blog\/"}.*"name":"Backups 101"/);
+  assert.match(a, /"wordCount":450/);
+  const about = files.get('about/index.html');
+  assert.match(about, /"@type":"FAQPage","mainEntity":\[\{"@type":"Question","name":"Do you really help homes\?","acceptedAnswer":\{"@type":"Answer","text":"Yes, we do."\}\}\]/);
+  assert.match(about, /"@type":"BreadcrumbList","itemListElement":\[\{"@type":"ListItem","position":1,"name":"Biz","item":"https:\/\/example.com\/"\},\{"@type":"ListItem","position":2,"name":"About","item":"https:\/\/example.com\/about\/"\}\]/);
+  assert.doesNotMatch(files.get('index.html'), /BreadcrumbList/, 'the home page needs no trail');
+});
