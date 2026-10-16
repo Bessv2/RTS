@@ -509,6 +509,9 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .el-spacer--medium { height: 32px; }
 .el-spacer--large { height: 72px; }
 
+/* “Leave a review” button */
+.quotes__review { justify-content: center; margin-top: 36px; }
+
 /* Resource links */
 .res-group + .res-group { margin-top: 36px; }
 .res-group__title { margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sec-muted); }

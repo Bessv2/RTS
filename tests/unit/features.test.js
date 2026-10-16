@@ -401,3 +401,47 @@ test('blog posts: reading time, share links, related posts and richer search dat
   assert.match(about, /"@type":"BreadcrumbList","itemListElement":\[\{"@type":"ListItem","position":1,"name":"Biz","item":"https:\/\/example.com\/"\},\{"@type":"ListItem","position":2,"name":"About","item":"https:\/\/example.com\/about\/"\}\]/);
   assert.doesNotMatch(files.get('index.html'), /BreadcrumbList/, 'the home page needs no trail');
 });
+
+test('visitor stats: only a valid ID adds the chosen service, and the security policy allows just that', async () => {
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  const home = () => buildSite(doc, { origin: 'https://example.com' }).files.get('index.html');
+  assert.doesNotMatch(home(), /cloudflareinsights|goatcounter/);
+  doc.site.analytics = { provider: 'cloudflare', id: '0123456789abcdef0123456789abcdef' };
+  let html = home();
+  assert.match(html, /<script defer src="https:\/\/static.cloudflareinsights.com\/beacon.min.js" data-cf-beacon="\{&quot;token&quot;:&quot;0123456789abcdef0123456789abcdef&quot;\}"><\/script>/);
+  assert.match(html, /script-src 'self' https:\/\/static.cloudflareinsights.com;/);
+  assert.match(buildSite(doc, { origin: 'https://example.com' }).files.get('about/index.html'), /cloudflareinsights/, 'on every page');
+  doc.site.analytics = { provider: 'goatcounter', id: 'roetech' };
+  html = home();
+  assert.match(html, /<script data-goatcounter="https:\/\/roetech.goatcounter.com\/count" async src="https:\/\/gc.zgo.at\/count.js"><\/script>/);
+  assert.match(html, /script-src 'self' https:\/\/gc.zgo.at;/);
+  assert.doesNotMatch(html, /cloudflareinsights/);
+  for (const bad of ['"><script>alert(1)</script>', 'roe tech', 'evil.com/x']) {
+    doc.site.analytics = { provider: 'goatcounter', id: bad };
+    assert.doesNotMatch(home(), /goatcounter|alert\(1\)|evil/);
+    assert.match(home(), /script-src 'self';/);
+    assert.equal(audit(doc).find((r) => r.code === 'analytics').where.field, 'analytics.id');
+  }
+  doc.site.analytics = { provider: 'cloudflare', id: 'short' };
+  assert.match(audit(doc).find((r) => r.code === 'analytics').message, /32 letters and numbers/);
+});
+
+test('review button: testimonials and the review element link to the review page', async () => {
+  const { BLOCKS } = await import('../../assets/js/blocks.js');
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.pages[0].sections.push({ id: 't', type: 'testimonials', data: { ...BLOCKS.testimonials.defaults(), items: [{ quote: 'Great.', name: 'Pat', role: 'Owner' }], reviewButton: true } },
+    { id: 'e', type: 'blank', data: { elements: [{ type: 'review', label: 'Rate us', style: 'outline', align: 'center' }] } });
+  assert.doesNotMatch(renderPage(doc, 0), /quotes__review|Rate us/, 'no review page, no button');
+  assert.match(renderPage(doc, 0, { edit: true }), /Add your review page in Settings/);
+  assert.deepEqual(audit(doc).filter((r) => r.code === 'review-link').map((r) => r.where.field), ['reviewUrl', 'reviewUrl']);
+  doc.site.reviewUrl = 'https://g.page/r/abc123/review';
+  const html = renderPage(doc, 0);
+  assert.match(html, /<div class="btns quotes__review"><a class="btn btn--outline" href="https:\/\/g.page\/r\/abc123\/review" target="_blank" rel="noopener"><svg[^]*?<span>Leave us a review<\/span><\/a><\/div>/);
+  assert.match(html, /<div class="el el--full el--center"><div class="btns el-btns"><a class="btn btn--outline" href="https:\/\/g.page\/r\/abc123\/review"[^]*?<span>Rate us<\/span>/);
+  assert.equal(audit(doc).filter((r) => r.code === 'review-link').length, 0);
+  doc.site.reviewUrl = 'javascript:alert(1)';
+  assert.doesNotMatch(renderPage(doc, 0), /javascript:/);
+  assert.match(audit(doc).find((r) => r.code === 'review-link').message, /must be a full address/);
+});

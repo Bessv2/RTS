@@ -35,6 +35,23 @@ function verification(s) {
   return out.join('\n  ');
 }
 
+// Visitor stats (site.analytics = { provider, id }): Cloudflare Web Analytics or
+// GoatCounter, both free and cookie-free. Only the chosen service's script is
+// allowed on the pages, and only with an ID in its exact format.
+const ANALYTICS = {
+  cloudflare: { valid: (v) => /^[a-f0-9]{32}$/i.test(v), host: 'https://static.cloudflareinsights.com',
+    tag: (v) => `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="${esc(JSON.stringify({ token: v }))}"></script>` },
+  goatcounter: { valid: (v) => /^[a-z0-9][a-z0-9-]{1,62}$/i.test(v), host: 'https://gc.zgo.at',
+    tag: (v) => `<script data-goatcounter="https://${v}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>` },
+};
+export function analyticsFor(site) {
+  const a = site?.analytics || {};
+  const p = ANALYTICS[a.provider];
+  const id = String(a.id || '').trim();
+  return p && p.valid(id) ? { provider: a.provider, id, host: p.host, tag: p.tag(id) } : null;
+}
+const cspFor = (doc) => { const a = analyticsFor(doc.site); return a ? CSP.replace("script-src 'self'", `script-src 'self' ${a.host}`) : CSP; };
+
 // One complete HTML document. `body` is the rendered page markup.
 export function documentHTML(doc, { path, title, description, body, image, type = 'website', jsonLd = [], noindex = false, preload = '', origin }) {
   const s = doc.site || {};
@@ -45,12 +62,13 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   const favicon = safeSrc(s.favicon) || DEFAULT_FAVICON;
   const fonts = fontsHref(t);
   const url = abs(path);
+  const stats = analyticsFor(s);
   return `<!doctype html>
 <html lang="${esc(pageLang(s))}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="${CSP}">
+  <meta http-equiv="Content-Security-Policy" content="${cspFor(doc)}">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}">
@@ -72,7 +90,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   ${preload ? `<link rel="preload" as="image" href="${esc(preload)}" fetchpriority="high">` : ''}
   <style id="theme-vars">${themeCSS(t)}</style>
   ${jsonLd.map((d) => `<script type="application/ld+json">${ldJson(d)}</script>`).join('\n  ')}
-  <script type="module" src="/assets/js/site.js"></script>
+  <script type="module" src="/assets/js/site.js"></script>${stats ? `\n  ${stats.tag}` : ''}
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
