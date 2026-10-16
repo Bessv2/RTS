@@ -310,6 +310,37 @@ export function renderNotFound(doc) {
 
 // ---------------------------------------------------------------------------
 // Blog
+// Ids for post headings: lower-case words joined by dashes, unique within the
+// post, never clashing with ids the page itself uses.
+export function headingSlugger() {
+  const seen = new Map([['main', 1], ['related-title', 1], ['top', 1]]);
+  return (text) => {
+    const base = plain(text).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '') || 'section';
+    const n = (seen.get(base) || 0) + 1;
+    seen.set(base, n);
+    return n > 1 ? `${base}-${n}` : base;
+  };
+}
+
+// The words of one line of markdown, without its formatting (hyphens and all).
+const UNESC = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" };
+const inlineText = (md) => rich(md).replace(/<[^>]+>/g, '').replace(/&(amp|lt|gt|quot|#39);/g, (m, e) => UNESC[e]).trim();
+
+// The ## and ### headings of a post: [{ level, text, id }], with the same ids markdown() gives them.
+export function postHeadings(body) {
+  const slug = headingSlugger();
+  let fence = false;
+  const out = [];
+  for (const line of String(body || '').replace(/\r/g, '').split('\n')) {
+    if (fence ? /^\s*```\s*$/.test(line) : /^\s*```\s*[\w+#.-]{0,20}\s*$/.test(line)) { fence = !fence; continue; }
+    const m = !fence && line.match(/^(#{2,4})\s+(.*)/);
+    if (!m) continue;
+    const id = m[1].length < 4 ? slug(m[2]) : '';
+    if (id) out.push({ level: m[1].length, text: inlineText(m[2]), id });
+  }
+  return out;
+}
+
 // Callout boxes: a quote whose first line is [!TIP], [!NOTE] or [!WARNING]
 // (the same syntax GitHub uses; IMPORTANT and CAUTION also work).
 const CALLOUTS = {
@@ -320,8 +351,11 @@ const CALLOUTS = {
 // Block-level markdown for post bodies: ## headings, lists, > quotes and
 // callouts, ``` code blocks, ![images](src), --- rules and blank-line
 // paragraphs. Inline formatting goes through rich(), which escapes everything first.
-export function markdown(src, resolve = (v) => v) {
+// ids: give ## and ### headings an id (see headingSlugger) so they can be linked to.
+// Task list items (- [ ] and - [x]) become tick boxes.
+export function markdown(src, resolve = (v) => v, { ids = false } = {}) {
   const lines = String(src || '').replace(/\r/g, '').split('\n');
+  const slug = headingSlugger();
   let html = '';
   let para = [];
   let list = null;
@@ -330,7 +364,17 @@ export function markdown(src, resolve = (v) => v) {
   const inline = (t) => rich(t).replace(/\n/g, '<br>');
   const paras = (ls) => ls.join('\n').split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean).map((t) => `<p>${inline(t)}</p>`).join('');
   const flushP = () => { if (para.length) { html += `<p>${inline(para.join('\n'))}</p>`; para = []; } };
-  const flushL = () => { if (list) { html += `<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join('')}</${list.tag}>`; list = null; } };
+  const item = (t) => {
+    const task = t.match(/^\[([ xX])\]\s+(.*)$/);
+    return task ? `<li class="task"><label><input type="checkbox" data-task${task[1] === ' ' ? '' : ' checked'}><span>${inline(task[2])}</span></label></li>` : `<li>${inline(t)}</li>`;
+  };
+  const flushL = () => {
+    if (!list) return;
+    const tasks = list.tag === 'ul' && list.items.some((i) => /^\[[ xX]\]\s/.test(i));
+    const attrs = list.start > 1 ? ` start="${list.start}"` : tasks ? ' class="tasks"' : '';
+    html += `<${list.tag}${attrs}>${list.items.map(item).join('')}</${list.tag}>`;
+    list = null;
+  };
   const flushQ = () => {
     if (!quote) return;
     const m = quote[0].match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/i);
@@ -355,11 +399,16 @@ export function markdown(src, resolve = (v) => v) {
     if ((m = line.match(/^>\s?(.*)/))) { flushP(); flushL(); (quote ||= []).push(m[1]); continue; }
     flushQ();
     if (!line.trim()) { block(); continue; }
-    if ((m = line.match(/^(#{2,4})\s+(.*)/))) { block(); html += `<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`; continue; }
+    if ((m = line.match(/^(#{2,4})\s+(.*)/))) {
+      block();
+      const n = m[1].length;
+      html += `<h${n}${ids && n < 4 ? ` id="${slug(m[2])}"` : ''}>${inline(m[2])}</h${n}>`;
+      continue;
+    }
     if ((m = line.match(/^\s*[-*]\s+(.*)/)) || (m = line.match(/^\s*\d+[.)]\s+(.*)/))) {
       const tag = /^\s*\d/.test(line) ? 'ol' : 'ul';
       flushP();
-      if (list?.tag !== tag) { flushL(); list = { tag, items: [] }; }
+      if (list?.tag !== tag) { flushL(); list = { tag, items: [], start: tag === 'ol' ? parseInt(line, 10) : 0 }; }
       list.items.push(m[1]);
       continue;
     }
@@ -467,7 +516,8 @@ function shareLinks(url, title) {
   ];
   return `<div class="share"><span class="share__label">Share</span>${links.map(([ic, label, href]) =>
     `<a class="share__btn" href="${esc(href)}"${ic === 'mail' ? '' : ' target="_blank" rel="noopener"'} aria-label="Share on ${label}" title="${label}">${icon(ic)}</a>`).join('')}`
-    + `<button type="button" class="share__btn share__copy" data-copy="${esc(url)}" title="Copy link" aria-label="Copy link">${icon('link')}</button></div>`;
+    + `<button type="button" class="share__btn share__copy" data-copy="${esc(url)}" title="Copy link" aria-label="Copy link">${icon('link')}</button>`
+    + `<button type="button" class="share__btn" data-print title="Print" aria-label="Print this post">${icon('printer')}</button></div>`;
 }
 
 export function renderPostPage(doc, post, ctx = {}) {
@@ -482,6 +532,12 @@ export function renderPostPage(doc, post, ctx = {}) {
   const img = safeSrc(post.image);
   const host = (() => { try { return post.link ? new URL(post.link).hostname.replace(/^www\./, '') : ''; } catch { return ''; } })();
   const related = (post.kind || 'post') === 'post' ? relatedPosts(doc, post) : [];
+  // Long posts (three or more ## headings) start with a list of their parts, unless toc is false.
+  const heads = (post.kind || 'post') === 'post' && post.toc !== false ? postHeadings(post.body) : [];
+  const toc = heads.filter((x) => x.level === 2).length >= 3
+    ? `<nav class="post__toc" aria-labelledby="toc-title"><p class="post__toc-title" id="toc-title">${icon('list')}In this post</p><ul>${heads.map((x) =>
+      `<li${x.level === 3 ? ' class="sub"' : ''}><a href="#${x.id}">${esc(x.text)}</a></li>`).join('')}</ul></nav>`
+    : '';
   return renderHeader(doc, bi, c)
     + `<main id="main"><article class="sec sec--light pad--normal post">
       <header class="wrap wrap--narrow post__head">
@@ -491,7 +547,7 @@ export function renderPostPage(doc, post, ctx = {}) {
         ${post.summary ? `<p class="lead post__summary">${esc(post.summary)}</p>` : ''}
       </header>
       ${img ? `<figure class="wrap post__cover"><img src="${esc(img)}" alt="" fetchpriority="high" decoding="async"></figure>` : ''}
-      <div class="wrap wrap--narrow post__body">${markdown(post.body, mediaResolver(doc)) || (ctx.preview ? '<p class="post__empty">Start writing in the panel on the left…</p>' : '')}
+      <div class="wrap wrap--narrow post__body">${toc}${markdown(post.body, mediaResolver(doc), { ids: true }) || (ctx.preview ? '<p class="post__empty">Start writing in the panel on the left…</p>' : '')}
         ${host ? `<p class="post__src"><a href="${esc(safeHref(post.link))}" target="_blank" rel="noopener">Source: ${esc(host)} ${icon('external')}</a></p>` : ''}
         ${ctx.origin ? shareLinks(`${ctx.origin}${postHref(post)}`, postTitle(post)) : ''}</div>
       ${newer || older ? `<nav class="wrap wrap--narrow post__nav" aria-label="More posts">

@@ -44,8 +44,24 @@ export function enhance(root = document, { preview = false } = {}) {
       setTimeout(() => { b.classList.remove('is-done'); b.title = 'Copy link'; }, 2000);
     } catch { prompt('Copy this link:', b.dataset.copy); }
   }));
+  root.querySelectorAll('[data-print]').forEach((b) => b.addEventListener('click', () => window.print()));
+  if (!preview) rememberTicks(root);
   showOpenStatus(root);
   reveal(root);
+}
+
+// Tick boxes in checklists remember what was ticked, in this browser only.
+function rememberTicks(root) {
+  const boxes = [...root.querySelectorAll('input[data-task]')];
+  if (!boxes.length) return;
+  const key = `ticks:${location.pathname}`;
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || 'null');
+    if (Array.isArray(saved) && saved.length === boxes.length) boxes.forEach((b, i) => { b.checked = !!saved[i]; });
+  } catch { /* storage blocked: the boxes still work, they just aren't remembered */ }
+  boxes.forEach((b) => b.addEventListener('change', () => {
+    try { localStorage.setItem(key, JSON.stringify(boxes.map((x) => x.checked))); } catch { /* storage blocked */ }
+  }));
 }
 
 // A blog feed shows the posts that match both the chosen tag and every word

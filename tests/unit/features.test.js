@@ -538,3 +538,30 @@ test('page not found: own wording, and links to the menu pages', async () => {
   doc.posts = [{ id: 'p', slug: 'p', kind: 'post', title: 'Fresh post', date: '2026-01-01', published: true, body: 'x' }];
   assert.match(renderNotFound(doc), /href="\/blog\/p\/">Fresh post/, 'recent posts when no page lists them all');
 });
+
+test('posts: numbered lists keep their numbers, tick-box checklists, heading links and a contents list', async () => {
+  const { postHeadings, headingSlugger } = await import('../../assets/js/render.js');
+  assert.match(markdown('## One\n1. a\n## Two\n4. b\n5. c'), /<ol><li>a<\/li><\/ol><h2>Two<\/h2><ol start="4"><li>b<\/li><li>c<\/li><\/ol>/);
+  assert.equal(markdown('- [ ] Do **this**\n- [x] Done'),
+    '<ul class="tasks"><li class="task"><label><input type="checkbox" data-task><span>Do <strong>this</strong></span></label></li><li class="task"><label><input type="checkbox" data-task checked><span>Done</span></label></li></ul>');
+  assert.equal(markdown('- [link](/x/) plain'), '<ul><li><a href="/x/">link</a> plain</li></ul>', 'ordinary lists are unchanged');
+  assert.equal(markdown('## Hi *there*\n### Hi there\n#### Small', undefined, { ids: true }), '<h2 id="hi-there">Hi <em>there</em></h2><h3 id="hi-there-2">Hi there</h3><h4>Small</h4>');
+  assert.doesNotMatch(markdown('## Plain'), /id=/, 'ids only when asked');
+  const slug = headingSlugger();
+  assert.deepEqual(['Main', 'Café & Wi‑Fi!', '***'].map(slug), ['main-2', 'cafe-wi-fi', 'section']);
+  assert.equal(postHeadings('## 1. Wi-Fi & **fast** [links](/x/)')[0].text, '1. Wi-Fi & fast links');
+  assert.deepEqual(postHeadings('## A\n```\n## not a heading\n```\n### B\n#### C\n## A'), [
+    { level: 2, text: 'A', id: 'a' }, { level: 3, text: 'B', id: 'b' }, { level: 2, text: 'A', id: 'a-2' }]);
+
+  const body = '## First part\nText.\n### Detail\nMore.\n## Second part\n- [ ] Tick me\n## Third part\nEnd.';
+  const doc = site({ posts: [{ id: 'a', slug: 'a', kind: 'post', title: 'Guide', date: '2026-10-01', published: true, body }, { id: 'b', slug: 'b', kind: 'post', title: 'Short', date: '2026-10-02', published: true, body: '## Only\nOne heading.' }] });
+  const { files } = buildSite(doc, { origin: 'https://example.com' });
+  const guide = files.get('blog/a/index.html');
+  assert.match(guide, /<nav class="post__toc" aria-labelledby="toc-title">.*In this post<\/p><ul><li><a href="#first-part">First part<\/a><\/li><li class="sub"><a href="#detail">Detail<\/a><\/li><li><a href="#second-part">Second part<\/a><\/li><li><a href="#third-part">Third part<\/a><\/li><\/ul><\/nav>/);
+  for (const id of ['first-part', 'detail', 'second-part', 'third-part']) assert.match(guide, new RegExp(`<h[23] id="${id}">`));
+  assert.match(guide, /<input type="checkbox" data-task>/);
+  assert.match(guide, /data-print title="Print" aria-label="Print this post"/);
+  assert.doesNotMatch(files.get('blog/b/index.html'), /post__toc/, 'short posts need no contents list');
+  doc.posts[0].toc = false;
+  assert.doesNotMatch(buildSite(doc, { origin: 'https://example.com' }).files.get('blog/a/index.html'), /post__toc/, 'can be turned off per post');
+});
