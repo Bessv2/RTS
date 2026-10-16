@@ -831,7 +831,7 @@
             "eyebrow": "Contact",
             "heading": "Let's talk about your technology.",
             "text": "Tell us what you're working on — a new network, a security concern, a device rollout or something that just isn't working. We'll get back to you within one business day.",
-            "hours": "Mon–Fri, 6pm–9pm                                        Sat-Sun, 10am-5pm",
+            "hours": "Mon–Fri, 6pm–9pm\nSat–Sun, 10am–5pm",
             "button": "Send message",
             "sentText": "Your contact form has been submitted! We will get back to you as soon as possible!",
             "showOn": "all"
