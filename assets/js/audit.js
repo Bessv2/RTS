@@ -186,6 +186,9 @@ export function audit(doc) {
       const wantsReview = (sec.type === 'testimonials' && sec.data?.reviewButton) || (Array.isArray(sec.data?.elements) && sec.data.elements.some((el) => el?.type === 'review'));
       if (wantsReview && !reviewLink(s)) add('warning', 'review-link', `“${secName}” on ${name} has a review button, but there is no review page in Settings → Business yet, so the button isn’t shown.`, { kind: 'site', field: 'reviewUrl' });
       (Array.isArray(sec.data?.elements) ? sec.data.elements : []).forEach((el, n) => {
+        if (el?.type === 'video' && !String(el.url || '').trim()) {
+          add('warning', 'video-link', `A video added to “${secName}” on ${name} has no YouTube or Vimeo link yet, so it isn’t shown.`, { ...where, field: `elements.${n}.url` });
+        }
         if (el?.type === 'image' && el.image && !String(el.alt || el.caption || '').trim()) {
           add('tip', 'image-description', `An image added to “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `elements.${n}.alt` });
         }

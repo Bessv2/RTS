@@ -445,3 +445,28 @@ test('review button: testimonials and the review element link to the review page
   assert.doesNotMatch(renderPage(doc, 0), /javascript:/);
   assert.match(audit(doc).find((r) => r.code === 'review-link').message, /must be a full address/);
 });
+
+test('icon box, checklist, quote and video elements', async () => {
+  const { audit } = await import('../../assets/js/audit.js');
+  const doc = site();
+  doc.pages[0].sections.push({ id: 'e', type: 'blank', data: { elements: [
+    { type: 'feature', icon: 'wifi', title: 'Fast Wi-Fi', text: 'Coverage in every room.', width: 'third' },
+    { type: 'checklist', style: 'check', items: [{ text: 'Backups' }, { text: '' }, { text: 'Updates <b>' }] },
+    { type: 'checklist', style: 'number', items: [{ text: 'One' }] },
+    { type: 'quote', text: 'They fixed it in an hour.', name: 'Pat' },
+    { type: 'video', url: 'https://youtu.be/dQw4w9WgXcQ', caption: 'How we work' },
+    { type: 'video', url: 'not a video' },
+  ] } });
+  const html = renderPage(doc, 0);
+  assert.match(html, /<div class="el el--third el--left"><div class="el-feature"><span class="el-feature__icon"><svg[^]*?<\/span><h3 class="el-feature__title">Fast Wi-Fi<\/h3><p class="el-feature__text">Coverage in every room\.<\/p>/);
+  assert.match(html, /<ul class="el-list el-list--check"><li><span class="el-list__mark"><svg[^]*?<\/span><span>Backups<\/span><\/li><li><span class="el-list__mark">[^]*?<span>Updates &lt;b&gt;<\/span><\/li><\/ul>/);
+  assert.equal((html.match(/el-list--check[^]*?<\/ul>/)[0].match(/<li>/g) || []).length, 2, 'empty points are left out');
+  assert.match(html, /<ol class="el-list el-list--number"><li><span>One<\/span><\/li><\/ol>/);
+  assert.match(html, /<figure class="el-quote"><blockquote><p>They fixed it in an hour\.<\/p><\/blockquote><figcaption>Pat<\/figcaption><\/figure>/);
+  assert.match(html, /<div class="video" data-embed="https:\/\/www.youtube-nocookie.com\/embed\/dQw4w9WgXcQ\?autoplay=1&amp;rel=0">/);
+  assert.match(html, /<p class="video__caption">How we work<\/p>/);
+  assert.equal((html.match(/class="video"/g) || []).length, 1, 'a bad video link shows nothing on the live site');
+  assert.match(renderPage(doc, 0, { edit: true }), /Paste a YouTube or Vimeo link/);
+  doc.pages[0].sections[1].data.elements.push({ type: 'video', url: '' });
+  assert.equal(audit(doc).find((r) => r.code === 'video-link').where.field, 'elements.6.url');
+});
