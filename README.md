@@ -111,7 +111,9 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   answer, dropdown, pick one, pick any), sent like the contact form.
 - **Elements** (`"elements": [{ "type": "text", … }]` in any section's data): headings, text,
   images, buttons, lines and space added below a section's own content. Each has an alignment
-  and a width (full, ⅔, ½, ⅓), and narrower ones sit side by side on computers. The **Empty
+  and a width (full, ⅔, ½, ⅓), and narrower ones sit side by side on computers. Besides those
+  there are icon boxes, checklists, quotes, videos (YouTube or Vimeo, loaded only on play),
+  review buttons and opening hours. The **Empty
   section** is made only of elements.
 - **Booking calendar** (section): paste a Calendly, Microsoft Bookings, Google Calendar
   appointment page, Cal.com, HubSpot or Acuity link and the calendar is shown on the page (these

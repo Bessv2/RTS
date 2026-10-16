@@ -509,6 +509,25 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .el-spacer--medium { height: 32px; }
 .el-spacer--large { height: 72px; }
 
+/* Icon box, checklist and quote elements */
+.el-feature__icon { display: inline-grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: color-mix(in srgb, var(--c-primary) 12%, transparent); color: var(--c-primary); }
+.el-feature__icon .ico { width: 24px; height: 24px; }
+.el-feature__title { margin-top: 14px; font-size: 19px; color: var(--sec-text); }
+.el-feature__text { margin-top: 6px; color: var(--sec-muted); font-size: 16px; line-height: 1.6; }
+.el-list { margin: 0; padding: 0; display: grid; gap: 10px; font-size: 17px; color: var(--sec-text); }
+.el--center .el-list { justify-content: center; }
+.el--right .el-list { justify-content: end; }
+.el-list--check { list-style: none; }
+.el-list--check li { display: flex; gap: 10px; align-items: flex-start; }
+.el-list--bullet, .el-list--number { padding-left: 1.3em; }
+.el-list__mark { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-top: 2px; border-radius: 50%; background: color-mix(in srgb, var(--c-primary) 14%, transparent); color: var(--c-primary); }
+.el-list__mark .ico { width: 14px; height: 14px; }
+.el-quote { margin: 0; padding: 4px 0 4px 22px; border-left: 4px solid var(--c-primary); }
+.el--center .el-quote, .el--right .el-quote { border-left: 0; padding-left: 0; }
+.el-quote blockquote { margin: 0; font-size: clamp(19px, 2.2vw, 23px); line-height: 1.5; font-style: italic; color: var(--sec-text); }
+.el-quote figcaption { margin-top: 10px; font-weight: 600; color: var(--sec-muted); }
+.el-quote figcaption:not(:empty)::before { content: '— '; }
+
 /* “Leave a review” button */
 .quotes__review { justify-content: center; margin-top: 36px; }
 

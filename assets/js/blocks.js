@@ -841,6 +841,34 @@ export const ELEMENTS = {
       ALIGN, WIDTH,
     ],
   },
+  feature: {
+    label: 'Icon box', icon: 'sparkle',
+    defaults: () => ({ type: 'feature', icon: 'shield-check', title: 'A short title', text: 'One or two sentences about this point.', align: 'left', width: 'third' }),
+    fields: [{ key: 'icon', label: 'Icon', type: 'icon' }, { key: 'title', label: 'Title', type: 'text' }, { key: 'text', label: 'Text', type: 'textarea' }, ALIGN, WIDTH],
+  },
+  checklist: {
+    label: 'Checklist', icon: 'check-circle',
+    defaults: () => ({ type: 'checklist', style: 'check', align: 'left', width: 'full', items: [{ text: 'First point' }, { text: 'Second point' }, { text: 'Third point' }] }),
+    fields: [
+      { key: 'items', label: 'Points', type: 'list', itemLabel: 'text', item: () => ({ text: 'New point' }), itemFields: [{ key: 'text', label: 'Text', type: 'text' }] },
+      { key: 'style', label: 'Marks', type: 'segmented', options: [['check', '✓'], ['bullet', '•'], ['number', '1.']] },
+      ALIGN, WIDTH,
+    ],
+  },
+  quote: {
+    label: 'Quote', icon: 'quote',
+    defaults: () => ({ type: 'quote', text: 'A short quote worth repeating.', name: '', align: 'left', width: 'full' }),
+    fields: [{ key: 'text', label: 'Quote', type: 'textarea' }, { key: 'name', label: 'Who said it (optional)', type: 'text' }, ALIGN, WIDTH],
+  },
+  video: {
+    label: 'Video', icon: 'play',
+    defaults: () => ({ type: 'video', url: '', caption: '', width: 'full' }),
+    fields: [
+      { key: 'url', label: 'Video link', type: 'text', help: 'Paste a YouTube or Vimeo link. The video only loads when a visitor presses play.' },
+      { key: 'caption', label: 'Caption', type: 'text' },
+      WIDTH,
+    ],
+  },
   review: {
     label: 'Review button', icon: 'star',
     defaults: () => ({ type: 'review', label: 'Leave us a review', style: 'primary', align: 'left', width: 'full' }),
@@ -900,6 +928,21 @@ export function renderElements(d, h) {
     } else if (el.type === 'button') {
       const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
       body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
+    } else if (el.type === 'feature') {
+      body = `<div class="el-feature"><span class="el-feature__icon">${h.icon(el.icon || 'sparkle')}</span>${h.t('h3', `${p}.title`, 'el-feature__title', { ph: 'Title' })}${h.t('p', `${p}.text`, 'el-feature__text', { ph: 'Text', ml: true })}</div>`;
+    } else if (el.type === 'checklist') {
+      const style = pick(el.style, ['check', 'bullet', 'number'], 'check');
+      const items = (Array.isArray(el.items) ? el.items : []).map((it, j) => (h.edit || String(it?.text || '').trim()
+        ? `<li>${style === 'check' ? `<span class="el-list__mark">${h.icon('check')}</span>` : ''}${h.t('span', `${p}.items.${j}.text`, '', { ph: 'Point' })}</li>` : '')).join('');
+      body = items ? `<${style === 'number' ? 'ol' : 'ul'} class="el-list el-list--${style}">${items}</${style === 'number' ? 'ol' : 'ul'}>` : '';
+    } else if (el.type === 'quote') {
+      body = String(el.text || '').trim() || h.edit ? `<figure class="el-quote"><blockquote>${h.t('p', `${p}.text`, '', { ph: 'Quote', ml: true })}</blockquote>${h.t('figcaption', `${p}.name`, '', { ph: 'Who said it (optional)' })}</figure>` : '';
+    } else if (el.type === 'video') {
+      const v = parseVideo(el.url);
+      const player = v
+        ? `<div class="video" data-embed="${h.esc(v.embed)}">${v.thumb ? `<img class="video__thumb" src="${h.esc(v.thumb)}" alt="" loading="lazy">` : ''}<button class="video__play" type="button" aria-label="Play video">${h.icon('play')}</button></div>`
+        : h.edit ? `<div class="video video--empty">${h.icon('play')}<span>Paste a YouTube or Vimeo link in the panel on the right</span></div>` : '';
+      body = player ? `${player}${h.t('p', `${p}.caption`, 'video__caption', { ph: 'Caption (optional)' })}` : '';
     } else if (el.type === 'review') {
       const b = reviewButton(h, el.label, `btn--${pick(el.style, ['primary', 'outline', 'ghost'], 'primary')}`);
       body = b ? `<div class="btns el-btns">${b}</div>` : h.edit ? `<div class="figure__empty el-hours--empty">${h.icon('star')}<span>Add your review page in Settings → Business</span></div>` : '';
