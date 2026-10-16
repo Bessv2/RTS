@@ -441,6 +441,20 @@ strong { font-weight: 700; }
 .post__body > * + * { margin-top: 1.1em; }
 .post__body h2 { font-size: 28px; margin-top: 1.6em; }
 .post__body h3 { font-size: 22px; margin-top: 1.4em; }
+.post__body :is(h2, h3)[id] { scroll-margin-top: 96px; }
+.post__toc { margin-bottom: 2em; padding: 18px 22px; border: 1px solid var(--sec-line); border-radius: calc(var(--radius) + 2px); background: var(--sec-card); font-size: 16px; line-height: 1.5; }
+.post__toc-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--sec-muted); }
+.post__toc-title svg { width: 16px; height: 16px; }
+.post__body .post__toc ul { display: grid; gap: 6px; margin: 0; padding: 0 0 0 24px; list-style: none; }
+.post__body .post__toc li + li { margin-top: 0; }
+.post__toc li.sub { padding-left: 18px; font-size: 15px; }
+.post__toc a { color: var(--sec-text); text-decoration: none; }
+.post__toc a:hover { color: var(--c-primary); text-decoration: underline; text-underline-offset: 3px; }
+.tasks { padding-left: 0; list-style: none; }
+.tasks li + li { margin-top: .5em; }
+.task label { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.task input { flex: none; width: 19px; height: 19px; margin: .32em 0 0; accent-color: var(--c-primary); cursor: pointer; }
+.task input:checked + span { color: var(--sec-muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, currentColor 50%, transparent); }
 .post__body h4 { font-size: 18px; margin-top: 1.2em; }
 .post__body ul, .post__body ol { padding-left: 24px; }
 .post__body li + li { margin-top: .4em; }
@@ -614,7 +628,19 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
   .callbar--all { left: auto; right: 24px; bottom: 24px; }
   .callbar--all .callbar__btn { flex: 0 0 auto; }
 }
-@media print { .callbar, .callbar-space { display: none; } }
+/* Printing a page or post (guides and checklists): just the content, in black on white. */
+@media print {
+  .site-header, .announce, .site-footer, .callbar, .callbar-space, .share, .post__nav, .related, .post__back, .skip-link, .tag-filter, .blog-search { display: none !important; }
+  body { background: #fff; color: #000; }
+  .sec { padding-block: 0 !important; background: none !important; --sec-text: #000; --sec-muted: #444; --sec-line: #ccc; --sec-card: #fff; }
+  .reveal-ready .sec .wrap { opacity: 1 !important; transform: none !important; }
+  .post__body { margin-top: 16px; font-size: 12pt; }
+  .post__body a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .85em; color: #444; word-break: break-all; }
+  .post__body :is(h2, h3) { break-after: avoid; }
+  .post__toc { display: none !important; }
+  .post__cover img { max-height: 3in; object-fit: cover; box-shadow: none; }
+  .post__body img, .callout, pre { break-inside: avoid; }
+}
 
 /* Sections shown only on computers or only on phones (the editor shows both) */
 @media (max-width: 759.98px) { body:not(.edit-mode) .show-on--desktop { display: none; } }

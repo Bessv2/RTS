@@ -133,6 +133,30 @@ test('announcement bar dates follow the visitor’s calendar', async () => {
   assert.equal(await at('2999-12-27T12:00:00'), false, 'not after the end day');
 });
 
+test('long posts: contents list jumps to each part, ticks are remembered, print works', async () => {
+  const { migrate, buildSite } = await import('../../assets/js/theme-api.js');
+  const doc = migrate(JSON.parse(await readFile(join(ROOT, 'content/site.json'), 'utf8')));
+  doc.posts.unshift({ id: 'guide', slug: 'guide-test', kind: 'post', title: 'Guide', date: '2026-10-01', published: true,
+    body: `Intro.\n\n## Part one\n${'Words. '.repeat(400)}\n\n## Part two\n- [ ] First task\n- [ ] Second task\n\n## Part three\nEnd.` });
+  const html = buildSite(doc, { origin: base }).files.get('blog/guide-test/index.html');
+  const ctx = await browser.newContext();
+  await ctx.route(`${base}/blog/guide-test/`, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
+  await ctx.addInitScript(() => { window.print = () => { window.printed = (window.printed || 0) + 1; }; });
+  const p = await page(ctx);
+  await p.goto(`${base}/blog/guide-test/`);
+  await p.click('.post__toc a[href="#part-two"]');
+  await p.waitForFunction(() => location.hash === '#part-two');
+  await p.waitForFunction(() => { const r = document.getElementById('part-two').getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight / 2; });
+  await p.check('.task:has-text("Second task") input');
+  await p.reload();
+  assert.equal(await p.isChecked('.task:has-text("Second task") input'), true, 'tick remembered after a reload');
+  assert.equal(await p.isChecked('.task:has-text("First task") input'), false);
+  await p.click('[data-print]');
+  assert.equal(await p.evaluate(() => window.printed), 1);
+  assert.deepEqual(p.errors, []);
+  await ctx.close();
+});
+
 test('contact form blocks bots and sends real messages', async () => {
   const ctx = await browser.newContext();
   const sent = [];
