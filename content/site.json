@@ -609,6 +609,181 @@
       ]
     },
     {
+      "id": "p-resources",
+      "title": "Resources",
+      "slug": "resources",
+      "showInNav": true,
+      "draft": true,
+      "seoTitle": "Free cybersecurity and tech resources | Roe Technology Services",
+      "seoDescription": "Trustworthy free guides and tools to protect your business and home online, from CISA, the FTC, NIST and more.",
+      "sections": [
+        {
+          "id": "s-res-hero",
+          "type": "hero",
+          "data": {
+            "bg": "dark",
+            "pad": "normal",
+            "layout": "center",
+            "eyebrow": "Resources",
+            "heading": "Free tools and guides we trust",
+            "text": "Practical, official resources to keep your business and your home safe online. Not sure where to start? Ask us.",
+            "primary": {
+              "label": "Ask a question",
+              "href": "/contact/"
+            },
+            "secondary": {
+              "label": "",
+              "href": ""
+            }
+          }
+        },
+        {
+          "id": "s-res-links",
+          "type": "resources",
+          "data": {
+            "bg": "light",
+            "pad": "normal",
+            "layout": "grid",
+            "eyebrow": "",
+            "heading": "Helpful links",
+            "intro": "Every link goes to the official source. We keep this list short on purpose.",
+            "items": [
+              {
+                "title": "Secure Our World",
+                "text": "Four easy ways to stay safe online: spot phishing, use strong passwords, turn on multi-factor authentication and keep software updated.",
+                "url": "https://www.cisa.gov/secure-our-world",
+                "category": "Stay safe online",
+                "icon": "shield-check"
+              },
+              {
+                "title": "Spot a phishing scam",
+                "text": "The FTC’s guide to recognizing and avoiding phishing emails and texts.",
+                "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+                "category": "Stay safe online",
+                "icon": "mail"
+              },
+              {
+                "title": "Have I Been Pwned",
+                "text": "Check whether your email address appeared in a known data breach.",
+                "url": "https://haveibeenpwned.com/",
+                "category": "Stay safe online",
+                "icon": "search"
+              },
+              {
+                "title": "Google Security Checkup",
+                "text": "A two-minute review of your Google account’s security, with tailored tips.",
+                "url": "https://myaccount.google.com/intro/security-checkup",
+                "category": "Stay safe online",
+                "icon": "lock"
+              },
+              {
+                "title": "Microsoft account security",
+                "text": "Change your password, add sign-in methods and review recent activity.",
+                "url": "https://account.microsoft.com/security",
+                "category": "Stay safe online",
+                "icon": "lock"
+              },
+              {
+                "title": "Cybersecurity for Small Business",
+                "text": "The FTC’s plain-language guides on the basics, ransomware, phishing, vendor security and more.",
+                "url": "https://www.ftc.gov/business-guidance/small-businesses/cybersecurity",
+                "category": "For small businesses",
+                "icon": "briefcase"
+              },
+              {
+                "title": "Small Business Cybersecurity Corner",
+                "text": "NIST’s free resources for understanding and reducing your cybersecurity risks.",
+                "url": "https://www.nist.gov/itl/smallbusinesscyber",
+                "category": "For small businesses",
+                "icon": "building"
+              },
+              {
+                "title": "Small and medium businesses",
+                "text": "CISA’s free information and tools for protecting your people, customers and data.",
+                "url": "https://www.cisa.gov/topics/small-and-medium-businesses",
+                "category": "For small businesses",
+                "icon": "shield"
+              },
+              {
+                "title": "#StopRansomware Guide",
+                "text": "Prevention best practices and a response checklist from CISA, the FBI and partners.",
+                "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+                "category": "For small businesses",
+                "icon": "database"
+              },
+              {
+                "title": "Report fraud to the FTC",
+                "text": "Report scams and bad business practices, even if you didn’t lose money.",
+                "url": "https://reportfraud.ftc.gov/",
+                "category": "If something goes wrong",
+                "icon": "megaphone"
+              },
+              {
+                "title": "FBI Internet Crime Complaint Center",
+                "text": "Report internet crime to the FBI.",
+                "url": "https://www.ic3.gov/",
+                "category": "If something goes wrong",
+                "icon": "alert"
+              },
+              {
+                "title": "IdentityTheft.gov",
+                "text": "Report identity theft and get a personal recovery plan.",
+                "url": "https://www.identitytheft.gov/",
+                "category": "If something goes wrong",
+                "icon": "users"
+              },
+              {
+                "title": "Hit by ransomware?",
+                "text": "CISA’s first steps if ransomware has locked your files.",
+                "url": "https://www.cisa.gov/stopransomware/ive-been-hit-ransomware",
+                "category": "If something goes wrong",
+                "icon": "zap"
+              },
+              {
+                "title": "AnnualCreditReport.com",
+                "text": "The official site for free credit reports from all three bureaus.",
+                "url": "https://www.annualcreditreport.com/",
+                "category": "If something goes wrong",
+                "icon": "clipboard"
+              },
+              {
+                "title": "FCC National Broadband Map",
+                "text": "See which internet providers serve your address, with technologies and speeds.",
+                "url": "https://broadbandmap.fcc.gov/",
+                "category": "Internet and devices",
+                "icon": "wifi"
+              },
+              {
+                "title": "Windows 10 end of support",
+                "text": "Microsoft’s explanation of what the end of Windows 10 support means and your options.",
+                "url": "https://www.microsoft.com/en-us/windows/end-of-support",
+                "category": "Internet and devices",
+                "icon": "laptop"
+              }
+            ]
+          }
+        },
+        {
+          "id": "s-res-cta",
+          "type": "cta",
+          "data": {
+            "bg": "brand",
+            "pad": "normal",
+            "heading": "Want a second pair of eyes?",
+            "text": "We’ll walk through your setup with you and point out the quick wins.",
+            "primary": {
+              "label": "Book a free consultation",
+              "href": "/contact/"
+            },
+            "secondary": {
+              "label": "",
+              "href": ""
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "p-contact",
       "title": "Contact",
       "slug": "contact",
@@ -637,6 +812,71 @@
     }
   ],
   "posts": [
+    {
+      "id": "post-wifi",
+      "slug": "slow-wifi-fixes",
+      "kind": "post",
+      "title": "Slow Wi-Fi? 7 fixes to try before you call",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Networking, Tips",
+      "image": "/assets/library/waves.svg",
+      "summary": "Most Wi-Fi problems have simple causes. Try these seven fixes, in this order, before replacing anything.",
+      "link": "",
+      "body": "Slow or patchy Wi-Fi is one of the most common problems we see. Before buying new equipment, work through these steps.\n\n## 1. Restart the modem and router\nUnplug both for 30 seconds, plug the modem in first, wait until it is online, then the router. It clears up more problems than you’d think.\n\n## 2. Move the router\nWi-Fi travels best through open air. Put the router up high, near the middle of the space, and away from metal shelves, fish tanks and microwaves.\n\n## 3. Check the speed you’re paying for\nRun a speed test next to the router, connected by cable if you can. If it is far below your plan, the problem is the internet connection, not your Wi-Fi. The [FCC National Broadband Map](https://broadbandmap.fcc.gov/) shows which providers and speeds are available at your address.\n\n## 4. Update the router\nRouter updates fix bugs and security holes. Many routers can update automatically; turn that on.\n\n## 5. Use the right band\nNewer devices do better on 5 GHz (faster, shorter range); 2.4 GHz reaches further but is slower and more crowded.\n\n## 6. Plug in what doesn’t move\nDesktop computers, TVs and printers are faster and more reliable on a network cable, and they free up Wi-Fi for phones and laptops.\n\n## 7. Add coverage the right way\nIf some rooms are still weak, a mesh system or a wired access point usually works much better than a plug-in extender.\n\nStill stuck? [We’ll take a look](/contact/), for homes and businesses alike."
+    },
+    {
+      "id": "post-checklist",
+      "slug": "small-business-cybersecurity-checklist",
+      "kind": "post",
+      "title": "Small business cybersecurity checklist: 10 things to do this month",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Small business",
+      "image": "/assets/library/network-mesh.svg",
+      "summary": "You don’t need a big budget to be much safer. Ten practical steps, most of them free, that close the gaps attackers use most.",
+      "link": "",
+      "body": "Most attacks on small businesses aren’t clever. They take advantage of the basics: reused passwords, missing updates and people in a hurry. Work through this list this month.\n\n## Accounts and passwords\n1. **Turn on multi-factor authentication** for email, banking, payroll and admin accounts.\n2. **Use a password manager** so every account has a long, unique password. CISA suggests at least 16 random characters.\n3. **Remove old accounts** for people who have left, and review who has admin rights.\n\n## Devices and software\n4. **Turn on automatic updates** for computers, phones, routers and apps.\n5. **Replace computers that no longer get security updates**, such as anything still on Windows 10.\n6. **Keep a simple list of your devices** so you know what needs protecting.\n\n## Data\n7. **Back up with the 3-2-1 rule** and keep one copy offline.\n8. **Separate guest Wi-Fi** from the network your business computers use.\n\n## People\n9. **Talk about phishing.** Agree that nobody pays an invoice or changes bank details because of an email alone; call to confirm.\n10. **Know what to do if something goes wrong:** who to call, and where to report it, such as [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/) or the FBI at [ic3.gov](https://www.ic3.gov/).\n\n## Free official guides\n- FTC: [Cybersecurity for Small Business](https://www.ftc.gov/business-guidance/small-businesses/cybersecurity)\n- NIST: [Small Business Cybersecurity Corner](https://www.nist.gov/itl/smallbusinesscyber)\n- CISA: [Secure Our World](https://www.cisa.gov/secure-our-world)\n\nWant help working through the list? [Book a free consultation](/contact/)."
+    },
+    {
+      "id": "post-backups",
+      "slug": "the-3-2-1-backup-rule",
+      "kind": "post",
+      "title": "The 3-2-1 backup rule, explained simply",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Backups, Security",
+      "image": "/assets/library/server-grid.svg",
+      "summary": "One copy of your files is no copy. The 3-2-1 rule is an easy way to make sure a broken laptop or ransomware doesn’t take your work with it.",
+      "link": "",
+      "body": "Hard drives fail, laptops get lost and ransomware locks files. A good backup turns any of those into an inconvenience instead of a disaster.\n\n## The rule\n- **3 copies** of your important files: the original plus two backups.\n- **2 different kinds of storage**, for example your computer and an external drive or a cloud service.\n- **1 copy somewhere else**, away from your office or home, such as a cloud backup.\n\n## Keep one copy offline\nRansomware can encrypt anything it can reach, including a backup drive that is always plugged in. CISA recommends keeping **offline, encrypted backups** of important data and testing them regularly.\n\n## Test your backups\nA backup you’ve never restored from is a guess. A few times a year, try restoring a file or two and make sure it opens.\n\n## A simple setup that works\n1. An automatic cloud backup of your computers or your shared files.\n2. An external drive that you back up to weekly and then unplug.\n3. A reminder on your calendar to test a restore every few months.\n\nWant it set up and checked for you? [We can help](/contact/).\n\nSource: CISA, [#StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)."
+    },
+    {
+      "id": "post-windows-10",
+      "slug": "windows-10-support-has-ended",
+      "kind": "post",
+      "title": "Windows 10 support has ended: what it means for your PCs",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Windows, Small business",
+      "image": "/assets/library/circuit.svg",
+      "summary": "Microsoft stopped updating Windows 10 on October 14, 2025. Your computers still work, but they no longer get security fixes. Here are your options.",
+      "link": "",
+      "body": "Microsoft ended support for Windows 10 on **October 14, 2025**. If your business or home still has Windows 10 computers, here’s what that means.\n\n## What changed\n- **No more security updates.** New problems found in Windows 10 are no longer fixed, so the computer becomes easier to attack over time.\n- **No more technical support** from Microsoft.\n- **Your computer still works.** Nothing switches off. The risk grows quietly.\n\nMicrosoft 365 apps keep receiving security updates on Windows 10 for a while longer (until October 10, 2028), but the operating system underneath them doesn’t.\n\n## Your options\n1. **Upgrade to Windows 11** if the computer meets Microsoft’s requirements. It’s a free upgrade for eligible PCs.\n2. **Replace the computer** if it can’t run Windows 11. This is often the right time for older machines anyway.\n3. **Extended Security Updates (ESU).** Microsoft offers a paid program that adds security updates for a limited time. It buys time, but it isn’t a long-term plan.\n\n## How we can help\nWe can check which of your computers can upgrade, move your files and settings safely, and plan replacements so nobody loses a day of work. [Get in touch](/contact/) for a quick review.\n\nSource: Microsoft, [End of support for Windows 10](https://www.microsoft.com/en-us/windows/end-of-support)."
+    },
+    {
+      "id": "post-phishing",
+      "slug": "how-to-spot-a-phishing-email",
+      "kind": "post",
+      "title": "How to spot a phishing email (and what to do if you clicked)",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Tips",
+      "image": "/assets/library/hex-shield.svg",
+      "summary": "Phishing messages try to rush you into clicking. Here are the warning signs, and the exact steps to take if you already did.",
+      "link": "",
+      "body": "Phishing emails and texts pretend to be someone you trust, like your bank, a delivery company or even a coworker, to get you to click a link, open an attachment or share a password.\n\n## The warning signs\n- **Urgency or a threat.** “Your account will be closed today.” Scammers want you to act before you think.\n- **A request for personal or payment details.** Real companies don’t ask you to confirm passwords or card numbers by email.\n- **An unexpected attachment or link.** Even when it looks like it comes from someone you know.\n- **Unusual ways to pay.** Anyone who insists on gift cards, wire transfers, a payment app or cryptocurrency is a scammer.\n\n## What to do instead\n1. Don’t click. Go to the company’s website or call a number you already know, not the one in the message.\n2. Turn on multi-factor authentication for your email and banking, so a stolen password alone isn’t enough.\n3. Keep your software and phone updated, and let your email’s spam filter do its job.\n\n## If you already clicked\n1. Change the password for that account, and anywhere else you used the same password.\n2. If you downloaded something, run a security scan, or [ask us](/contact/) to check the computer.\n3. If you shared personal or financial information, visit [IdentityTheft.gov](https://www.identitytheft.gov/) for a recovery plan.\n\n## Report it\n- Forward phishing emails to reportphishing@apwg.org.\n- Forward scam texts to 7726 (SPAM).\n- Report the scam to the FTC at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/).\n\nSource: the FTC’s guide, [How to recognize and avoid phishing scams](https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams)."
+    },
     {
       "id": "post-network-signs",
       "kind": "post",

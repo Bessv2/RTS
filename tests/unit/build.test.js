@@ -14,7 +14,7 @@ test('the published content is valid', () => {
 
 test('every page and published post gets its own HTML file', () => {
   assert.ok(files.has('index.html'));
-  doc.pages.slice(1).forEach((p) => assert.ok(files.has(`${p.slug}/index.html`), p.slug));
+  doc.pages.slice(1).forEach((p) => assert.equal(files.has(`${p.slug}/index.html`), !p.draft, `${p.slug}${p.draft ? ' is unpublished' : ''}`));
   doc.posts.filter((p) => p.published !== false).forEach((p) => assert.ok(files.has(`blog/${p.slug}/index.html`), p.slug));
   for (const f of ['404.html', 'sitemap.xml', 'feed.xml', 'robots.txt', 'generated.json']) assert.ok(files.has(f), f);
   assert.deepEqual(JSON.parse(files.get('generated.json')).files, paths.filter((p) => p !== 'generated.json'));
