@@ -685,6 +685,20 @@
                 "icon": "lock"
               },
               {
+                "title": "Passkeys",
+                "text": "What passkeys are and why they are safer than passwords, from the FIDO Alliance.",
+                "url": "https://fidoalliance.org/passkeys/",
+                "category": "Stay safe online",
+                "icon": "lock"
+              },
+              {
+                "title": "Tech support scams",
+                "text": "How to spot, avoid and report fake virus warnings and calls about your computer.",
+                "url": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+                "category": "Stay safe online",
+                "icon": "alert"
+              },
+              {
                 "title": "Cybersecurity for Small Business",
                 "text": "The FTC’s plain-language guides on the basics, ransomware, phishing, vendor security and more.",
                 "url": "https://www.ftc.gov/business-guidance/small-businesses/cybersecurity",
@@ -748,6 +762,13 @@
                 "icon": "clipboard"
               },
               {
+                "title": "Hacked email or social media",
+                "text": "The FTC’s steps to get back into a hacked account and lock it down.",
+                "url": "https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account",
+                "category": "If something goes wrong",
+                "icon": "mail"
+              },
+              {
                 "title": "FCC National Broadband Map",
                 "text": "See which internet providers serve your address, with technologies and speeds.",
                 "url": "https://broadbandmap.fcc.gov/",
@@ -760,6 +781,13 @@
                 "url": "https://www.microsoft.com/en-us/windows/end-of-support",
                 "category": "Internet and devices",
                 "icon": "laptop"
+              },
+              {
+                "title": "Secure your home Wi-Fi",
+                "text": "The FTC’s steps for locking down your router: passwords, encryption, updates and a guest network.",
+                "url": "https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network",
+                "category": "Internet and devices",
+                "icon": "wifi"
               }
             ]
           }
@@ -813,6 +841,58 @@
     }
   ],
   "posts": [
+    {
+      "id": "post-techsupport",
+      "slug": "tech-support-scams",
+      "kind": "post",
+      "title": "That “call Microsoft now” pop-up is a scam",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Tips",
+      "image": "/assets/library/topography.svg",
+      "summary": "Fake virus warnings and surprise calls about your computer are some of the most common scams around. How to spot them, and what to do if you already let someone in.",
+      "link": "",
+      "body": "It usually starts with a loud pop-up that freezes your screen, or a phone call from someone who says they’re from Microsoft, Apple, your bank or even the government. They say your computer is infected and they can fix it, if you let them connect or pay right away.\n\n## The rules that make these easy to spot\n- **Real tech companies don’t call, email or text you about a problem with your computer.**\n- **A pop-up that tells you to call a phone number is always a scam.** Real security warnings never ask you to call.\n- **Nobody legitimate asks to be paid with gift cards, wire transfers or cryptocurrency.**\n- **Never give a verification code** to someone who contacted you. It’s the key to your account.\n\n## What to do\n- Hang up on unexpected calls about your computer.\n- If a pop-up won’t close, restart the computer. On Windows you can also press Ctrl+Alt+Delete and open Task Manager to close the browser.\n- If you’re worried something really is wrong, update your security software and run a scan, then get help from a company you already know and trust.\n- To check a “subscription renewal” message, contact the company using a number you know is real, not the one in the message.\n\n## If you already let them in\n- [ ] Disconnect the computer from the internet.\n- [ ] Uninstall any remote access program they had you install, and run a full security scan.\n- [ ] Change your passwords from a different, clean device, starting with email and banking.\n- [ ] Call your bank or card company to stop or reverse any payments.\n- [ ] Report it at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/), including the phone number they told you to call.\n\n## Go deeper\n- FTC: [How To Spot, Avoid, and Report Tech Support Scams](https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams)\n\nNot sure if a message is real? Ask us before you call anyone: [contact us](/contact/). We’re happy to take a look."
+    },
+    {
+      "id": "post-passkeys",
+      "slug": "passkeys-explained",
+      "kind": "post",
+      "title": "Passkeys explained: signing in without a password",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Tips",
+      "image": "/assets/library/circuit.svg",
+      "summary": "Passkeys let you sign in with your fingerprint, face or PIN instead of a password, and they can’t be phished. Here’s how they work and how to start.",
+      "link": "",
+      "body": "A passkey replaces your password with your device’s own lock: your fingerprint, your face or your PIN. Google, Apple, Microsoft and many banks and shops now support them.\n\n## Why they’re safer\n- **Nothing to steal or reuse.** A passkey is a pair of keys. The secret half stays on your device; the website only keeps the public half, which is useless to a thief.\n- **They can’t be phished.** Each passkey only works on the real website or app it was made for, so a lookalike site can’t trick you into handing it over.\n- **Nothing to remember.** You unlock your phone or computer the way you already do.\n\n## Where passkeys live\nMost passkeys sync through your Apple, Google or Microsoft account or your password manager, so they follow you to a new phone. A hardware security key keeps one on a single physical device instead.\n\n## Set one up for your Google account\n1. Make sure your phone or computer has a screen lock.\n2. Go to your Google Account’s passkeys page and choose **Create a passkey**.\n3. Next time you sign in, confirm with your fingerprint, face or PIN.\n\nYour password and other sign-in methods still work as a backup, so you can try passkeys without risk.\n\n## Good to know\n- Start with the accounts that matter most: email, banking and your Apple, Google or Microsoft account.\n- Keep your account recovery options up to date in case you lose your device.\n- Not every site supports passkeys yet. For the rest, a password manager plus [multi-factor authentication](/blog/turn-on-multi-factor-authentication/) is still the way to go.\n\n## Go deeper\n- FIDO Alliance: [What are passkeys?](https://fidoalliance.org/passkeys/)\n- Google: [Sign in with a passkey instead of a password](https://support.google.com/accounts/answer/13548313?hl=en)\n\nWant help moving your business accounts to passkeys? [Let’s talk](/contact/)."
+    },
+    {
+      "id": "post-hacked",
+      "slug": "what-to-do-if-your-email-is-hacked",
+      "kind": "post",
+      "title": "Email or social media hacked? Do these things first",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Tips",
+      "image": "/assets/library/hex-shield.svg",
+      "summary": "Locked out, or friends getting strange messages from you? Here is the order to work in, from getting back in to warning your contacts.",
+      "link": "",
+      "body": "Your email is the key to almost everything else: password resets for your bank, shopping and social media all go there. If it’s taken over, act quickly and in this order.\n\n## Signs someone got in\n- You can’t log in, or your password or recovery email changed without you.\n- You get an alert about a sign-in from a device or place you don’t recognize.\n- Friends tell you they got odd messages or requests for money from you.\n\n## 1. Clean your computer first\nUpdate your security software and run a full scan. If it finds anything, remove it and restart. Otherwise whoever got in may simply get in again.\n\n## 2. Get back in\nUse the provider’s own account recovery page (Google, Microsoft, Apple, Facebook and others all have one). Go to it directly, never through a link in an email or text.\n\n## 3. Lock the account down\n- [ ] Change the password to a long, unique one, ideally made by a password manager.\n- [ ] Sign out of all other devices from the security settings.\n- [ ] Turn on [multi-factor authentication](/blog/turn-on-multi-factor-authentication/), or set up a passkey.\n- [ ] Check the recovery email and phone number are yours.\n- [ ] Look for forwarding rules or filters you didn’t create. Attackers use them to keep reading your mail.\n- [ ] Change the password anywhere else you used the same one.\n\n## 4. Tell people\nLet friends, family and customers know, and ask them not to click links or send money because of a message from you.\n\n## 5. If personal information was misused\nReport it at [IdentityTheft.gov](https://www.identitytheft.gov/) for a step-by-step recovery plan, and check whether your address appears in known breaches at [Have I Been Pwned](https://haveibeenpwned.com/).\n\n## Go deeper\n- FTC: [How To Recover Your Hacked Email or Social Media Account](https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account)\n- FTC: [What To Do if You Were Scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)\n\nNeed a hand getting back in or cleaning up a computer? [Contact us](/contact/)."
+    },
+    {
+      "id": "post-router",
+      "slug": "secure-your-home-wifi-router",
+      "kind": "post",
+      "title": "Secure your home Wi-Fi router in 15 minutes",
+      "date": "2026-10-16",
+      "published": false,
+      "tags": "Security, Networking, Tips",
+      "image": "/assets/library/waves.svg",
+      "summary": "Your router is the front door to every device in the house. Six settings make it much harder to get in.",
+      "link": "",
+      "body": "Most people set up their router once and never look at it again. That’s a problem: an old password or a forgotten setting can let a stranger onto your network, or into the router itself. Grab the sticker on the bottom of your router and work through this list. Tick each item as you go.\n\n## Log in to your router\nType the address printed on the router (often 192.168.0.1 or 192.168.1.1) into a browser, or use the router’s app. If the admin password is still the one on the sticker, that’s the first thing to change.\n\n## The checklist\n- [ ] **Change the admin password.** This is different from your Wi-Fi password: it controls the router’s settings. If someone gets into the admin side, they can change everything else.\n- [ ] **Use WPA3 or WPA2 encryption.** The FTC says routers that only offer WEP or the original WPA are outdated and not secure. If yours is one of them, it’s time for a new router.\n- [ ] **Give the network a new name.** Avoid your name, your address or the router brand.\n- [ ] **Update the firmware.** Check the router’s settings or the maker’s website, and turn on automatic updates if it has them.\n- [ ] **Turn off remote management, WPS and UPnP** unless you know you need them. Each one is a way in that most homes never use.\n- [ ] **Set up a guest network** for visitors and smart devices like cameras, TVs and doorbells, so they stay separate from your computers and phones.\n\n## When to replace the router\nIf it no longer gets updates, can’t do WPA2 or WPA3, or struggles with all your devices, a new router (or a mesh system for larger homes) is money well spent. See our post on [slow Wi-Fi fixes](/blog/slow-wifi-fixes/) too.\n\n## Go deeper\n- FTC: [How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network)\n- FTC: [Securing Your Internet-Connected Devices at Home](https://consumer.ftc.gov/articles/securing-your-internet-connected-devices-home)\n\nWant us to check your setup? [Book a free consultation](/contact/)."
+    },
     {
       "id": "post-wifi",
       "slug": "slow-wifi-fixes",
