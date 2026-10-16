@@ -723,7 +723,7 @@ export const BLOCKS = {
       { key: 'eyebrow', label: 'Eyebrow', type: 'text' },
       { key: 'heading', label: 'Heading', type: 'text' },
       { key: 'text', label: 'Text', type: 'textarea' },
-      { key: 'hours', label: 'Business hours', type: 'text', help: 'Used only while business hours aren’t set in Settings.' },
+      { key: 'hours', label: 'Business hours', type: 'textarea', help: 'Press Enter to start a new line, e.g. weekdays on one line and weekends on the next. Used only while business hours aren’t set in Settings.' },
       { key: 'showForm', label: 'Show contact form', type: 'toggle' },
       { key: 'button', label: 'Form button text', type: 'text', when: (d) => d.showForm },
       { key: 'sentText', label: 'Message after sending', type: 'text', keepDefaults: true, when: (d) => d.showForm, help: 'Shown to visitors once their message has been sent.' },
@@ -743,7 +743,7 @@ export const BLOCKS = {
             ${row('map-pin', 'Service area', s.location)}
             ${hasHours(s.hours)
     ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small><span>${h.esc(hoursSummary(s.hours))}</span>${openBadge(s.hours, h.esc, h.edit)}</div></li>`
-    : d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', '', { ph: 'Business hours' })}</div></li>` : ''}
+    : d.hours || h.edit ? `<li><span class="contact__icon">${h.icon('clock')}</span><div><small>Hours</small>${h.t('span', 'hours', 'contact__lines', { ph: 'Business hours', ml: true })}</div></li>` : ''}
           </ul>
         </div>
         ${d.showForm ? `<form class="contact__form" data-contact-form data-endpoint="${h.esc(h.site.formEndpoint || '')}" data-email="${h.esc(h.site.email || '')}"${d.sentText ? ` data-sent="${h.esc(d.sentText)}"` : ''} novalidate>

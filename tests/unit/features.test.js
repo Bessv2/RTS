@@ -295,7 +295,9 @@ test('business hours: summary, open now in the business time zone, Google detail
   const built = buildSite(doc, { origin: 'https://x.com' }).files.get('index.html');
   assert.match(built, /"openingHoursSpecification":\[\{"@type":"OpeningHoursSpecification","dayOfWeek":\["Monday","Tuesday","Wednesday","Thursday"\],"opens":"08:00","closes":"18:00"\}/);
   doc.site.hours.enabled = false;
-  assert.match(renderPage(doc, 0), /<small>Hours<\/small><span>Old text<\/span>/, 'without hours the section text is used');
+  assert.match(renderPage(doc, 0), /<small>Hours<\/small><span class="contact__lines">Old text<\/span>/, 'without hours the section text is used');
+  doc.pages[0].sections.find((x) => x.type === 'contact').data.hours = 'Mon–Fri, 9am–5pm\nSat, 10am–2pm';
+  assert.match(renderPage(doc, 0), /<span class="contact__lines">Mon–Fri, 9am–5pm\nSat, 10am–2pm<\/span>/, 'line breaks are kept (shown with white-space: pre-line)');
 });
 
 test('call button: floating on phones (or everywhere), needs a phone number', async () => {
