@@ -604,3 +604,27 @@ test('headings never skip a level: item titles move up when a section has no hea
   assert.match(html, /<h2 class="site-footer__title">Pages<\/h2>/);
   assert.doesNotMatch(html, /<h4/);
 });
+
+test('link previews never use SVG: built-in images use their JPEG twin', async () => {
+  const { shareImage } = await import('../../assets/js/build.js');
+  assert.equal(shareImage('assets/library/waves.svg'), '/assets/library/waves.jpg');
+  assert.equal(shareImage('/assets/library/hex-shield.svg'), '/assets/library/hex-shield.jpg');
+  assert.equal(shareImage('/assets/library/unknown.svg'), '');
+  assert.equal(shareImage('/assets/uploads/logo.svg'), '');
+  assert.equal(shareImage('/assets/uploads/photo.webp'), '/assets/uploads/photo.webp');
+  assert.equal(shareImage('data:image/png;base64,xx'), '');
+  const { readFile: read } = await import('node:fs/promises');
+  for (const n of ['circuit', 'dots-light', 'gradient-blue', 'hex-shield', 'network-mesh', 'server-grid', 'topography', 'waves', 'share-card']) {
+    const jpg = await read(new URL(`../../assets/library/${n}.jpg`, import.meta.url));
+    assert.equal(jpg.readUInt16BE(0), 0xffd8, `${n}.jpg is a JPEG`);
+  }
+  const doc = site({ posts: [{ id: 'a', slug: 'a', kind: 'post', title: 'Guide', date: '2026-10-01', published: true, image: 'assets/library/waves.svg', body: 'x' }] });
+  doc.site.shareImage = '/assets/library/share-card.jpg';
+  const { files } = buildSite(doc, { origin: 'https://example.com' });
+  const post = files.get('blog/a/index.html');
+  assert.match(post, /<meta property="og:image" content="https:\/\/example.com\/assets\/library\/waves.jpg">\n  <meta property="og:image:width" content="1200">/);
+  assert.match(post, /"image":"https:\/\/example.com\/assets\/library\/waves.jpg"/);
+  assert.match(files.get('index.html'), /og:image" content="https:\/\/example.com\/assets\/library\/share-card.jpg"/);
+  doc.posts[0].image = '/assets/uploads/diagram.svg';
+  assert.match(buildSite(doc, { origin: 'https://example.com' }).files.get('blog/a/index.html'), /og:image" content="https:\/\/example.com\/assets\/library\/share-card.jpg"/, 'an uploaded SVG falls back to the site share image');
+});

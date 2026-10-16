@@ -52,13 +52,26 @@ export function analyticsFor(site) {
 }
 const cspFor = (doc) => { const a = analyticsFor(doc.site); return a ? CSP.replace("script-src 'self'", `script-src 'self' ${a.host}`) : CSP; };
 
+// Link previews (Facebook, LinkedIn, X, messages) can't show SVG images. The
+// built-in library images have 1200×630 JPEG twins, used instead; any other
+// SVG is skipped so the site's share image (or no image) is used.
+const LIBRARY_TWINS = new Set(['circuit', 'dots-light', 'gradient-blue', 'hex-shield', 'network-mesh', 'server-grid', 'topography', 'waves']);
+const FULL_SIZE = /^\/assets\/library\/[\w-]+\.jpg$/;
+export function shareImage(src) {
+  const s = safeSrc(src);
+  if (!s || s.startsWith('data:')) return '';
+  const lib = s.match(/^\/?assets\/library\/([\w-]+)\.svg$/);
+  if (lib) return LIBRARY_TWINS.has(lib[1]) ? `/assets/library/${lib[1]}.jpg` : '';
+  return /\.svg([?#]|$)/i.test(s) ? '' : s;
+}
+
 // One complete HTML document. `body` is the rendered page markup.
 export function documentHTML(doc, { path, title, description, body, image, type = 'website', jsonLd = [], noindex = false, preload = '', origin }) {
   const s = doc.site || {};
   const t = doc.theme || {};
   const abs = (p) => (!p ? '' : /^https?:\/\//i.test(p) ? p : `${origin}${p.startsWith('/') ? '' : '/'}${p}`);
-  const share = safeSrc(image || s.shareImage);
-  const shareAbs = share && !share.startsWith('data:') ? abs(share) : '';
+  const share = shareImage(image) || shareImage(s.shareImage);
+  const shareAbs = share ? abs(share) : '';
   const favicon = safeSrc(s.favicon) || DEFAULT_FAVICON;
   const fonts = fontsHref(t);
   const url = abs(path);
@@ -78,7 +91,7 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(description)}">
   <meta property="og:url" content="${esc(url)}">
-  ${shareAbs ? `<meta property="og:image" content="${esc(shareAbs)}">` : ''}
+  ${shareAbs ? `<meta property="og:image" content="${esc(shareAbs)}">${FULL_SIZE.test(share) ? '\n  <meta property="og:image:width" content="1200">\n  <meta property="og:image:height" content="630">' : ''}` : ''}
   <meta name="twitter:card" content="${shareAbs ? 'summary_large_image' : 'summary'}">
   <link rel="icon" href="${esc(favicon)}">
   <meta name="theme-color" content="${esc(t.dark || '#0b1220')}">
@@ -225,14 +238,13 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
   for (const post of publishedPosts(doc)) {
     const path = postHref(post);
     const title = postTitle(post) || 'Post';
-    const image = safeSrc(post.image);
     files.set(`${POSTS_BASE}/${post.slug}/index.html`, documentHTML(doc, {
       path, title: `${title} | ${s.name}`, description: post.summary || plain(post.body).slice(0, 160) || s.description || '',
       body: renderPostPage(doc, post, { origin }), image: post.image, type: 'article', origin,
       jsonLd: [{
         '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, datePublished: post.date, dateModified: postUpdated(post) || post.date,
         description: post.summary || undefined, url: `${origin}${path}`,
-        ...(image && !image.startsWith('data:') ? { image: `${origin}${image}` } : {}),
+        ...(shareImage(post.image) ? { image: `${origin}${shareImage(post.image)}` } : {}),
         author: { '@type': 'Organization', name: s.name }, publisher: { '@type': 'Organization', name: s.name },
         wordCount: plain(post.body).split(' ').filter(Boolean).length || undefined,
       }, breadcrumbs(origin, [[s.name, '/'], ...blogCrumb(doc), [title, path]])],
