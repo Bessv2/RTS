@@ -565,3 +565,21 @@ test('posts: numbered lists keep their numbers, tick-box checklists, heading lin
   doc.posts[0].toc = false;
   assert.doesNotMatch(buildSite(doc, { origin: 'https://example.com' }).files.get('blog/a/index.html'), /post__toc/, 'can be turned off per post');
 });
+
+test('posts can show when they were last updated', async () => {
+  const { postUpdated } = await import('../../assets/js/render.js');
+  assert.equal(postUpdated({ date: '2026-10-01', updated: '2026-10-20' }), '2026-10-20');
+  assert.equal(postUpdated({ date: '2026-10-01', updated: '2026-10-01' }), '', 'not the same day');
+  assert.equal(postUpdated({ date: '2026-10-01', updated: '2026-09-01' }), '', 'not before the post');
+  assert.equal(postUpdated({ date: '2026-10-01', updated: 'soon' }), '');
+  const doc = site({ posts: [{ id: 'a', slug: 'a', kind: 'post', title: 'Guide', date: '2026-10-01', updated: '2026-10-20', published: true, body: 'Text.' }] });
+  const { files } = buildSite(doc, { origin: 'https://example.com' });
+  const page = files.get('blog/a/index.html');
+  assert.match(page, /<span class="post-meta__updated">Updated <time datetime="2026-10-20">Oct 20, 2026<\/time><\/span>/);
+  assert.match(page, /"datePublished":"2026-10-01","dateModified":"2026-10-20"/);
+  assert.match(files.get('sitemap.xml'), /\/blog\/a\/<\/loc><lastmod>2026-10-20<\/lastmod>/);
+  delete doc.posts[0].updated;
+  const plain = buildSite(doc, { origin: 'https://example.com' }).files.get('blog/a/index.html');
+  assert.doesNotMatch(plain, /post-meta__updated/);
+  assert.match(plain, /"dateModified":"2026-10-01"/);
+});

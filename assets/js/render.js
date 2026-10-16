@@ -489,6 +489,9 @@ export function blogPageIndex(doc) {
   return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
 }
 
+// A post's “last updated” day (YYYY-MM-DD), when it is set and later than the post's date.
+export const postUpdated = (p) => (DAY.test(p.updated || '') && p.updated > String(p.date || '').slice(0, 10) ? p.updated : '');
+
 // What the blog search looks through: title, summary, tags and the start of the text.
 export const searchText = (p) => `${postTitle(p)} ${p.summary || ''} ${postTags(p).join(' ')} ${plain(p.body).slice(0, 1200)}`
   .toLowerCase().replace(/\s+/g, ' ').trim();
@@ -542,7 +545,7 @@ export function renderPostPage(doc, post, ctx = {}) {
     + `<main id="main"><article class="sec sec--light pad--normal post">
       <header class="wrap wrap--narrow post__head">
         <a class="post__back" href="${back}">${icon('arrow-right')} Back to blog</a>
-        <div class="post-meta"><time datetime="${esc(post.date)}">${formatDate(post.date)}</time><span class="post-meta__read">${readingMinutes(post)} min read</span>${tagChips(post)}</div>
+        <div class="post-meta"><time datetime="${esc(post.date)}">${formatDate(post.date)}</time>${postUpdated(post) ? `<span class="post-meta__updated">Updated <time datetime="${post.updated}">${formatDate(post.updated)}</time></span>` : ''}<span class="post-meta__read">${readingMinutes(post)} min read</span>${tagChips(post)}</div>
         <h1 class="post__title">${esc(postTitle(post))}</h1>
         ${post.summary ? `<p class="lead post__summary">${esc(post.summary)}</p>` : ''}
       </header>

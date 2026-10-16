@@ -575,7 +575,7 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 .res-empty { text-align: center; color: var(--sec-muted); }
 
 /* Blog: reading time, share links, related posts */
-.post-meta__read::before { content: '·'; margin-right: 12px; }
+.post-meta__read::before, .post-meta__updated::before { content: '·'; margin-right: 12px; }
 .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--sec-line); }
 .share__label { margin-right: 4px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sec-muted); }
 .share__btn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--sec-line); background: none; color: var(--sec-text); cursor: pointer; transition: border-color .15s, color .15s; }

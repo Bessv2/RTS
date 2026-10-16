@@ -1,7 +1,7 @@
 // Static site builder. Turns site.json into finished HTML files.
 // Runs in the browser (the editor's Publish button) and in Node (scripts/build.mjs
 // and GitHub Actions), so the live site is always produced by the same code.
-import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, safeHref, pageHref, postHref, postTitle, publishedPosts, isLivePage, firstSectionIndex } from './render.js';
+import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, safeSrc, safeHref, pageHref, postHref, postTitle, publishedPosts, isLivePage, firstSectionIndex, postUpdated } from './render.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { BOOKING_ORIGINS } from './blocks.js';
 import { openingHoursLd } from './hours.js';
@@ -230,14 +230,14 @@ export function buildSite(doc, { origin: fallbackOrigin } = {}) {
       path, title: `${title} | ${s.name}`, description: post.summary || plain(post.body).slice(0, 160) || s.description || '',
       body: renderPostPage(doc, post, { origin }), image: post.image, type: 'article', origin,
       jsonLd: [{
-        '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, datePublished: post.date,
+        '@context': 'https://schema.org', '@type': 'BlogPosting', headline: title, datePublished: post.date, dateModified: postUpdated(post) || post.date,
         description: post.summary || undefined, url: `${origin}${path}`,
         ...(image && !image.startsWith('data:') ? { image: `${origin}${image}` } : {}),
         author: { '@type': 'Organization', name: s.name }, publisher: { '@type': 'Organization', name: s.name },
         wordCount: plain(post.body).split(' ').filter(Boolean).length || undefined,
       }, breadcrumbs(origin, [[s.name, '/'], ...blogCrumb(doc), [title, path]])],
     }));
-    urls.push({ loc: `${origin}${path}`, lastmod: post.date });
+    urls.push({ loc: `${origin}${path}`, lastmod: postUpdated(post) || post.date });
   }
 
   // Redirects never replace a real page or post.
