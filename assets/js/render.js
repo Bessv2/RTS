@@ -124,6 +124,7 @@ function helpers(data, ctx, sectionPath = '') {
     edit, esc, icon, site: ctx.site.site, doc: ctx.site,
     blog: { publishedPosts, renderPostCard, postTags },
     src: (v) => safeSrc(v),
+    safeHref: (v) => safeHref(v),
     list: (path) => (Array.isArray(getPath(data, path)) ? getPath(data, path) : []),
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
@@ -404,6 +405,32 @@ export function blogPageIndex(doc) {
   return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
 }
 
+// About 200 words a minute; at least one.
+export const readingMinutes = (post) => Math.max(1, Math.round(plain(post.body).split(' ').filter(Boolean).length / 200));
+
+// Up to `n` other posts, the ones sharing the most tags first, then the newest.
+export function relatedPosts(doc, post, n = 3) {
+  const tags = new Set(postTags(post).map((t) => t.toLowerCase()));
+  return publishedPosts(doc, 'post').filter((p) => p.id !== post.id)
+    .map((p, i) => ({ p, i, score: postTags(p).filter((t) => tags.has(t.toLowerCase())).length }))
+    .sort((a, b) => b.score - a.score || a.i - b.i).slice(0, n).map(({ p }) => p);
+}
+
+// Plain share links (no tracking scripts) plus “Copy link” for the live site.
+function shareLinks(url, title) {
+  const u = encodeURIComponent(url);
+  const t = encodeURIComponent(title);
+  const links = [
+    ['facebook', 'Facebook', `https://www.facebook.com/sharer/sharer.php?u=${u}`],
+    ['linkedin', 'LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${u}`],
+    ['xsocial', 'X', `https://twitter.com/intent/tweet?url=${u}&text=${t}`],
+    ['mail', 'Email', `mailto:?subject=${t}&body=${u}`],
+  ];
+  return `<div class="share"><span class="share__label">Share</span>${links.map(([ic, label, href]) =>
+    `<a class="share__btn" href="${esc(href)}"${ic === 'mail' ? '' : ' target="_blank" rel="noopener"'} aria-label="Share on ${label}" title="${label}">${icon(ic)}</a>`).join('')}`
+    + `<button type="button" class="share__btn share__copy" data-copy="${esc(url)}" title="Copy link" aria-label="Copy link">${icon('link')}</button></div>`;
+}
+
 export function renderPostPage(doc, post, ctx = {}) {
   const c = { ...ctx, edit: false, site: doc };
   let bi = blogPageIndex(doc);
@@ -415,20 +442,24 @@ export function renderPostPage(doc, post, ctx = {}) {
   const older = i >= 0 && i < all.length - 1 ? all[i + 1] : null;
   const img = safeSrc(post.image);
   const host = (() => { try { return post.link ? new URL(post.link).hostname.replace(/^www\./, '') : ''; } catch { return ''; } })();
+  const related = (post.kind || 'post') === 'post' ? relatedPosts(doc, post) : [];
   return renderHeader(doc, bi, c)
     + `<main id="main"><article class="sec sec--light pad--normal post">
       <header class="wrap wrap--narrow post__head">
         <a class="post__back" href="${back}">${icon('arrow-right')} Back to blog</a>
-        <div class="post-meta"><time datetime="${esc(post.date)}">${formatDate(post.date)}</time>${tagChips(post)}</div>
+        <div class="post-meta"><time datetime="${esc(post.date)}">${formatDate(post.date)}</time><span class="post-meta__read">${readingMinutes(post)} min read</span>${tagChips(post)}</div>
         <h1 class="post__title">${esc(postTitle(post))}</h1>
         ${post.summary ? `<p class="lead post__summary">${esc(post.summary)}</p>` : ''}
       </header>
       ${img ? `<figure class="wrap post__cover"><img src="${esc(img)}" alt="" fetchpriority="high" decoding="async"></figure>` : ''}
       <div class="wrap wrap--narrow post__body">${markdown(post.body, mediaResolver(doc)) || (ctx.preview ? '<p class="post__empty">Start writing in the panel on the left…</p>' : '')}
-        ${host ? `<p class="post__src"><a href="${esc(safeHref(post.link))}" target="_blank" rel="noopener">Source: ${esc(host)} ${icon('external')}</a></p>` : ''}</div>
+        ${host ? `<p class="post__src"><a href="${esc(safeHref(post.link))}" target="_blank" rel="noopener">Source: ${esc(host)} ${icon('external')}</a></p>` : ''}
+        ${ctx.origin ? shareLinks(`${ctx.origin}${postHref(post)}`, postTitle(post)) : ''}</div>
       ${newer || older ? `<nav class="wrap wrap--narrow post__nav" aria-label="More posts">
         ${older ? `<a href="${postHref(older)}"><small>Previous</small>${esc(postTitle(older))}</a>` : '<span></span>'}
         ${newer ? `<a class="next" href="${postHref(newer)}"><small>Next</small>${esc(postTitle(newer))}</a>` : ''}</nav>` : ''}
-    </article></main>`
+    </article>${related.length ? `<section class="sec sec--alt pad--normal related" aria-labelledby="related-title"><div class="wrap">
+      <h2 class="sec-title related__title" id="related-title">Keep reading</h2>
+      <div class="blogfeed blogfeed--grid related__grid">${related.map((p) => renderPostCard(p, doc)).join('')}</div></div></section>` : ''}</main>`
     + renderFooter(doc, c);
 }

@@ -564,6 +564,58 @@ export const BLOCKS = {
     },
   },
 
+  resources: {
+    label: 'Resource links',
+    group: 'Content',
+    icon: 'bookmark',
+    description: 'Helpful links, guides and tools',
+    defaults: () => ({
+      bg: 'light', pad: 'normal', layout: 'grid',
+      eyebrow: 'Resources', heading: 'Helpful links', intro: 'Free, trustworthy guides and tools we recommend.',
+      items: [
+        { title: 'Secure Our World', text: 'Four easy ways to stay safe online, from the U.S. Cybersecurity and Infrastructure Security Agency.', url: 'https://www.cisa.gov/secure-our-world', category: 'Stay safe online', icon: 'shield-check' },
+        { title: 'Have I Been Pwned', text: 'Check whether your email address appeared in a known data breach.', url: 'https://haveibeenpwned.com/', category: 'Stay safe online', icon: 'search' },
+        { title: 'Spot a phishing scam', text: 'The FTC’s guide to recognizing and avoiding phishing emails and texts.', url: 'https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams', category: 'Stay safe online', icon: 'mail' },
+        { title: 'Report fraud', text: 'Tell the Federal Trade Commission about scams and fraud, even if you didn’t lose money.', url: 'https://reportfraud.ftc.gov/', category: 'If something goes wrong', icon: 'megaphone' },
+      ],
+    }),
+    fields: [
+      ...SECTION_HEADER_FIELDS,
+      { key: 'layout', label: 'Layout', type: 'segmented', options: [['grid', 'Cards'], ['list', 'List']] },
+      { key: 'items', label: 'Links', type: 'list', itemLabel: 'title', keepDefaults: true,
+        item: () => ({ title: 'New link', text: '', url: 'https://', category: '', icon: 'globe' }),
+        itemFields: [
+          { key: 'title', label: 'Title', type: 'text' },
+          { key: 'url', label: 'Link', type: 'link' },
+          { key: 'text', label: 'Short description', type: 'textarea' },
+          { key: 'category', label: 'Group (optional)', type: 'text', help: 'Links with the same group are shown together under its name.' },
+          { key: 'icon', label: 'Icon', type: 'icon' },
+        ] },
+    ],
+    render(d, h) {
+      const groups = new Map();
+      h.list('items').forEach((it, i) => {
+        if (!it || (!h.edit && !String(it.title || '').trim())) return;
+        const g = String(it.category || '').trim();
+        if (!groups.has(g)) groups.set(g, []);
+        groups.get(g).push([it, i]);
+      });
+      const card = ([it, i]) => {
+        const href = h.safeHref(it.url);
+        let host = '';
+        try { host = /^https?:/i.test(href) ? new URL(href).hostname.replace(/^www\./, '') : ''; } catch { host = ''; }
+        const ext = /^https?:/i.test(href);
+        return `<a class="res" href="${h.esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}><span class="res__icon">${h.icon(it.icon || 'globe')}</span>
+          <span class="res__body">${h.t('strong', `items.${i}.title`, 'res__title', { ph: 'Title' })}${h.t('span', `items.${i}.text`, 'res__text', { ph: 'Short description', ml: true })}
+          ${host ? `<small class="res__src">${h.esc(host)} ${h.icon('external')}</small>` : ''}</span></a>`;
+      };
+      const many = groups.size > 1 || (groups.size === 1 && !groups.has(''));
+      const body = [...groups].map(([g, items]) => `<div class="res-group">${many && g ? `<h3 class="res-group__title">${h.esc(g)}</h3>` : ''}
+        <div class="res-list res-list--${d.layout === 'list' ? 'list' : 'grid'}">${items.map(card).join('')}</div></div>`).join('');
+      return `<div class="wrap">${sectionHeader(h)}${body || (h.edit ? '<p class="res-empty">Add links in the panel on the right.</p>' : '')}</div>`;
+    },
+  },
+
   quote: {
     label: 'Quote request',
     group: 'Conversion',

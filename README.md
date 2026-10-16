@@ -86,6 +86,14 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
 - **Search engine settings** (`"lang"`, `"googleVerification"`, `"bingVerification"` in `site`)
   set the page language and add the Google Search Console and Bing Webmaster Tools ownership
   tags to the home page.
+- **Resource links** (section): cards or a list of helpful links grouped by topic, each showing
+  the site it leads to. It starts with four verified official resources (CISA, Have I Been
+  Pwned, the FTC's phishing guide and ReportFraud.ftc.gov).
+- **Blog posts** show the reading time, plain share links (Facebook, LinkedIn, X, email, copy
+  link; no tracking scripts) and up to three related posts, the ones sharing the most tags first.
+- **Search data**: besides the business details on the home page, every page gets a breadcrumb
+  trail, posts get their word count, and FAQ sections are described as questions and answers
+  (`FAQPage`) for search engines and assistants.
 - **Call button** (`"callButton": { "enabled": true, "label", "text", "textLabel", "show": "phones" | "all" }` in
   `site`): a floating “Call now” (and optional “Text us”) button using the site phone number,
   on phones or on every screen.
@@ -254,7 +262,7 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
 `audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`,
-`elements`, `call-button`, `hours`, `quote-form`) the editor
+`elements`, `call-button`, `hours`, `quote-form`, `resources`) the editor
 switches on only when the site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and

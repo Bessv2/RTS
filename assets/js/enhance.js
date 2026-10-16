@@ -33,6 +33,14 @@ export function enhance(root = document, { preview = false } = {}) {
     e.preventDefault();
     openLightbox([...g.querySelectorAll('a[data-lightbox]')], Number(a.dataset.lightbox));
   }));
+  root.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(b.dataset.copy);
+      b.classList.add('is-done');
+      b.title = 'Link copied';
+      setTimeout(() => { b.classList.remove('is-done'); b.title = 'Copy link'; }, 2000);
+    } catch { prompt('Copy this link:', b.dataset.copy); }
+  }));
   showOpenStatus(root);
   reveal(root);
 }
