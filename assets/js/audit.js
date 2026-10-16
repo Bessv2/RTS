@@ -13,7 +13,7 @@ import { BLOCKS, ELEMENTS, reviewLink } from './blocks.js';
 import { analyticsFor } from './build.js';
 import { hoursProblems } from './hours.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
-import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS } from './render.js';
+import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS, announceWindow, formatDate } from './render.js';
 
 const LEVELS = ['error', 'warning', 'tip'];
 const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
@@ -123,6 +123,11 @@ export function audit(doc) {
   if (String(s.reviewUrl || '').trim() && !reviewLink(s)) add('warning', 'review-link', 'The review page in Settings must be a full address starting with https://.', { kind: 'site', field: 'reviewUrl' });
   if (!s.shareImage) add('tip', 'share-image', 'Add a share image in Settings so links to your site look good on social media and in messages.', { kind: 'site', field: 'shareImage' });
   if (String(s.headerCta?.label || '').trim()) checkLink(s.headerCta.href, s.headerCta.label, 'in the header', { kind: 'site', field: 'headerCta' }, { button: true });
+  if (s.announcement?.enabled) {
+    const { start, end, state } = announceWindow(s.announcement);
+    if (start && end && end < start) add('warning', 'announcement-dates', 'The announcement bar’s end date is before its start date, so it never shows.', { kind: 'site', field: 'announcement.end' });
+    else if (state === 'after') add('tip', 'announcement-dates', `The announcement bar ended on ${formatDate(end)}. Visitors don’t see it; turn it off or pick new dates.`, { kind: 'site', field: 'announcement.end' });
+  }
   if (s.announcement?.enabled && s.announcement.link) checkLink(s.announcement.link, s.announcement.linkText || s.announcement.link, 'in the announcement bar', { kind: 'site', field: 'announcement.link' });
   for (const f of ['tagline', 'footerText']) if (s[f]) checkText(s[f], 'in the footer', { kind: 'site', field: f });
 

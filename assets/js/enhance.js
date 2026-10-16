@@ -1,6 +1,6 @@
 // Interactivity for rendered pages: mobile menu, contact form (with bot
-// protection), gallery lightbox, click-to-play video, blog tag filter and
-// reveal-on-scroll. No side effects on import; call enhance(root).
+// protection), gallery lightbox, click-to-play video, blog search and tag
+// filter, dated announcement bars and reveal-on-scroll. No side effects on import; call enhance(root).
 import { esc } from './render.js';
 import { icon } from './icons.js';
 import { openStatus, localNow, DAYS } from './hours.js';
@@ -21,11 +21,14 @@ export function enhance(root = document, { preview = false } = {}) {
     const b = e.target.closest('button[data-tag]');
     if (!b) return;
     bar.querySelectorAll('button').forEach((x) => x.classList.toggle('is-on', x === b));
-    const tag = b.dataset.tag;
-    bar.parentElement.querySelectorAll('.blogfeed [data-tags]').forEach((card) => {
-      card.classList.toggle('is-filtered', !!tag && !card.dataset.tags.split('|').includes(tag));
-    });
+    filterFeed(bar.parentElement);
   }));
+  root.querySelectorAll('[data-blog-search]').forEach((input) => {
+    const wrap = input.closest('.wrap');
+    input.addEventListener('input', () => filterFeed(wrap));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape' && input.value) { input.value = ''; filterFeed(wrap); } });
+  });
+  showAnnouncement(root);
   root.querySelectorAll('.video[data-embed]').forEach((v) => v.addEventListener('click', () => playVideo(v), { once: true }));
   root.querySelectorAll('.gallery').forEach((g) => g.addEventListener('click', (e) => {
     const a = e.target.closest('a[data-lightbox]');
@@ -43,6 +46,54 @@ export function enhance(root = document, { preview = false } = {}) {
   }));
   showOpenStatus(root);
   reveal(root);
+}
+
+// A blog feed shows the posts that match both the chosen tag and every word
+// typed in the search box.
+export function feedMatch(card, tag, query) {
+  if (tag && !(card.tags || '').split('|').includes(tag)) return false;
+  const words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean);
+  return words.every((w) => (card.text || '').includes(w));
+}
+
+function filterFeed(wrap) {
+  if (!wrap) return;
+  const tag = wrap.querySelector('.tag-filter .is-on')?.dataset.tag || '';
+  const query = wrap.querySelector('[data-blog-search]')?.value.trim() || '';
+  let shown = 0;
+  wrap.querySelectorAll('.blogfeed [data-tags]').forEach((card) => {
+    const ok = feedMatch({ tags: card.dataset.tags, text: card.dataset.text ?? card.textContent.toLowerCase() }, tag, query);
+    card.classList.toggle('is-filtered', !ok);
+    shown += ok ? 1 : 0;
+  });
+  const none = wrap.querySelector('.blogfeed__none');
+  if (!none) return;
+  none.textContent = '';
+  if (shown) return;
+  none.append(query ? `No posts match “${query}”. ` : 'No posts with that tag yet. ');
+  const reset = document.createElement('button');
+  reset.type = 'button';
+  reset.textContent = 'Show all posts';
+  reset.addEventListener('click', () => {
+    const box = wrap.querySelector('[data-blog-search]');
+    if (box) box.value = '';
+    wrap.querySelector('.tag-filter button[data-tag=""]')?.click();
+    filterFeed(wrap);
+  });
+  none.append(reset);
+}
+
+// The visitor's date as YYYY-MM-DD.
+export const localDay = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Announcement bars with dates show only from the start day through the end
+// day, by the visitor's calendar (pages themselves are rebuilt once a day).
+function showAnnouncement(root) {
+  const day = localDay();
+  root.querySelectorAll('.announce[data-start], .announce[data-end]').forEach((bar) => {
+    const { start, end } = bar.dataset;
+    bar.hidden = (!!start && day < start) || (!!end && day > end);
+  });
 }
 
 // “Open now · until 6pm” and today's row in hours lists, worked out in the
