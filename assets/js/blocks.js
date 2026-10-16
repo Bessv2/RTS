@@ -6,6 +6,13 @@ import { hasHours, hoursSummary, hoursTable, openBadge } from './hours.js';
 
 const btn = (label, href) => ({ label, href });
 
+// The Google (or other) review page from Settings, when it is a full https:// address.
+export const reviewLink = (site) => (/^https:\/\/[^\s/]+\.[^\s]+$/i.test(String(site?.reviewUrl || '').trim()) ? String(site.reviewUrl).trim() : '');
+const reviewButton = (h, label, cls) => {
+  const url = reviewLink(h.site);
+  return url ? `<a class="btn ${cls}" href="${h.esc(url)}" target="_blank" rel="noopener">${h.icon('star')}<span>${h.esc(String(label || '').trim() || 'Leave us a review')}</span></a>` : '';
+};
+
 // Turns a YouTube/Vimeo page link into a privacy-friendly embed URL.
 export function parseVideo(url) {
   const u = String(url || '').trim();
@@ -426,20 +433,24 @@ export const BLOCKS = {
         { quote: 'Replace this with a real quote from a client.', name: 'Client name', role: 'Company or role' },
         { quote: 'Replace this with a real quote from a client.', name: 'Client name', role: 'Company or role' },
       ],
+      reviewButton: false, reviewLabel: 'Leave us a review',
     }),
     fields: [
       ...SECTION_HEADER_FIELDS,
       { key: 'items', label: 'Quotes', type: 'list', itemLabel: 'name',
         item: () => ({ quote: 'A great quote.', name: 'Client name', role: 'Role' }),
         itemFields: [{ key: 'quote', label: 'Quote', type: 'textarea' }, { key: 'name', label: 'Name', type: 'text' }, { key: 'role', label: 'Company / role', type: 'text' }] },
+      { key: 'reviewButton', label: 'Show a “Leave a review” button', type: 'toggle', help: 'Links to the review page set in Settings (for example your Google reviews).' },
+      { key: 'reviewLabel', label: 'Button text', type: 'text', keepDefaults: true, when: (d) => d.reviewButton },
     ],
     render(d, h) {
+      const review = d.reviewButton ? reviewButton(h, d.reviewLabel, 'btn--outline') : '';
       return `<div class="wrap">${sectionHeader(h)}
         <div class="grid grid--${Math.min(3, Math.max(1, h.list('items').length))} quotes">${h.list('items').map((_, i) => `<figure class="quote">
           <span class="quote__stars">${h.icon('star')}${h.icon('star')}${h.icon('star')}${h.icon('star')}${h.icon('star')}</span>
           <blockquote>${h.t('p', `items.${i}.quote`, '', { ph: 'Quote', ml: true })}</blockquote>
           <figcaption>${h.t('strong', `items.${i}.name`, '', { ph: 'Name' })}${h.t('span', `items.${i}.role`, '', { ph: 'Role' })}</figcaption>
-        </figure>`).join('')}</div></div>`;
+        </figure>`).join('')}</div>${review ? `<div class="btns quotes__review">${review}</div>` : ''}</div>`;
     },
   },
 
@@ -830,6 +841,16 @@ export const ELEMENTS = {
       ALIGN, WIDTH,
     ],
   },
+  review: {
+    label: 'Review button', icon: 'star',
+    defaults: () => ({ type: 'review', label: 'Leave us a review', style: 'primary', align: 'left', width: 'full' }),
+    fields: [
+      { type: 'note', text: 'Opens the review page set in Settings → Business (for example your Google reviews).' },
+      { key: 'label', label: 'Button text', type: 'text' },
+      { key: 'style', label: 'Style', type: 'segmented', options: [['primary', 'Solid'], ['outline', 'Outline'], ['ghost', 'Plain']] },
+      ALIGN, WIDTH,
+    ],
+  },
   hours: {
     label: 'Opening hours', icon: 'clock',
     defaults: () => ({ type: 'hours', show: 'week', align: 'left', width: 'full' }),
@@ -879,6 +900,9 @@ export function renderElements(d, h) {
     } else if (el.type === 'button') {
       const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
       body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
+    } else if (el.type === 'review') {
+      const b = reviewButton(h, el.label, `btn--${pick(el.style, ['primary', 'outline', 'ghost'], 'primary')}`);
+      body = b ? `<div class="btns el-btns">${b}</div>` : h.edit ? `<div class="figure__empty el-hours--empty">${h.icon('star')}<span>Add your review page in Settings → Business</span></div>` : '';
     } else if (el.type === 'hours') {
       const hours = h.site.hours;
       if (hasHours(hours)) {

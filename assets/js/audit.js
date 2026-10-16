@@ -9,7 +9,8 @@
 //   where: { kind: 'site' | 'page' | 'post', page?, section?, post?, field?, fields? }
 //          page is a page index, section and post are ids, field is a path
 //          inside the section data (or site/post object), e.g. 'items.0.text'.
-import { BLOCKS, ELEMENTS } from './blocks.js';
+import { BLOCKS, ELEMENTS, reviewLink } from './blocks.js';
+import { analyticsFor } from './build.js';
 import { hoursProblems } from './hours.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
 import { renderPage, findRoute, isLivePage, postTitle, publishedPosts, firstSectionIndex, THEME_PRESETS } from './render.js';
@@ -114,6 +115,12 @@ export function audit(doc) {
     add('warning', 'call-button', 'The call button is turned on but there is no phone number in Settings → Business, so it isn’t shown.', { kind: 'site', field: 'phone' });
   }
   for (const p of hoursProblems(s.hours)) add('warning', 'hours', p.message, { kind: 'site', field: p.day ? `hours.week.${p.day}` : 'hours' });
+  if (s.analytics?.provider && !analyticsFor(s)) {
+    add('warning', 'analytics', s.analytics.provider === 'cloudflare'
+      ? 'Visitor stats are turned on, but the Cloudflare token in Settings doesn’t look right. It is 32 letters and numbers, found in Cloudflare → Web Analytics.'
+      : 'Visitor stats are turned on, but the GoatCounter code in Settings doesn’t look right. It is the first part of your address, e.g. “roetech” for roetech.goatcounter.com.', { kind: 'site', field: 'analytics.id' });
+  }
+  if (String(s.reviewUrl || '').trim() && !reviewLink(s)) add('warning', 'review-link', 'The review page in Settings must be a full address starting with https://.', { kind: 'site', field: 'reviewUrl' });
   if (!s.shareImage) add('tip', 'share-image', 'Add a share image in Settings so links to your site look good on social media and in messages.', { kind: 'site', field: 'shareImage' });
   if (String(s.headerCta?.label || '').trim()) checkLink(s.headerCta.href, s.headerCta.label, 'in the header', { kind: 'site', field: 'headerCta' }, { button: true });
   if (s.announcement?.enabled && s.announcement.link) checkLink(s.announcement.link, s.announcement.linkText || s.announcement.link, 'in the announcement bar', { kind: 'site', field: 'announcement.link' });
@@ -176,6 +183,8 @@ export function audit(doc) {
       if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
         add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
       }
+      const wantsReview = (sec.type === 'testimonials' && sec.data?.reviewButton) || (Array.isArray(sec.data?.elements) && sec.data.elements.some((el) => el?.type === 'review'));
+      if (wantsReview && !reviewLink(s)) add('warning', 'review-link', `“${secName}” on ${name} has a review button, but there is no review page in Settings → Business yet, so the button isn’t shown.`, { kind: 'site', field: 'reviewUrl' });
       (Array.isArray(sec.data?.elements) ? sec.data.elements : []).forEach((el, n) => {
         if (el?.type === 'image' && el.image && !String(el.alt || el.caption || '').trim()) {
           add('tip', 'image-description', `An image added to “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `elements.${n}.alt` });

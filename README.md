@@ -86,6 +86,12 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
 - **Search engine settings** (`"lang"`, `"googleVerification"`, `"bingVerification"` in `site`)
   set the page language and add the Google Search Console and Bing Webmaster Tools ownership
   tags to the home page.
+- **Visitor stats** (`"analytics": { "provider": "cloudflare" | "goatcounter", "id" }` in `site`): adds
+  Cloudflare Web Analytics (the 32-character token) or GoatCounter (the site code), both free
+  and cookie-free. Only a correctly formed ID is used, and only that service's script is allowed
+  by the pages' security policy.
+- **Review button** (`"reviewUrl"` in `site`, e.g. your Google review link): a “Leave us a review”
+  button under Testimonials (when switched on) or as a **Review button** element anywhere.
 - **Resource links** (section): cards or a list of helpful links grouped by topic, each showing
   the site it leads to. It starts with four verified official resources (CISA, Have I Been
   Pwned, the FTC's phishing guide and ReportFraud.ftc.gov).
@@ -262,7 +268,7 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
 `audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`,
-`elements`, `call-button`, `hours`, `quote-form`, `resources`) the editor
+`elements`, `call-button`, `hours`, `quote-form`, `resources`, `analytics`, `reviews`) the editor
 switches on only when the site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and
