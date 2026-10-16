@@ -69,6 +69,8 @@ test('unknown pages return the 404 page', async () => {
   const res = await p.goto(`${base}/does-not-exist/`);
   assert.equal(res.status(), 404);
   assert.match(await p.locator('h1').innerText(), /couldn’t find/);
+  await p.click('.notfound__links a[href="/contact/"]');
+  await p.waitForURL(`${base}/contact/`);
 });
 
 test('old #/ links redirect to the new addresses', async () => {
@@ -88,6 +90,47 @@ test('blog tag filter, gallery-free pages and mobile menu work', async () => {
   await p.setViewportSize({ width: 390, height: 800 });
   await p.click('.nav-toggle');
   assert.ok(await p.locator('.site-header.is-open .nav').isVisible());
+});
+
+test('blog search finds posts by any word, works with the tags and can be cleared', async () => {
+  const p = await page();
+  await p.goto(`${base}/blog/`);
+  const shown = () => p.locator('.blogfeed > article:not(.is-filtered)');
+  const all = await shown().count();
+  await p.fill('[data-blog-search]', 'multi-factor');
+  assert.ok(await shown().count() >= 1 && await shown().count() < all);
+  assert.match(await shown().first().innerText(), /multi-factor/i);
+  await p.fill('[data-blog-search]', 'zzqx nothing');
+  assert.equal(await shown().count(), 0);
+  assert.match(await p.locator('.blogfeed__none').innerText(), /No posts match “zzqx nothing”/);
+  await p.click('.blogfeed__none button');
+  assert.equal(await p.inputValue('[data-blog-search]'), '');
+  assert.equal(await shown().count(), all);
+  await p.fill('[data-blog-search]', 'password');
+  await p.press('[data-blog-search]', 'Escape');
+  assert.equal(await shown().count(), all);
+  assert.deepEqual(p.errors, []);
+});
+
+test('announcement bar dates follow the visitor’s calendar', async () => {
+  const { migrate, buildSite } = await import('../../assets/js/theme-api.js');
+  const doc = migrate(JSON.parse(await readFile(join(ROOT, 'content/site.json'), 'utf8')));
+  doc.site.announcement = { enabled: true, text: 'Closed for the holiday', start: '2999-12-24', end: '2999-12-26' };
+  const html = buildSite(doc, { origin: base }).files.get('index.html');
+  const at = async (time) => {
+    const ctx = await browser.newContext();
+    await ctx.clock.setFixedTime(new Date(time));
+    await ctx.route(`${base}/announce-test/`, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
+    const p = await page(ctx);
+    await p.goto(`${base}/announce-test/`);
+    await p.waitForLoadState('networkidle');
+    const visible = await p.locator('.announce').isVisible();
+    await ctx.close();
+    return visible;
+  };
+  assert.equal(await at('2999-12-23T12:00:00'), false, 'not before the start day');
+  assert.equal(await at('2999-12-25T12:00:00'), true, 'during the dates');
+  assert.equal(await at('2999-12-27T12:00:00'), false, 'not after the end day');
 });
 
 test('contact form blocks bots and sends real messages', async () => {

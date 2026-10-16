@@ -470,3 +470,71 @@ test('icon box, checklist, quote and video elements', async () => {
   doc.pages[0].sections[1].data.elements.push({ type: 'video', url: '' });
   assert.equal(audit(doc).find((r) => r.code === 'video-link').where.field, 'elements.6.url');
 });
+
+test('blog search box: matching words on each card, every word must match, combined with the tag', async () => {
+  const { feedMatch } = await import('../../assets/js/enhance.js');
+  const doc = site({ posts: [
+    { id: 'a', slug: 'a', kind: 'post', title: 'Backups 101', summary: 'Keep three copies', date: '2026-10-01', published: true, tags: 'Security', body: 'Use an **external drive**.' },
+    { id: 'b', slug: 'b', kind: 'post', title: 'Wi-Fi tips', date: '2026-10-05', published: true, tags: 'Networking', body: 'Move the router.' },
+  ] });
+  doc.pages.push({ title: 'Blog', slug: 'blog', sections: [{ id: 'bf', type: 'blogfeed', data: { limit: 'all', search: true, showTags: true } }] });
+  const html = renderPage(doc, doc.pages.length - 1);
+  assert.match(html, /<input type="search" placeholder="Search posts" aria-label="Search the blog" autocomplete="off" data-blog-search>/);
+  assert.match(html, /data-tags="security" data-text="backups 101 keep three copies security use an external drive/);
+  assert.match(html, /<p class="blogfeed__none" role="status" aria-live="polite"><\/p>/);
+  const off = structuredClone(doc);
+  off.pages.at(-1).sections[0].data.search = false;
+  assert.doesNotMatch(renderPage(off, off.pages.length - 1), /data-blog-search|data-text=/);
+
+  const card = { tags: 'security|backups', text: 'backups 101 keep three copies' };
+  assert.ok(feedMatch(card, '', ''));
+  assert.ok(feedMatch(card, 'security', 'Three  BACKUPS'));
+  assert.ok(!feedMatch(card, 'networking', ''));
+  assert.ok(!feedMatch(card, '', 'backups router'));
+});
+
+test('announcement bar dates: hidden before the start, gone after the end, a note in the editor', async () => {
+  const { announceWindow, renderHeader } = await import('../../assets/js/render.js');
+  const { audit } = await import('../../assets/js/audit.js');
+  assert.deepEqual(announceWindow({}, '2026-10-16'), { start: '', end: '', state: 'live' });
+  assert.equal(announceWindow({ start: '2026-10-20' }, '2026-10-16').state, 'before');
+  assert.equal(announceWindow({ start: '2026-10-16', end: '2026-10-16' }, '2026-10-16').state, 'live');
+  assert.equal(announceWindow({ end: '2026-10-15' }, '2026-10-16').state, 'after');
+  assert.equal(announceWindow({ start: 'soon', end: '10/31' }, '2026-10-16').state, 'live', 'odd values are ignored');
+
+  const doc = site();
+  const bar = (ann, edit = false) => {
+    const d = { ...doc, site: { ...doc.site, announcement: { enabled: true, text: 'Holiday hours', ...ann } } };
+    return renderHeader(d, 0, { edit, site: d }).match(/^<div class="announce[^]*?<\/div><\/div>/)?.[0] || '';
+  };
+  assert.match(bar({ start: '2999-01-01', end: '2999-01-31' }), /^<div class="announce" data-start="2999-01-01" data-end="2999-01-31" hidden>/);
+  assert.match(bar({ end: '2999-01-31' }), /^<div class="announce" data-end="2999-01-31">/);
+  assert.equal(bar({ end: '2000-01-31' }), '', 'an ended announcement is left out');
+  assert.match(bar({}), /^<div class="announce">/);
+  assert.match(bar({ end: '2000-01-31' }, true), /class="announce is-off"[^]*<span class="announce__note">Ended Jan 31, 2000 · visitors don’t see it<\/span>/);
+  assert.match(bar({ start: '2999-01-01', end: '2999-01-31' }, true), /Starts Jan 1, 2999 · ends Jan 31, 2999/);
+  assert.match(bar({ end: '2999-01-31' }, true), /class="announce" [^]*Showing until Jan 31, 2999/);
+
+  const check = (ann) => audit({ ...doc, site: { ...doc.site, announcement: { enabled: true, text: 'Hi', ...ann } } }).filter((p) => p.code === 'announcement-dates');
+  assert.equal(check({ start: '2999-02-01', end: '2999-01-01' })[0].level, 'warning');
+  assert.equal(check({ end: '2000-01-01' })[0].level, 'tip');
+  assert.deepEqual(check({ end: '2999-01-01' }), []);
+});
+
+test('page not found: own wording, and links to the menu pages', async () => {
+  const { renderNotFound, NOT_FOUND } = await import('../../assets/js/render.js');
+  const doc = site();
+  const plain = renderNotFound(doc);
+  assert.match(plain, new RegExp(`<h1 class="sec-title">${NOT_FOUND.heading}</h1>`));
+  assert.match(plain, /<ul class="notfound__links" aria-label="Pages on this site"><li><a href="\/about\/">About /);
+  assert.doesNotMatch(plain, /href="\/(secret|landing|hidden)\/"/, 'only published menu pages');
+  doc.site.notFound = { heading: 'Lost?', text: 'Call **us** instead.', button: '', links: false };
+  const own = renderNotFound(doc);
+  assert.match(own, /<h1 class="sec-title">Lost\?<\/h1>/);
+  assert.match(own, /<p class="sec-intro">Call <strong>us<\/strong> instead.<\/p>/);
+  assert.match(own, new RegExp(`>${NOT_FOUND.button}</a>`), 'an empty field keeps the standard wording');
+  assert.doesNotMatch(own, /notfound__links/);
+  doc.site.notFound = { links: true };
+  doc.posts = [{ id: 'p', slug: 'p', kind: 'post', title: 'Fresh post', date: '2026-01-01', published: true, body: 'x' }];
+  assert.match(renderNotFound(doc), /href="\/blog\/p\/">Fresh post/, 'recent posts when no page lists them all');
+});

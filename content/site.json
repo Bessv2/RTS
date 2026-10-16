@@ -603,7 +603,8 @@
             "show": "all",
             "limit": "all",
             "layout": "grid",
-            "showTags": true
+            "showTags": true,
+            "search": true
           }
         }
       ]

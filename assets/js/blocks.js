@@ -327,7 +327,7 @@ export const BLOCKS = {
     group: 'Content',
     icon: 'pen',
     description: 'Your latest posts and blurbs',
-    defaults: () => ({ bg: 'light', pad: 'normal', eyebrow: 'Blog', heading: 'Latest from the blog', intro: '', show: 'all', limit: '3', layout: 'grid', showTags: false }),
+    defaults: () => ({ bg: 'light', pad: 'normal', eyebrow: 'Blog', heading: 'Latest from the blog', intro: '', show: 'all', limit: '3', layout: 'grid', showTags: false, search: false }),
     fields: [
       { type: 'note', text: 'Write posts and blurbs in the Blog tab on the left. They appear here automatically, newest first.' },
       ...SECTION_HEADER_FIELDS,
@@ -335,6 +335,7 @@ export const BLOCKS = {
       { key: 'limit', label: 'How many', type: 'segmented', options: [['3', '3'], ['6', '6'], ['9', '9'], ['all', 'All']], help: 'Use “All” on your main Blog page.' },
       { key: 'layout', label: 'Layout', type: 'segmented', options: [['grid', 'Grid'], ['list', 'List']] },
       { key: 'showTags', label: 'Let visitors filter by tag', type: 'toggle' },
+      { key: 'search', label: 'Add a search box', type: 'toggle', help: 'Visitors type a word and see the matching posts. Best with “All”.' },
     ],
     render(d, h) {
       const all = h.blog.publishedPosts(h.doc, d.show || 'all');
@@ -343,10 +344,15 @@ export const BLOCKS = {
       const filter = d.showTags && tags.length > 1
         ? `<div class="tag-filter" role="group" aria-label="Filter by tag"><button type="button" class="is-on" data-tag="">All</button>${tags.map((t) => `<button type="button" data-tag="${h.esc(t.toLowerCase())}">${h.esc(t)}</button>`).join('')}</div>`
         : '';
+      const search = !!d.search && items.length > 1;
+      const box = search
+        ? `<div class="blog-search"><label>${h.icon('search')}<input type="search" placeholder="Search posts" aria-label="Search the blog" autocomplete="off" data-blog-search></label></div>`
+        : '';
       const body = items.length
-        ? `<div class="blogfeed blogfeed--${d.layout === 'list' ? 'list' : 'grid'}">${items.map((p) => h.blog.renderPostCard(p, h.doc)).join('')}</div>`
+        ? `<div class="blogfeed blogfeed--${d.layout === 'list' ? 'list' : 'grid'}">${items.map((p) => h.blog.renderPostCard(p, h.doc, { search })).join('')}</div>`
+          + (search || filter ? '<p class="blogfeed__none" role="status" aria-live="polite"></p>' : '')
         : `<div class="blogfeed__empty">${h.icon('pen')}<span>${h.edit ? 'No posts yet. Write your first one in the Blog tab.' : 'New posts are coming soon.'}</span></div>`;
-      return `<div class="wrap">${sectionHeader(h)}${filter}${body}</div>`;
+      return `<div class="wrap">${sectionHeader(h)}${box}${filter}${body}</div>`;
     },
   },
 

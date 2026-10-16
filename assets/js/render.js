@@ -171,6 +171,22 @@ export function renderSection(section, ctx) {
   return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, h)}${renderElements(d, h)}</section>`;
 }
 
+// The announcement bar's optional dates (YYYY-MM-DD, both days included):
+// state is 'before' the start, 'after' the end, or 'live'.
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+export function announceWindow(ann = {}, day = today()) {
+  const start = DAY.test(ann.start || '') ? ann.start : '';
+  const end = DAY.test(ann.end || '') ? ann.end : '';
+  const state = start && day < start ? 'before' : end && day > end ? 'after' : 'live';
+  return { start, end, state };
+}
+
+function announceNote({ start, end, state }) {
+  if (state === 'after') return `Ended ${formatDate(end)} · visitors don’t see it`;
+  if (state === 'before') return `Starts ${formatDate(start)}${end ? ` · ends ${formatDate(end)}` : ''}`;
+  return end ? `Showing until ${formatDate(end)}` : `Showing since ${formatDate(start)}`;
+}
+
 export function renderHeader(doc, pageIndex, ctx) {
   const s = doc.site;
   const h = helpers(s, ctx);
@@ -179,8 +195,12 @@ export function renderHeader(doc, pageIndex, ctx) {
   const cta = s.headerCta && (s.headerCta.label || '').trim()
     ? `<a class="btn btn--primary btn--sm header__cta" href="${esc(safeHref(s.headerCta.href))}"><span${ctx.edit ? ' data-edit="headerCta.label" data-ph="Button"' : ''}>${esc(s.headerCta.label)}</span></a>` : '';
   const ann = s.announcement || {};
-  const bar = ann.enabled && (ann.text || ctx.edit)
-    ? `<div class="announce"${ctx.edit ? ' data-section-id="__header" data-label="Announcement bar"' : ''}><div class="wrap announce__inner">${icon('megaphone')}${h.t('span', 'announcement.text', '', { ph: 'Announcement text' })}${ann.link && ann.linkText ? `<a href="${esc(safeHref(ann.link))}">${esc(ann.linkText)} →</a>` : ''}</div></div>`
+  const win = announceWindow(ann);
+  // Pages are rebuilt daily; between rebuilds the visitor's browser checks the dates too.
+  const when = ctx.edit ? '' : `${win.start ? ` data-start="${win.start}"` : ''}${win.end ? ` data-end="${win.end}"` : ''}${win.state === 'before' ? ' hidden' : ''}`;
+  const note = ctx.edit && (win.start || win.end) ? `<span class="announce__note">${esc(announceNote(win))}</span>` : '';
+  const bar = ann.enabled && (ann.text || ctx.edit) && (ctx.edit || win.state !== 'after')
+    ? `<div class="announce${ctx.edit && win.state !== 'live' ? ' is-off' : ''}"${when}${ctx.edit ? ' data-section-id="__header" data-label="Announcement bar"' : ''}><div class="wrap announce__inner">${icon('megaphone')}${h.t('span', 'announcement.text', '', { ph: 'Announcement text' })}${ann.link && ann.linkText ? `<a href="${esc(safeHref(ann.link))}">${esc(ann.linkText)} →</a>` : ''}${note}</div></div>`
     : '';
   return `${bar}<header class="site-header site-header--${s.headerStyle || 'light'}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
     <div class="wrap site-header__inner">
@@ -263,13 +283,27 @@ export function findRoute(doc, path, { drafts = false } = {}) {
   return r && String(r.to || '').trim() ? { type: 'redirect', to: safeHref(redirectTo(r.to)) } : null;
 }
 
+export const NOT_FOUND = {
+  heading: 'We couldn’t find that page',
+  text: 'The link may be old or mistyped. Try the home page or one of the pages below.',
+  button: 'Go to the home page',
+};
+
+// The “page not found” page. site.notFound = { heading, text, button, links }
+// changes the wording; links (on unless false) lists the menu pages.
 export function renderNotFound(doc) {
   const c = { site: doc };
+  const nf = { ...NOT_FOUND, ...Object.fromEntries(Object.entries(doc.site.notFound || {}).filter(([, v]) => v !== '')) };
+  const pages = nf.links === false ? [] : doc.pages.map((p, i) => ({ p, i })).filter(({ p, i }) => i > 0 && inNav(p, i));
+  const blog = nf.links !== false && blogPageIndex(doc) < 0 && publishedPosts(doc).length ? publishedPosts(doc).slice(0, 3) : [];
+  const links = pages.map(({ p, i }) => `<li><a href="${pageHref(p, i)}">${esc(p.title)} ${icon('arrow-right')}</a></li>`)
+    .concat(blog.map((p) => `<li><a href="${postHref(p)}">${esc(postTitle(p))} ${icon('arrow-right')}</a></li>`));
   return renderHeader(doc, -1, c)
     + `<main id="main"><section class="sec sec--light pad--spacious"><div class="wrap wrap--narrow notfound">
-        <span class="eyebrow">Error 404</span><h1 class="sec-title">We couldn’t find that page</h1>
-        <p class="sec-intro">The link may be old or mistyped. Try the home page or one of the pages above.</p>
-        <div class="btns" style="justify-content:center"><a class="btn btn--primary btn--lg" href="/">Go to the home page</a></div>
+        <span class="eyebrow">Error 404</span><h1 class="sec-title">${esc(nf.heading)}</h1>
+        <p class="sec-intro">${rich(nf.text)}</p>
+        <div class="btns" style="justify-content:center"><a class="btn btn--primary btn--lg" href="/">${esc(nf.button)}</a></div>
+        ${links.length ? `<ul class="notfound__links" aria-label="Pages on this site">${links.join('')}</ul>` : ''}
       </div></section></main>`
     + renderFooter(doc, c);
 }
@@ -380,8 +414,9 @@ function tagChips(p) {
   return tags.length ? `<span class="post-tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</span>` : '';
 }
 
-export function renderPostCard(p, doc = {}) {
-  const tags = esc(postTags(p).join('|').toLowerCase());
+// search: also carry the words a blog search box looks through.
+export function renderPostCard(p, doc = {}, { search = false } = {}) {
+  const tags = esc(postTags(p).join('|').toLowerCase()) + (search ? `" data-text="${esc(searchText(p))}` : '');
   const meta = `<div class="post-meta"><time datetime="${esc(p.date)}">${formatDate(p.date)}</time>${tagChips(p)}</div>`;
   if ((p.kind || 'post') === 'blurb') {
     let host = '';
@@ -404,6 +439,10 @@ export function renderPostCard(p, doc = {}) {
 export function blogPageIndex(doc) {
   return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
 }
+
+// What the blog search looks through: title, summary, tags and the start of the text.
+export const searchText = (p) => `${postTitle(p)} ${p.summary || ''} ${postTags(p).join(' ')} ${plain(p.body).slice(0, 1200)}`
+  .toLowerCase().replace(/\s+/g, ' ').trim();
 
 // About 200 words a minute; at least one.
 export const readingMinutes = (post) => Math.max(1, Math.round(plain(post.body).split(' ').filter(Boolean).length / 200));
