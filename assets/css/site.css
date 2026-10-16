@@ -442,6 +442,14 @@ strong { font-weight: 700; }
 .post__body h2 { font-size: 28px; margin-top: 1.6em; }
 .post__body h3 { font-size: 22px; margin-top: 1.4em; }
 .post__body :is(h2, h3)[id] { scroll-margin-top: 96px; }
+.post__body .zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.post__body .zoom img { display: block; }
+.post__body .zoom:focus-visible { outline: 3px solid var(--c-primary); outline-offset: 3px; border-radius: 4px; }
+/* A thin bar at the top shows how far through a post you are (browsers that support scroll timelines). */
+@supports (animation-timeline: scroll()) {
+  .post::before { content: ''; position: fixed; top: 0; left: 0; right: 0; z-index: 60; height: 3px; background: linear-gradient(90deg, var(--c-primary), var(--c-accent, var(--c-primary))); transform-origin: 0 50%; transform: scaleX(0); animation: read-progress linear both; animation-timeline: scroll(root); }
+  @keyframes read-progress { to { transform: scaleX(1); } }
+}
 .post__toc { margin-bottom: 2em; padding: 18px 22px; border: 1px solid var(--sec-line); border-radius: calc(var(--radius) + 2px); background: var(--sec-card); font-size: 16px; line-height: 1.5; }
 .post__toc-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--sec-muted); }
 .post__toc-title svg { width: 16px; height: 16px; }
@@ -576,6 +584,8 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
 
 /* Blog: reading time, share links, related posts */
 .contact__lines { white-space: pre-line; }
+/* A dark last section and the dark footer get a hairline between them. */
+main:has(> .sec--dark:last-child) + .site-footer { border-top: 1px solid rgba(255, 255, 255, .1); }
 .post-meta__read::before, .post-meta__updated::before { content: '·'; margin-right: 12px; }
 .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--sec-line); }
 .share__label { margin-right: 4px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sec-muted); }
@@ -638,7 +648,7 @@ pre.code[data-lang]::before { content: attr(data-lang); position: absolute; top:
   .post__body { margin-top: 16px; font-size: 12pt; }
   .post__body a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .85em; color: #444; word-break: break-all; }
   .post__body :is(h2, h3) { break-after: avoid; }
-  .post__toc { display: none !important; }
+  .post__toc, .post::before { display: none !important; }
   .post__cover img { max-height: 3in; object-fit: cover; box-shadow: none; }
   .post__body img, .callout, pre { break-inside: avoid; }
 }

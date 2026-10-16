@@ -137,7 +137,7 @@ test('long posts: contents list jumps to each part, ticks are remembered, print 
   const { migrate, buildSite } = await import('../../assets/js/theme-api.js');
   const doc = migrate(JSON.parse(await readFile(join(ROOT, 'content/site.json'), 'utf8')));
   doc.posts.unshift({ id: 'guide', slug: 'guide-test', kind: 'post', title: 'Guide', date: '2026-10-01', published: true,
-    body: `Intro.\n\n## Part one\n${'Words. '.repeat(400)}\n\n## Part two\n- [ ] First task\n- [ ] Second task\n\n## Part three\nEnd.` });
+    body: `Intro.\n\n![The router label](/assets/library/waves.jpg)\n\n## Part one\n${'Words. '.repeat(400)}\n\n## Part two\n- [ ] First task\n- [ ] Second task\n\n## Part three\nEnd.` });
   const html = buildSite(doc, { origin: base }).files.get('blog/guide-test/index.html');
   const ctx = await browser.newContext();
   await ctx.route(`${base}/blog/guide-test/`, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: html }));
@@ -153,6 +153,14 @@ test('long posts: contents list jumps to each part, ticks are remembered, print 
   assert.equal(await p.isChecked('.task:has-text("First task") input'), false);
   await p.click('[data-print]');
   assert.equal(await p.evaluate(() => window.printed), 1);
+  // Images open full size, from the keyboard too
+  await p.focus('.post__body .zoom[aria-label="Enlarge image: The router label"]');
+  await p.keyboard.press('Enter');
+  assert.equal(await p.locator('.lightbox img').getAttribute('src'), '/assets/library/waves.jpg');
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('.lightbox').count(), 0);
+  // Reading progress bar (Chromium supports scroll timelines)
+  assert.equal(await p.evaluate(() => getComputedStyle(document.querySelector('.post'), '::before').position), 'fixed');
   assert.deepEqual(p.errors, []);
   await ctx.close();
 });

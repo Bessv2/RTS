@@ -36,6 +36,7 @@ export function enhance(root = document, { preview = false } = {}) {
     e.preventDefault();
     openLightbox([...g.querySelectorAll('a[data-lightbox]')], Number(a.dataset.lightbox));
   }));
+  zoomPostImages(root);
   root.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(b.dataset.copy);
@@ -48,6 +49,25 @@ export function enhance(root = document, { preview = false } = {}) {
   if (!preview) rememberTicks(root);
   showOpenStatus(root);
   reveal(root);
+}
+
+// Images in a post open full size when clicked (or with Enter on the keyboard).
+function zoomPostImages(root) {
+  const figures = [...root.querySelectorAll('.post__body figure')].filter((f) => f.querySelector(':scope > img'));
+  if (!figures.length) return;
+  const buttons = figures.map((f) => {
+    const img = f.querySelector(':scope > img');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'zoom';
+    b.dataset.src = img.getAttribute('src');
+    b.dataset.alt = img.alt;
+    b.setAttribute('aria-label', img.alt ? `Enlarge image: ${img.alt}` : 'Enlarge image');
+    img.replaceWith(b);
+    b.append(img);
+    return b;
+  });
+  buttons.forEach((b, i) => b.addEventListener('click', () => openLightbox(buttons, i)));
 }
 
 // Tick boxes in checklists remember what was ticked, in this browser only.
@@ -152,7 +172,7 @@ function openLightbox(links, start) {
   const show = () => {
     const a = links[i];
     const caption = a.closest('figure')?.querySelector('figcaption')?.textContent || '';
-    box.innerHTML = `<img src="${esc(a.getAttribute('href'))}" alt="${esc(caption)}">${caption ? `<p>${esc(caption)}</p>` : ''}
+    box.innerHTML = `<img src="${esc(a.getAttribute('href') || a.dataset.src)}" alt="${esc(caption || a.dataset.alt || '')}">${caption ? `<p>${esc(caption)}</p>` : ''}
       <button class="lightbox__close" type="button" aria-label="Close">${icon('x')}</button>
       ${links.length > 1 ? `<button class="lightbox__prev" type="button" aria-label="Previous">${icon('chevron-right')}</button><button class="lightbox__next" type="button" aria-label="Next">${icon('chevron-right')}</button>` : ''}`;
   };
