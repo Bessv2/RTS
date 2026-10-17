@@ -45,231 +45,734 @@
       "sections": [
         {
           "id": "s-hero",
-          "type": "hero",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "valign": "center",
+                  "gap": 64
+                },
+                "mobile": {
+                  "gap": 40
+                },
+                "cols": [
+                  {
+                    "span": 7,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "IT consulting · Business & residential",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Reliable technology for growing businesses and modern homes.",
+                        "size": "hero",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>From secure networks and firewalls to device rollouts and disaster recovery, Roe Technology Services keeps your technology running so you can focus on what matters.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": 2,
+                          "maxW": 620
+                        }
+                      },
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "mt": 12
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Book a free consultation",
+                            "href": "/contact/",
+                            "style": "primary",
+                            "size": "lg"
+                          },
+                          {
+                            "type": "button",
+                            "label": "Explore services",
+                            "href": "/services/",
+                            "style": "ghost",
+                            "size": "lg"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 5,
+                    "els": [
+                      {
+                        "type": "status",
+                        "title": "Your IT, handled",
+                        "items": [
+                          {
+                            "text": "Firewall & network secured"
+                          },
+                          {
+                            "text": "Backups & recovery tested"
+                          },
+                          {
+                            "text": "Devices deployed & managed"
+                          },
+                          {
+                            "text": "Support when you need it"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "dark",
             "pad": "spacious",
-            "layout": "split",
-            "eyebrow": "IT consulting · Business & residential",
-            "heading": "Reliable technology for growing businesses and modern homes.",
-            "text": "From secure networks and firewalls to device rollouts and disaster recovery, Roe Technology Services keeps your technology running so you can focus on what matters.",
-            "primary": {
-              "label": "Book a free consultation",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "Explore services",
-              "href": "/services/"
-            },
-            "image": "",
-            "cardTitle": "Your IT, handled",
-            "highlights": [
-              {
-                "text": "Firewall & network secured"
-              },
-              {
-                "text": "Backups & recovery tested"
-              },
-              {
-                "text": "Devices deployed & managed"
-              },
-              {
-                "text": "Support when you need it"
-              }
-            ]
+            "effect": "glow"
           }
         },
         {
           "id": "s-logos",
-          "type": "logos",
+          "type": "layout",
           "data": {
-            "bg": "alt",
-            "pad": "compact",
-            "heading": "Experienced with",
-            "items": [
+            "rows": [
               {
-                "name": "Windows"
-              },
-              {
-                "name": "Microsoft 365"
-              },
-              {
-                "name": "Google Workspace"
-              },
-              {
-                "name": "Apple Business Manager"
-              },
-              {
-                "name": "Chromebooks"
-              },
-              {
-                "name": "iPad"
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "heading": "Experienced with",
+                        "items": [
+                          {
+                            "name": "Windows"
+                          },
+                          {
+                            "name": "Microsoft 365"
+                          },
+                          {
+                            "name": "Google Workspace"
+                          },
+                          {
+                            "name": "Apple Business Manager"
+                          },
+                          {
+                            "name": "Chromebooks"
+                          },
+                          {
+                            "name": "iPad"
+                          }
+                        ],
+                        "type": "w-logos"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "alt",
+            "pad": "compact"
           }
         },
         {
           "id": "s-services",
-          "type": "services",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "What we do",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "IT services that scale with you",
+                        "size": "l",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Ground-level support through high-level system integration and security — one trusted partner for all of it.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": -4,
+                          "fs": 19
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "design": {
+                  "gap": 28
+                },
+                "mobile": {
+                  "gap": 16
+                },
+                "cols": [
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "shield-check",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Network & firewall security",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Modern firewall configuration, secure network design and ongoing hardening to keep threats out.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "wifi",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Networking & Wi-Fi",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Switches, routers and wireless setup and maintenance for reliable, fast connectivity.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "refresh",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Disaster recovery",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Domain recovery, backup strategy and IT disaster recovery planning so you&#39;re never caught off guard.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "laptop",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Device deployment",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Windows rollouts and upgrades, Apple Business Manager and iPad setups, and fleet-scale Chromebook management.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "camera",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Security cameras",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Installation of camera surveillance and security systems for your business or home.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "headset",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Support & troubleshooting",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Hands-on help for hardware, software and performance issues across desktops, laptops and mobile devices.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "light",
             "pad": "normal",
-            "columns": "3",
-            "style": "card",
-            "anchor": "services",
-            "eyebrow": "What we do",
-            "heading": "IT services that scale with you",
-            "intro": "Ground-level support through high-level system integration and security — one trusted partner for all of it.",
-            "items": [
-              {
-                "icon": "shield-check",
-                "title": "Network & firewall security",
-                "text": "Modern firewall configuration, secure network design and ongoing hardening to keep threats out."
-              },
-              {
-                "icon": "wifi",
-                "title": "Networking & Wi-Fi",
-                "text": "Switches, routers and wireless setup and maintenance for reliable, fast connectivity."
-              },
-              {
-                "icon": "refresh",
-                "title": "Disaster recovery",
-                "text": "Domain recovery, backup strategy and IT disaster recovery planning so you're never caught off guard."
-              },
-              {
-                "icon": "laptop",
-                "title": "Device deployment",
-                "text": "Windows rollouts and upgrades, Apple Business Manager and iPad setups, and fleet-scale Chromebook management."
-              },
-              {
-                "icon": "camera",
-                "title": "Security cameras",
-                "text": "Installation of camera surveillance and security systems for your business or home."
-              },
-              {
-                "icon": "headset",
-                "title": "Support & troubleshooting",
-                "text": "Hands-on help for hardware, software and performance issues across desktops, laptops and mobile devices."
-              }
-            ]
+            "anchor": "services"
           }
         },
         {
           "id": "s-stats",
-          "type": "stats",
+          "type": "layout",
           "data": {
-            "bg": "dark",
-            "pad": "compact",
-            "items": [
+            "rows": [
               {
-                "value": "10+",
-                "label": "Years of IT experience"
-              },
-              {
-                "value": "1,000+",
-                "label": "Chromebooks deployed"
-              },
-              {
-                "value": "A+",
-                "label": "CompTIA certified"
-              },
-              {
-                "value": "Biz + Home",
-                "label": "Business & residential"
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "items": [
+                          {
+                            "value": "10+",
+                            "label": "Years of IT experience"
+                          },
+                          {
+                            "value": "1,000+",
+                            "label": "Chromebooks deployed"
+                          },
+                          {
+                            "value": "A+",
+                            "label": "CompTIA certified"
+                          },
+                          {
+                            "value": "Biz + Home",
+                            "label": "Business & residential"
+                          }
+                        ],
+                        "type": "w-stats"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "dark",
+            "pad": "compact"
           }
         },
         {
           "id": "s-about",
-          "type": "split",
+          "type": "layout",
           "data": {
-            "bg": "light",
-            "pad": "normal",
-            "side": "left",
-            "eyebrow": "Why Roe Technology",
-            "heading": "Enterprise-grade experience, small-business attention.",
-            "text": "We bring over a decade of hands-on IT experience — from large-scale operating system rollouts to cybersecurity assessments — and apply it to the needs of your business or home.",
-            "bullets": [
+            "rows": [
               {
-                "text": "Certified, hands-on expertise"
-              },
-              {
-                "text": "Clear communication, no jargon"
-              },
-              {
-                "text": "Solutions sized to your budget"
+                "design": {
+                  "valign": "center",
+                  "gap": 72
+                },
+                "mobile": {
+                  "gap": 40,
+                  "reverse": true
+                },
+                "cols": [
+                  {
+                    "span": 6,
+                    "els": [
+                      {
+                        "type": "panel",
+                        "icon": "shield-check",
+                        "text": "Secure. Reliable. Supported."
+                      }
+                    ]
+                  },
+                  {
+                    "span": 6,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Why Roe Technology",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Enterprise-grade experience, small-business attention.",
+                        "size": "l",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>We bring over a decade of hands-on IT experience — from large-scale operating system rollouts to cybersecurity assessments — and apply it to the needs of your business or home.</p>",
+                        "size": "m",
+                        "design": {
+                          "mt": -2
+                        }
+                      },
+                      {
+                        "type": "checklist",
+                        "style": "circle",
+                        "items": [
+                          {
+                            "text": "Certified, hands-on expertise"
+                          },
+                          {
+                            "text": "Clear communication, no jargon"
+                          },
+                          {
+                            "text": "Solutions sized to your budget"
+                          }
+                        ],
+                        "design": {
+                          "mt": 4
+                        }
+                      },
+                      {
+                        "type": "button",
+                        "label": "About us",
+                        "href": "/about/",
+                        "style": "primary",
+                        "size": "md",
+                        "design": {
+                          "mt": 12
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             ],
-            "button": {
-              "label": "About us",
-              "href": "/about/"
-            },
-            "image": "",
-            "panelIcon": "shield-check",
-            "panelText": "Secure. Reliable. Supported."
+            "bg": "light",
+            "pad": "normal"
           }
         },
         {
           "id": "s-steps",
-          "type": "steps",
+          "type": "layout",
           "data": {
-            "bg": "alt",
-            "pad": "normal",
-            "eyebrow": "How we work",
-            "heading": "A simple, proven process",
-            "intro": "",
-            "items": [
+            "rows": [
               {
-                "title": "Assess",
-                "text": "We review your current setup, risks and goals."
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "How we work",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "A simple, proven process",
+                        "size": "l",
+                        "level": "auto"
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "title": "Plan",
-                "text": "You get a clear recommendation and transparent quote."
-              },
-              {
-                "title": "Implement",
-                "text": "We install, configure and test everything properly."
-              },
-              {
-                "title": "Support",
-                "text": "Ongoing maintenance and help whenever you need it."
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "items": [
+                          {
+                            "title": "Assess",
+                            "text": "We review your current setup, risks and goals."
+                          },
+                          {
+                            "title": "Plan",
+                            "text": "You get a clear recommendation and transparent quote."
+                          },
+                          {
+                            "title": "Implement",
+                            "text": "We install, configure and test everything properly."
+                          },
+                          {
+                            "title": "Support",
+                            "text": "Ongoing maintenance and help whenever you need it."
+                          }
+                        ],
+                        "type": "w-steps"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "alt",
+            "pad": "normal"
           }
         },
         {
           "id": "s-home-blog",
-          "type": "blogfeed",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "From the blog",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Latest tech news & tips",
+                        "size": "l",
+                        "level": "auto"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "show": "all",
+                        "limit": "3",
+                        "layout": "grid",
+                        "showTags": false,
+                        "type": "w-blogfeed"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "light",
-            "pad": "normal",
-            "eyebrow": "From the blog",
-            "heading": "Latest tech news & tips",
-            "intro": "",
-            "show": "all",
-            "limit": "3",
-            "layout": "grid",
-            "showTags": false
+            "pad": "normal"
           }
         },
         {
           "id": "s-cta",
-          "type": "cta",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "valign": "center",
+                  "gap": 32
+                },
+                "cols": [
+                  {
+                    "span": 8,
+                    "design": {
+                      "maxW": 680
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Let's make your technology work for you.",
+                        "size": "l",
+                        "level": "auto",
+                        "design": {
+                          "fs": 40
+                        }
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Book a free consultation and get a clear plan for your network, devices and security.</p>",
+                        "size": "m",
+                        "design": {
+                          "mt": -8
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "justify": "end"
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Get in touch",
+                            "href": "/contact/",
+                            "style": "light",
+                            "size": "lg"
+                          }
+                        ],
+                        "mobile": {
+                          "justify": "start"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "brand",
-            "pad": "normal",
-            "heading": "Let's make your technology work for you.",
-            "text": "Book a free consultation and get a clear plan for your network, devices and security.",
-            "primary": {
-              "label": "Get in touch",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            }
+            "pad": "normal"
           }
         }
       ]
@@ -284,143 +787,637 @@
       "sections": [
         {
           "id": "s-sv-hero",
-          "type": "hero",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "design": {
+                      "ta": "center"
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Services",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Everything your technology needs.",
+                        "size": "hero",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>One partner for networking, security, devices, servers and support — for businesses and homes.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": 2,
+                          "maxW": 620,
+                          "place": "center"
+                        }
+                      },
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "mt": 12,
+                          "justify": "center"
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Request a quote",
+                            "href": "/contact/",
+                            "style": "primary",
+                            "size": "lg"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "dark",
             "pad": "normal",
-            "layout": "center",
-            "eyebrow": "Services",
-            "heading": "Everything your technology needs.",
-            "text": "One partner for networking, security, devices, servers and support — for businesses and homes.",
-            "primary": {
-              "label": "Request a quote",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            },
-            "image": "",
-            "cardTitle": "",
-            "highlights": []
+            "effect": "glow"
           }
         },
         {
           "id": "s-sv-grid",
-          "type": "services",
+          "type": "layout",
           "data": {
-            "bg": "light",
-            "pad": "normal",
-            "columns": "3",
-            "style": "card",
-            "eyebrow": "",
-            "heading": "",
-            "intro": "",
-            "items": [
+            "rows": [
               {
-                "icon": "shield-check",
-                "title": "Firewalls & network security",
-                "text": "Configuration of modern firewalls and secure network architecture."
-              },
-              {
-                "icon": "network",
-                "title": "Network setup & maintenance",
-                "text": "Switches, routers and wireless — designed, installed and maintained."
-              },
-              {
-                "icon": "server",
-                "title": "Servers",
-                "text": "Server installation, configuration and ongoing maintenance."
-              },
-              {
-                "icon": "refresh",
-                "title": "Disaster recovery",
-                "text": "Domain recovery and IT disaster recovery planning."
-              },
-              {
-                "icon": "lock",
-                "title": "Cybersecurity assessments",
-                "text": "After-action assessments and vulnerability mitigation."
-              },
-              {
-                "icon": "monitor",
-                "title": "Windows rollouts",
-                "text": "Large-scale Windows operating system deployments and upgrades."
-              },
-              {
-                "icon": "tablet",
-                "title": "Apple & iPad deployment",
-                "text": "Apple Business Manager setup and iPad deployments for organizations."
-              },
-              {
-                "icon": "school",
-                "title": "Chromebook fleets",
-                "text": "Deployment and management of 1,000+ device Chromebook fleets for education."
-              },
-              {
-                "icon": "camera",
-                "title": "Camera & security systems",
-                "text": "Surveillance camera and security system installation."
-              },
-              {
-                "icon": "headset",
-                "title": "End-user support",
-                "text": "Help with applications, performance and IT best practices."
-              },
-              {
-                "icon": "box",
-                "title": "Asset management",
-                "text": "Inventory control and lifecycle management for your hardware."
-              },
-              {
-                "icon": "plug",
-                "title": "Cabling & buildouts",
-                "text": "Project management for new construction cabling infrastructure."
+                "design": {
+                  "gap": 28
+                },
+                "mobile": {
+                  "gap": 16
+                },
+                "cols": [
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "shield-check",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Firewalls & network security",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Configuration of modern firewalls and secure network architecture.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "network",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Network setup & maintenance",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Switches, routers and wireless — designed, installed and maintained.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "server",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Servers",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Server installation, configuration and ongoing maintenance.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "refresh",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Disaster recovery",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Domain recovery and IT disaster recovery planning.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "lock",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Cybersecurity assessments",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>After-action assessments and vulnerability mitigation.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "monitor",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Windows rollouts",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Large-scale Windows operating system deployments and upgrades.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "tablet",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Apple & iPad deployment",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Apple Business Manager setup and iPad deployments for organizations.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "school",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Chromebook fleets",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Deployment and management of 1,000+ device Chromebook fleets for education.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "camera",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Camera & security systems",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Surveillance camera and security system installation.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "headset",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "End-user support",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Help with applications, performance and IT best practices.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "box",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Asset management",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Inventory control and lifecycle management for your hardware.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "plug",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Cabling & buildouts",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Project management for new construction cabling infrastructure.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "light",
+            "pad": "normal"
           }
         },
         {
           "id": "s-sv-faq",
-          "type": "faq",
+          "type": "layout",
           "data": {
-            "bg": "alt",
-            "pad": "normal",
-            "eyebrow": "FAQ",
-            "heading": "Common questions",
-            "intro": "",
-            "items": [
+            "rows": [
               {
-                "q": "Do you work with both businesses and homes?",
-                "a": "Yes. We support small to medium businesses as well as residential clients who want reliable, secure technology at home."
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "FAQ",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Common questions",
+                        "size": "l",
+                        "level": "auto"
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "q": "Can you help after a security incident?",
-                "a": "Yes. We perform cybersecurity after-action assessments and help mitigate vulnerabilities so the same problem doesn't happen again."
-              },
-              {
-                "q": "How do I get started?",
-                "a": "Reach out through the contact page. We'll schedule a free consultation to understand your needs and recommend next steps."
+                "design": {
+                  "width": "narrow"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "items": [
+                          {
+                            "q": "Do you work with both businesses and homes?",
+                            "a": "Yes. We support small to medium businesses as well as residential clients who want reliable, secure technology at home."
+                          },
+                          {
+                            "q": "Can you help after a security incident?",
+                            "a": "Yes. We perform cybersecurity after-action assessments and help mitigate vulnerabilities so the same problem doesn't happen again."
+                          },
+                          {
+                            "q": "How do I get started?",
+                            "a": "Reach out through the contact page. We'll schedule a free consultation to understand your needs and recommend next steps."
+                          }
+                        ],
+                        "type": "w-faq"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "alt",
+            "pad": "normal"
           }
         },
         {
           "id": "s-sv-cta",
-          "type": "cta",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "valign": "center",
+                  "gap": 32
+                },
+                "cols": [
+                  {
+                    "span": 8,
+                    "design": {
+                      "maxW": 680
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Not sure what you need?",
+                        "size": "l",
+                        "level": "auto",
+                        "design": {
+                          "fs": 40
+                        }
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Tell us about your setup and we&#39;ll point you in the right direction.</p>",
+                        "size": "m",
+                        "design": {
+                          "mt": -8
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "justify": "end"
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Contact us",
+                            "href": "/contact/",
+                            "style": "light",
+                            "size": "lg"
+                          }
+                        ],
+                        "mobile": {
+                          "justify": "start"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "brand",
-            "pad": "normal",
-            "heading": "Not sure what you need?",
-            "text": "Tell us about your setup and we'll point you in the right direction.",
-            "primary": {
-              "label": "Contact us",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            }
+            "pad": "normal"
           }
         }
       ]
@@ -435,127 +1432,266 @@
       "sections": [
         {
           "id": "s-ab-hero",
-          "type": "hero",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "design": {
+                      "ta": "center"
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "About",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Reliable, innovative IT — tailored to you.",
+                        "size": "hero",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Roe Technology Services helps clients strengthen their technology infrastructure and reach their goals efficiently.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": 2,
+                          "maxW": 620,
+                          "place": "center"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "dark",
             "pad": "normal",
-            "layout": "center",
-            "eyebrow": "About",
-            "heading": "Reliable, innovative IT — tailored to you.",
-            "text": "Roe Technology Services helps clients strengthen their technology infrastructure and reach their goals efficiently.",
-            "primary": {
-              "label": "",
-              "href": ""
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            },
-            "image": "",
-            "cardTitle": "",
-            "highlights": []
+            "effect": "glow"
           }
         },
         {
           "id": "s-ab-story",
-          "type": "split",
+          "type": "layout",
           "data": {
-            "bg": "light",
-            "pad": "normal",
-            "side": "right",
-            "eyebrow": "Who we are",
-            "heading": "Over 10 years of comprehensive IT experience.",
-            "text": "Roe Technology Services is led by an A+ certified IT professional whose experience spans foundational support to advanced technology solutions — from securing networks and recovering domains to deploying thousands of devices.\n\nThat broad skill set means we can support you from ground-level IT needs through high-level system integrations and security, ensuring efficient and secure operations.",
-            "bullets": [
+            "rows": [
               {
-                "text": "CompTIA A+ certified"
-              },
-              {
-                "text": "Business and residential clients"
-              },
-              {
-                "text": "Security-first approach"
+                "design": {
+                  "valign": "center",
+                  "gap": 72
+                },
+                "mobile": {
+                  "gap": 40
+                },
+                "cols": [
+                  {
+                    "span": 6,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Who we are",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Over 10 years of comprehensive IT experience.",
+                        "size": "l",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Roe Technology Services is led by an A+ certified IT professional whose experience spans foundational support to advanced technology solutions — from securing networks and recovering domains to deploying thousands of devices. That broad skill set means we can support you from ground-level IT needs through high-level system integrations and security, ensuring efficient and secure operations.</p>",
+                        "size": "m",
+                        "design": {
+                          "mt": -2
+                        }
+                      },
+                      {
+                        "type": "checklist",
+                        "style": "circle",
+                        "items": [
+                          {
+                            "text": "CompTIA A+ certified"
+                          },
+                          {
+                            "text": "Business and residential clients"
+                          },
+                          {
+                            "text": "Security-first approach"
+                          }
+                        ],
+                        "design": {
+                          "mt": 4
+                        }
+                      },
+                      {
+                        "type": "button",
+                        "label": "Work with us",
+                        "href": "/contact/",
+                        "style": "primary",
+                        "size": "md",
+                        "design": {
+                          "mt": 12
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "span": 6,
+                    "els": [
+                      {
+                        "type": "panel",
+                        "icon": "award",
+                        "text": "A+ certified · 10+ years"
+                      }
+                    ]
+                  }
+                ]
               }
             ],
-            "button": {
-              "label": "Work with us",
-              "href": "/contact/"
-            },
-            "image": "",
-            "panelIcon": "award",
-            "panelText": "A+ certified · 10+ years"
+            "bg": "light",
+            "pad": "normal"
           }
         },
         {
           "id": "s-ab-list",
-          "type": "checklist",
+          "type": "layout",
           "data": {
-            "bg": "alt",
-            "pad": "normal",
-            "columns": "2",
-            "eyebrow": "Experience",
-            "heading": "Skills & experience",
-            "intro": "",
-            "items": [
+            "rows": [
               {
-                "text": "Configuring modern firewalls and securing networks"
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Experience",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Skills & experience",
+                        "size": "l",
+                        "level": "auto"
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "text": "Domain recovery and IT disaster recovery planning"
-              },
-              {
-                "text": "Large-scale Windows rollouts and upgrades"
-              },
-              {
-                "text": "Apple Business Manager and iPad deployments"
-              },
-              {
-                "text": "Deploying and managing 1,000+ Chromebooks"
-              },
-              {
-                "text": "Hardware and software troubleshooting"
-              },
-              {
-                "text": "Cybersecurity after-action assessments"
-              },
-              {
-                "text": "Switch, router and wireless configuration"
-              },
-              {
-                "text": "Server installation and maintenance"
-              },
-              {
-                "text": "Asset management and lifecycle control"
-              },
-              {
-                "text": "Security camera system installation"
-              },
-              {
-                "text": "Cabling project management for new construction"
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "columns": "2",
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "items": [
+                          {
+                            "text": "Configuring modern firewalls and securing networks"
+                          },
+                          {
+                            "text": "Domain recovery and IT disaster recovery planning"
+                          },
+                          {
+                            "text": "Large-scale Windows rollouts and upgrades"
+                          },
+                          {
+                            "text": "Apple Business Manager and iPad deployments"
+                          },
+                          {
+                            "text": "Deploying and managing 1,000+ Chromebooks"
+                          },
+                          {
+                            "text": "Hardware and software troubleshooting"
+                          },
+                          {
+                            "text": "Cybersecurity after-action assessments"
+                          },
+                          {
+                            "text": "Switch, router and wireless configuration"
+                          },
+                          {
+                            "text": "Server installation and maintenance"
+                          },
+                          {
+                            "text": "Asset management and lifecycle control"
+                          },
+                          {
+                            "text": "Security camera system installation"
+                          },
+                          {
+                            "text": "Cabling project management for new construction"
+                          }
+                        ],
+                        "type": "w-checklist"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "alt",
+            "pad": "normal"
           }
         },
         {
           "id": "s-ab-stats",
-          "type": "stats",
+          "type": "layout",
           "data": {
-            "bg": "dark",
-            "pad": "compact",
-            "items": [
+            "rows": [
               {
-                "value": "10+",
-                "label": "Years in IT"
-              },
-              {
-                "value": "1,000+",
-                "label": "Devices deployed"
-              },
-              {
-                "value": "A+",
-                "label": "Certified"
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "items": [
+                          {
+                            "value": "10+",
+                            "label": "Years in IT"
+                          },
+                          {
+                            "value": "1,000+",
+                            "label": "Devices deployed"
+                          },
+                          {
+                            "value": "A+",
+                            "label": "Certified"
+                          }
+                        ],
+                        "type": "w-stats"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "dark",
+            "pad": "compact"
           }
         }
       ]
@@ -570,41 +1706,80 @@
       "sections": [
         {
           "id": "s-bl-hero",
-          "type": "hero",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "design": {
+                      "ta": "center"
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Blog",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Tech news, tips & notes",
+                        "size": "hero",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>What&#39;s happening in the tech world, practical advice for your business and home, and a few things I like.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": 2,
+                          "maxW": 620,
+                          "place": "center"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "dark",
             "pad": "normal",
-            "layout": "center",
-            "eyebrow": "Blog",
-            "heading": "Tech news, tips & notes",
-            "text": "What's happening in the tech world, practical advice for your business and home, and a few things I like.",
-            "primary": {
-              "label": "",
-              "href": ""
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            },
-            "image": "",
-            "cardTitle": "",
-            "highlights": []
+            "effect": "glow"
           }
         },
         {
           "id": "s-bl-feed",
-          "type": "blogfeed",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "show": "all",
+                        "limit": "all",
+                        "layout": "grid",
+                        "showTags": true,
+                        "search": true,
+                        "type": "w-blogfeed"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "light",
-            "pad": "normal",
-            "eyebrow": "",
-            "heading": "",
-            "intro": "",
-            "show": "all",
-            "limit": "all",
-            "layout": "grid",
-            "showTags": true,
-            "search": true
+            "pad": "normal"
           }
         }
       ]
@@ -620,194 +1795,335 @@
       "sections": [
         {
           "id": "s-res-hero",
-          "type": "hero",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "design": {
+                      "ta": "center"
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Resources",
+                        "size": "label",
+                        "level": "p",
+                        "design": {
+                          "mb": -6
+                        }
+                      },
+                      {
+                        "type": "heading",
+                        "text": "Free tools and guides we trust",
+                        "size": "hero",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Practical, official resources to keep your business and your home safe online. Not sure where to start? Ask us.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": 2,
+                          "maxW": 620,
+                          "place": "center"
+                        }
+                      },
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "mt": 12,
+                          "justify": "center"
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Ask a question",
+                            "href": "/contact/",
+                            "style": "primary",
+                            "size": "lg"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "dark",
             "pad": "normal",
-            "layout": "center",
-            "eyebrow": "Resources",
-            "heading": "Free tools and guides we trust",
-            "text": "Practical, official resources to keep your business and your home safe online. Not sure where to start? Ask us.",
-            "primary": {
-              "label": "Ask a question",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            }
+            "effect": "glow"
           }
         },
         {
           "id": "s-res-links",
-          "type": "resources",
+          "type": "layout",
           "data": {
-            "bg": "light",
-            "pad": "normal",
-            "layout": "grid",
-            "eyebrow": "",
-            "heading": "Helpful links",
-            "intro": "Every link goes to the official source. We keep this list short on purpose.",
-            "items": [
+            "rows": [
               {
-                "title": "Secure Our World",
-                "text": "Four easy ways to stay safe online: spot phishing, use strong passwords, turn on multi-factor authentication and keep software updated.",
-                "url": "https://www.cisa.gov/secure-our-world",
-                "category": "Stay safe online",
-                "icon": "shield-check"
+                "design": {
+                  "width": "narrow",
+                  "maxW": 784,
+                  "ta": "center"
+                },
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Helpful links",
+                        "size": "l",
+                        "level": "auto"
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>Every link goes to the official source. We keep this list short on purpose.</p>",
+                        "size": "l",
+                        "design": {
+                          "mt": -4,
+                          "fs": 19
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
-                "title": "Spot a phishing scam",
-                "text": "The FTC’s guide to recognizing and avoiding phishing emails and texts.",
-                "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
-                "category": "Stay safe online",
-                "icon": "mail"
-              },
-              {
-                "title": "Have I Been Pwned",
-                "text": "Check whether your email address appeared in a known data breach.",
-                "url": "https://haveibeenpwned.com/",
-                "category": "Stay safe online",
-                "icon": "search"
-              },
-              {
-                "title": "Google Security Checkup",
-                "text": "A two-minute review of your Google account’s security, with tailored tips.",
-                "url": "https://myaccount.google.com/intro/security-checkup",
-                "category": "Stay safe online",
-                "icon": "lock"
-              },
-              {
-                "title": "Microsoft account security",
-                "text": "Change your password, add sign-in methods and review recent activity.",
-                "url": "https://account.microsoft.com/security",
-                "category": "Stay safe online",
-                "icon": "lock"
-              },
-              {
-                "title": "Passkeys",
-                "text": "What passkeys are and why they are safer than passwords, from the FIDO Alliance.",
-                "url": "https://fidoalliance.org/passkeys/",
-                "category": "Stay safe online",
-                "icon": "lock"
-              },
-              {
-                "title": "Tech support scams",
-                "text": "How to spot, avoid and report fake virus warnings and calls about your computer.",
-                "url": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
-                "category": "Stay safe online",
-                "icon": "alert"
-              },
-              {
-                "title": "Cybersecurity for Small Business",
-                "text": "The FTC’s plain-language guides on the basics, ransomware, phishing, vendor security and more.",
-                "url": "https://www.ftc.gov/business-guidance/small-businesses/cybersecurity",
-                "category": "For small businesses",
-                "icon": "briefcase"
-              },
-              {
-                "title": "Small Business Cybersecurity Corner",
-                "text": "NIST’s free resources for understanding and reducing your cybersecurity risks.",
-                "url": "https://www.nist.gov/itl/smallbusinesscyber",
-                "category": "For small businesses",
-                "icon": "building"
-              },
-              {
-                "title": "Small and medium businesses",
-                "text": "CISA’s free information and tools for protecting your people, customers and data.",
-                "url": "https://www.cisa.gov/topics/small-and-medium-businesses",
-                "category": "For small businesses",
-                "icon": "shield"
-              },
-              {
-                "title": "#StopRansomware Guide",
-                "text": "Prevention best practices and a response checklist from CISA, the FBI and partners.",
-                "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
-                "category": "For small businesses",
-                "icon": "database"
-              },
-              {
-                "title": "Report fraud to the FTC",
-                "text": "Report scams and bad business practices, even if you didn’t lose money.",
-                "url": "https://reportfraud.ftc.gov/",
-                "category": "If something goes wrong",
-                "icon": "megaphone"
-              },
-              {
-                "title": "FBI Internet Crime Complaint Center",
-                "text": "Report internet crime to the FBI.",
-                "url": "https://www.ic3.gov/",
-                "category": "If something goes wrong",
-                "icon": "alert"
-              },
-              {
-                "title": "IdentityTheft.gov",
-                "text": "Report identity theft and get a personal recovery plan.",
-                "url": "https://www.identitytheft.gov/",
-                "category": "If something goes wrong",
-                "icon": "users"
-              },
-              {
-                "title": "Hit by ransomware?",
-                "text": "CISA’s first steps if ransomware has locked your files.",
-                "url": "https://www.cisa.gov/stopransomware/ive-been-hit-ransomware",
-                "category": "If something goes wrong",
-                "icon": "zap"
-              },
-              {
-                "title": "AnnualCreditReport.com",
-                "text": "The official site for free credit reports from all three bureaus.",
-                "url": "https://www.annualcreditreport.com/",
-                "category": "If something goes wrong",
-                "icon": "clipboard"
-              },
-              {
-                "title": "Hacked email or social media",
-                "text": "The FTC’s steps to get back into a hacked account and lock it down.",
-                "url": "https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account",
-                "category": "If something goes wrong",
-                "icon": "mail"
-              },
-              {
-                "title": "FCC National Broadband Map",
-                "text": "See which internet providers serve your address, with technologies and speeds.",
-                "url": "https://broadbandmap.fcc.gov/",
-                "category": "Internet and devices",
-                "icon": "wifi"
-              },
-              {
-                "title": "Windows 10 end of support",
-                "text": "Microsoft’s explanation of what the end of Windows 10 support means and your options.",
-                "url": "https://www.microsoft.com/en-us/windows/end-of-support",
-                "category": "Internet and devices",
-                "icon": "laptop"
-              },
-              {
-                "title": "Secure your home Wi-Fi",
-                "text": "The FTC’s steps for locking down your router: passwords, encryption, updates and a guest network.",
-                "url": "https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network",
-                "category": "Internet and devices",
-                "icon": "wifi"
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "layout": "grid",
+                        "eyebrow": "",
+                        "heading": "",
+                        "intro": "",
+                        "items": [
+                          {
+                            "title": "Secure Our World",
+                            "text": "Four easy ways to stay safe online: spot phishing, use strong passwords, turn on multi-factor authentication and keep software updated.",
+                            "url": "https://www.cisa.gov/secure-our-world",
+                            "category": "Stay safe online",
+                            "icon": "shield-check"
+                          },
+                          {
+                            "title": "Spot a phishing scam",
+                            "text": "The FTC’s guide to recognizing and avoiding phishing emails and texts.",
+                            "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams",
+                            "category": "Stay safe online",
+                            "icon": "mail"
+                          },
+                          {
+                            "title": "Have I Been Pwned",
+                            "text": "Check whether your email address appeared in a known data breach.",
+                            "url": "https://haveibeenpwned.com/",
+                            "category": "Stay safe online",
+                            "icon": "search"
+                          },
+                          {
+                            "title": "Google Security Checkup",
+                            "text": "A two-minute review of your Google account’s security, with tailored tips.",
+                            "url": "https://myaccount.google.com/intro/security-checkup",
+                            "category": "Stay safe online",
+                            "icon": "lock"
+                          },
+                          {
+                            "title": "Microsoft account security",
+                            "text": "Change your password, add sign-in methods and review recent activity.",
+                            "url": "https://account.microsoft.com/security",
+                            "category": "Stay safe online",
+                            "icon": "lock"
+                          },
+                          {
+                            "title": "Passkeys",
+                            "text": "What passkeys are and why they are safer than passwords, from the FIDO Alliance.",
+                            "url": "https://fidoalliance.org/passkeys/",
+                            "category": "Stay safe online",
+                            "icon": "lock"
+                          },
+                          {
+                            "title": "Tech support scams",
+                            "text": "How to spot, avoid and report fake virus warnings and calls about your computer.",
+                            "url": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+                            "category": "Stay safe online",
+                            "icon": "alert"
+                          },
+                          {
+                            "title": "Cybersecurity for Small Business",
+                            "text": "The FTC’s plain-language guides on the basics, ransomware, phishing, vendor security and more.",
+                            "url": "https://www.ftc.gov/business-guidance/small-businesses/cybersecurity",
+                            "category": "For small businesses",
+                            "icon": "briefcase"
+                          },
+                          {
+                            "title": "Small Business Cybersecurity Corner",
+                            "text": "NIST’s free resources for understanding and reducing your cybersecurity risks.",
+                            "url": "https://www.nist.gov/itl/smallbusinesscyber",
+                            "category": "For small businesses",
+                            "icon": "building"
+                          },
+                          {
+                            "title": "Small and medium businesses",
+                            "text": "CISA’s free information and tools for protecting your people, customers and data.",
+                            "url": "https://www.cisa.gov/topics/small-and-medium-businesses",
+                            "category": "For small businesses",
+                            "icon": "shield"
+                          },
+                          {
+                            "title": "#StopRansomware Guide",
+                            "text": "Prevention best practices and a response checklist from CISA, the FBI and partners.",
+                            "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
+                            "category": "For small businesses",
+                            "icon": "database"
+                          },
+                          {
+                            "title": "Report fraud to the FTC",
+                            "text": "Report scams and bad business practices, even if you didn’t lose money.",
+                            "url": "https://reportfraud.ftc.gov/",
+                            "category": "If something goes wrong",
+                            "icon": "megaphone"
+                          },
+                          {
+                            "title": "FBI Internet Crime Complaint Center",
+                            "text": "Report internet crime to the FBI.",
+                            "url": "https://www.ic3.gov/",
+                            "category": "If something goes wrong",
+                            "icon": "alert"
+                          },
+                          {
+                            "title": "IdentityTheft.gov",
+                            "text": "Report identity theft and get a personal recovery plan.",
+                            "url": "https://www.identitytheft.gov/",
+                            "category": "If something goes wrong",
+                            "icon": "users"
+                          },
+                          {
+                            "title": "Hit by ransomware?",
+                            "text": "CISA’s first steps if ransomware has locked your files.",
+                            "url": "https://www.cisa.gov/stopransomware/ive-been-hit-ransomware",
+                            "category": "If something goes wrong",
+                            "icon": "zap"
+                          },
+                          {
+                            "title": "AnnualCreditReport.com",
+                            "text": "The official site for free credit reports from all three bureaus.",
+                            "url": "https://www.annualcreditreport.com/",
+                            "category": "If something goes wrong",
+                            "icon": "clipboard"
+                          },
+                          {
+                            "title": "Hacked email or social media",
+                            "text": "The FTC’s steps to get back into a hacked account and lock it down.",
+                            "url": "https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account",
+                            "category": "If something goes wrong",
+                            "icon": "mail"
+                          },
+                          {
+                            "title": "FCC National Broadband Map",
+                            "text": "See which internet providers serve your address, with technologies and speeds.",
+                            "url": "https://broadbandmap.fcc.gov/",
+                            "category": "Internet and devices",
+                            "icon": "wifi"
+                          },
+                          {
+                            "title": "Windows 10 end of support",
+                            "text": "Microsoft’s explanation of what the end of Windows 10 support means and your options.",
+                            "url": "https://www.microsoft.com/en-us/windows/end-of-support",
+                            "category": "Internet and devices",
+                            "icon": "laptop"
+                          },
+                          {
+                            "title": "Secure your home Wi-Fi",
+                            "text": "The FTC’s steps for locking down your router: passwords, encryption, updates and a guest network.",
+                            "url": "https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network",
+                            "category": "Internet and devices",
+                            "icon": "wifi"
+                          }
+                        ],
+                        "type": "w-resources"
+                      }
+                    ]
+                  }
+                ]
               }
-            ]
+            ],
+            "bg": "light",
+            "pad": "normal"
           }
         },
         {
           "id": "s-res-cta",
-          "type": "cta",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "design": {
+                  "valign": "center",
+                  "gap": 32
+                },
+                "cols": [
+                  {
+                    "span": 8,
+                    "design": {
+                      "maxW": 680
+                    },
+                    "els": [
+                      {
+                        "type": "heading",
+                        "text": "Want a second pair of eyes?",
+                        "size": "l",
+                        "level": "auto",
+                        "design": {
+                          "fs": 40
+                        }
+                      },
+                      {
+                        "type": "text",
+                        "html": "<p>We’ll walk through your setup with you and point out the quick wins.</p>",
+                        "size": "m",
+                        "design": {
+                          "mt": -8
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "plain",
+                        "design": {
+                          "dir": "row",
+                          "gap": 12,
+                          "justify": "end"
+                        },
+                        "els": [
+                          {
+                            "type": "button",
+                            "label": "Book a free consultation",
+                            "href": "/contact/",
+                            "style": "light",
+                            "size": "lg"
+                          }
+                        ],
+                        "mobile": {
+                          "justify": "start"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "brand",
-            "pad": "normal",
-            "heading": "Want a second pair of eyes?",
-            "text": "We’ll walk through your setup with you and point out the quick wins.",
-            "primary": {
-              "label": "Book a free consultation",
-              "href": "/contact/"
-            },
-            "secondary": {
-              "label": "",
-              "href": ""
-            }
+            "pad": "normal"
           }
         }
       ]
@@ -822,19 +2138,33 @@
       "sections": [
         {
           "id": "s-ct-form",
-          "type": "contact",
+          "type": "layout",
           "data": {
+            "rows": [
+              {
+                "cols": [
+                  {
+                    "span": 12,
+                    "els": [
+                      {
+                        "showForm": true,
+                        "eyebrow": "Contact",
+                        "heading": "Let's talk about your technology.",
+                        "text": "Tell us what you're working on — a new network, a security concern, a device rollout or something that just isn't working. We'll get back to you within one business day.",
+                        "hours": "Mon–Fri, 6pm–9pm\nSat–Sun, 10am–5pm",
+                        "button": "Send message",
+                        "sentText": "Your contact form has been submitted! We will get back to you as soon as possible!",
+                        "type": "w-contact"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
             "bg": "alt",
             "pad": "spacious",
-            "anchor": "contact",
-            "showForm": true,
-            "eyebrow": "Contact",
-            "heading": "Let's talk about your technology.",
-            "text": "Tell us what you're working on — a new network, a security concern, a device rollout or something that just isn't working. We'll get back to you within one business day.",
-            "hours": "Mon–Fri, 6pm–9pm\nSat–Sun, 10am–5pm",
-            "button": "Send message",
-            "sentText": "Your contact form has been submitted! We will get back to you as soon as possible!",
-            "showOn": "all"
+            "showOn": "all",
+            "anchor": "contact"
           }
         }
       ]
