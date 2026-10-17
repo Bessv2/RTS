@@ -877,7 +877,7 @@ export const ELEMENTS = {
     defaults: () => ({ type: 'checklist', style: 'check', align: 'left', width: 'full', items: [{ text: 'First point' }, { text: 'Second point' }, { text: 'Third point' }] }),
     fields: [
       { key: 'items', label: 'Points', type: 'list', itemLabel: 'text', item: () => ({ text: 'New point' }), itemFields: [{ key: 'text', label: 'Text', type: 'text' }] },
-      { key: 'style', label: 'Marks', type: 'segmented', options: [['check', '✓'], ['bullet', '•'], ['number', '1.']] },
+      { key: 'style', label: 'Marks', type: 'segmented', options: [['check', '✓'], ['circle', 'Ticks'], ['bullet', '•'], ['number', '1.']] },
       ALIGN, WIDTH,
     ],
   },
@@ -951,10 +951,12 @@ export function elementBody(el, p, h) {
   } else if (el.type === 'feature') {
     body = `<div class="el-feature"><span class="el-feature__icon">${h.icon(el.icon || 'sparkle')}</span>${h.t('h3', `${p}.title`, 'el-feature__title', { ph: 'Title' })}${h.t('p', `${p}.text`, 'el-feature__text', { ph: 'Text', ml: true })}</div>`;
   } else if (el.type === 'checklist') {
-    const style = pick(el.style, ['check', 'bullet', 'number'], 'check');
+    const style = pick(el.style, ['check', 'circle', 'bullet', 'number'], 'check');
+    const mark = { check: `<span class="el-list__mark">${h.icon('check')}</span>`, circle: h.icon('check-circle') }[style] || '';
     const items = (Array.isArray(el.items) ? el.items : []).map((it, j) => (h.edit || String(it?.text || '').trim()
-      ? `<li>${style === 'check' ? `<span class="el-list__mark">${h.icon('check')}</span>` : ''}${h.t('span', `${p}.items.${j}.text`, '', { ph: 'Point' })}</li>` : '')).join('');
-    body = items ? `<${style === 'number' ? 'ol' : 'ul'} class="el-list el-list--${style}">${items}</${style === 'number' ? 'ol' : 'ul'}>` : '';
+      ? `<li>${mark}${h.t('span', `${p}.items.${j}.text`, '', { ph: 'Point' })}</li>` : '')).join('');
+    // circle: ticks like the Image + text section's bullet points.
+    body = !items ? '' : style === 'circle' ? `<ul class="checks el-checks">${items}</ul>` : `<${style === 'number' ? 'ol' : 'ul'} class="el-list el-list--${style}">${items}</${style === 'number' ? 'ol' : 'ul'}>`;
   } else if (el.type === 'quote') {
     body = String(el.text || '').trim() || h.edit ? `<figure class="el-quote"><blockquote>${h.t('p', `${p}.text`, '', { ph: 'Quote', ml: true })}</blockquote>${h.t('figcaption', `${p}.name`, '', { ph: 'Who said it (optional)' })}</figure>` : '';
   } else if (el.type === 'video') {
@@ -1018,8 +1020,8 @@ const classic = (type, extra = {}) => {
 // forms, FAQ, gallery, blog posts, booking, map and more. Each keeps the
 // section's own content and settings (not its background or spacing, which
 // come from the layout), and is drawn by the section's own render().
-const WIDGETS = ['contact', 'quote', 'faq', 'gallery', 'blogfeed', 'booking', 'map', 'resources', 'testimonials', 'pricing', 'stats', 'steps', 'team', 'logos', 'services', 'cta'];
-const WIDGET_LABELS = { contact: 'Contact form', quote: 'Quote request form', gallery: 'Photo gallery', blogfeed: 'Blog posts', resources: 'Resource links', stats: 'Numbers', services: 'Feature grid' };
+const WIDGETS = ['contact', 'quote', 'faq', 'gallery', 'blogfeed', 'booking', 'map', 'resources', 'testimonials', 'pricing', 'stats', 'steps', 'team', 'logos', 'services', 'checklist', 'cta'];
+const WIDGET_LABELS = { contact: 'Contact form', quote: 'Quote request form', gallery: 'Photo gallery', blogfeed: 'Blog posts', resources: 'Resource links', stats: 'Numbers', services: 'Feature grid', checklist: 'Checklist grid' };
 function widgets() {
   return Object.fromEntries(WIDGETS.filter((t) => BLOCKS[t]).map((t) => {
     const block = BLOCKS[t];
@@ -1043,10 +1045,10 @@ export const LAYOUT_ELEMENTS = {
     defaults: () => ({ type: 'heading', text: 'A new heading', size: 'l', level: 'auto' }),
     fields: [
       { key: 'text', label: 'Heading', type: 'text' },
-      { key: 'size', label: 'Size', type: 'segmented', options: [['label', 'Label'], ['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']] },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['label', 'Label'], ['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL'], ['hero', 'Hero']] },
       LEVEL,
     ],
-    cls: (el) => `lx-size--${pick(el.size, ['label', 's', 'm', 'l', 'xl'], 'l')}`,
+    cls: (el) => `lx-size--${pick(el.size, ['label', 's', 'm', 'l', 'xl', 'hero'], 'l')}`,
     render(el, p, h) {
       const level = pick(el.level, ['auto', 'h1', 'h2', 'h3', 'h4', 'p'], 'auto');
       return h.t(level === 'auto' ? 'h2' : level, `${p}.text`, 'lx-h', { ph: 'Heading', exact: level !== 'auto' });
@@ -1115,11 +1117,34 @@ export const LAYOUT_ELEMENTS = {
   box: {
     label: 'Box', icon: 'box',
     defaults: () => ({
-      type: 'box', design: { pt: 32, pb: 32, pl: 32, pr: 32, rad: 18, bg: 'surface' },
-      els: [{ type: 'heading', text: 'A card title', size: 's', level: 'auto' }, { type: 'text', html: '<p>A sentence or two about this.</p>', size: 'm' }],
+      type: 'box', look: 'card',
+      els: [{ type: 'heading', text: 'A card title', size: 's', level: 'auto' }, { type: 'text', html: '<p>A sentence or two about this.</p>', size: 's' }],
     }),
-    fields: [{ type: 'note', text: 'A box groups elements into a card or a coloured panel. Drag elements into it, and set its colours, border and direction under Style.' }],
+    fields: [
+      { type: 'note', text: 'A box groups elements into a card or a coloured panel. Drag elements into it, and set its colours, border and direction under Style.' },
+      { key: 'look', label: 'Look', type: 'segmented', options: [['plain', 'Plain'], ['card', 'Card']] },
+    ],
+    cls: (el) => (el.look === 'card' ? 'lx-box--card' : ''),
     render: () => '',
+  },
+  status: {
+    label: 'Status card', icon: 'check-circle',
+    defaults: () => ({ type: 'status', title: 'System status', items: [{ text: 'Network secured' }, { text: 'Backups verified' }, { text: 'Devices up to date' }] }),
+    fields: [
+      { key: 'title', label: 'Card title', type: 'text' },
+      { key: 'items', label: 'Items', type: 'list', itemLabel: 'text', item: () => ({ text: 'New item' }), itemFields: [{ key: 'text', label: 'Text', type: 'text' }] },
+    ],
+    render: (el, p, h) => `<div class="status-card">
+      <div class="status-card__top"><span class="dots"><i></i><i></i><i></i></span>${h.t('span', `${p}.title`, 'status-card__title', { ph: 'Card title' })}</div>
+      <ul class="status-card__list">${(Array.isArray(el.items) ? el.items : []).map((_, i) =>
+        `<li><span class="status-ok">${h.icon('check')}</span>${h.t('span', `${p}.items.${i}.text`, '', { ph: 'Item' })}<span class="pulse"></span></li>`).join('')}</ul>
+      <div class="status-card__bar"><span></span></div></div>`,
+  },
+  panel: {
+    label: 'Brand panel', icon: 'zap',
+    defaults: () => ({ type: 'panel', icon: 'shield-check', text: 'A short caption' }),
+    fields: [{ key: 'icon', label: 'Icon', type: 'icon' }, { key: 'text', label: 'Caption', type: 'text' }],
+    render: (el, p, h) => `<div class="split__panel"><span class="split__panel-icon">${h.icon(el.icon || 'cpu')}</span>${h.t('p', `${p}.text`, 'split__panel-text', { ph: 'Optional caption' })}</div>`,
   },
   feature: classic('feature', { label: 'Icon box' }),
   checklist: classic('checklist'),
@@ -1137,6 +1162,7 @@ export const STYLE_FIELDS = [
   { key: 'bgImage', label: 'Background image', type: 'image', help: 'Text turns white over the image for readability.' },
   { key: 'overlay', label: 'Image darkness', type: 'segmented', options: [['light', 'Light'], ['medium', 'Medium'], ['strong', 'Strong']], when: (d) => !!d.bgImage },
   { key: 'pad', label: 'Spacing', type: 'segmented', options: [['compact', 'S'], ['normal', 'M'], ['spacious', 'L']] },
+  { key: 'effect', label: 'Background effect', type: 'segmented', options: [['', 'None'], ['glow', 'Glow & grid']], help: 'Soft colour glows and a faint grid, like the home page header. Best on dark backgrounds.' },
   { key: 'showOn', label: 'Show on', type: 'segmented', options: [['all', 'All devices'], ['desktop', 'Computers'], ['mobile', 'Phones']], help: 'Phones means screens narrower than 760px.' },
   { key: 'anchor', label: 'Anchor ID', type: 'text', help: 'Lets buttons link here, e.g. #contact' },
 ];

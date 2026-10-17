@@ -129,6 +129,12 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   its section's content and settings and is drawn by the same code; its grids follow the
   column's width (CSS container queries). The checkup and the FAQ rich results look inside
   layouts too.
+- **Converting** (`convertSection` in `assets/js/convert.js`): turns any premade section into a
+  layout section that looks the same, keeping its id, name, anchor, background, spacing and
+  style. Headings, text, buttons, images and cards become elements (the hero's status card and
+  the Image + text panel are elements of their own, the hero's glow and grid a background
+  effect); forms, FAQ, the blog feed, logos and numbers become widgets. A test checks that
+  every word of every live section survives.
 - **Styles** (`"design": { … }` and `"mobile": { … }` on any section, row, column or element):
   spacing, size, background colour, gradient and image, border, corners, shadow, text colour,
   font, size, weight and alignment, and hiding on computers or phones. `mobile` changes only
