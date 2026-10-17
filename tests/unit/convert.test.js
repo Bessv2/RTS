@@ -7,12 +7,13 @@ import { migrate } from '../../assets/js/schema.js';
 import { BLOCKS } from '../../assets/js/blocks.js';
 import { audit } from '../../assets/js/audit.js';
 
-const site = migrate(JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8')));
+// The site's content from before its pages were converted to layouts.
+const site = migrate(JSON.parse(await readFile(new URL('../fixtures/classic-site.json', import.meta.url), 'utf8')));
 // The words a visitor reads in a section.
 const words = (html) => new Set(html.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ')
   .replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, '’').replace(/&quot;/g, '"').split(/\s+/).filter((w) => /\w/.test(w)));
 
-test('every section of the live site converts and keeps every word', () => {
+test('every section of the site (as it was) converts and keeps every word', () => {
   for (const page of site.pages) {
     for (const sec of page.sections) {
       const out = convertSection(sec);
@@ -64,4 +65,10 @@ test('the section’s own elements come along', () => {
   assert.equal(last[0].size, 's');
   assert.deepEqual(last[0].design, { ta: 'center' });
   assert.equal(last[1].style, 'outline');
+});
+
+test('the live site is built from layouts', async () => {
+  const live = migrate(JSON.parse(await readFile(new URL('../../content/site.json', import.meta.url), 'utf8')));
+  for (const page of live.pages) for (const sec of page.sections) assert.equal(sec.type, 'layout', `${page.title}: ${sec.id}`);
+  assert.deepEqual(live.pages.map((p) => p.sections.map((s) => s.id)), site.pages.map((p) => p.sections.map((s) => s.id)), 'same sections, same ids');
 });
