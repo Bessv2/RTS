@@ -21,7 +21,7 @@ const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
 // Keys that hold settings, not words visitors read.
 const NOT_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'href', 'anchor', 'bg', 'pad', 'overlay', 'layout', 'side', 'columns',
   'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size',
-  'level', 'look', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2']);
+  'level', 'look', 'effect', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2']);
 const VALID_ENDPOINT = /^https:\/\/[^\s/]+\/\S*$/i;
 
 // Words the section library fills in for new sections. Seeing them on a live

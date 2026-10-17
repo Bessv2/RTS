@@ -5,7 +5,7 @@ import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, s
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { BOOKING_ORIGINS } from './blocks.js';
 import { openingHoursLd } from './hours.js';
-import { walkLayout } from './layout.js';
+import { blocksIn } from './layout.js';
 
 export const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
   + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; "
@@ -154,19 +154,14 @@ function breadcrumbs(origin, trail) {
 
 // The blog page in a post's trail, when the site has one.
 function blogCrumb(doc) {
-  const i = doc.pages.findIndex((p, n) => n > 0 && isLivePage(p, n) && (p.sections || []).some((sec) => sec.type === 'blogfeed'));
+  const i = doc.pages.findIndex((p, n) => n > 0 && isLivePage(p, n) && (p.sections || []).some((sec) => blocksIn(sec).some((b) => b.type === 'blogfeed')));
   return i > 0 ? [[doc.pages[i].title, pageHref(doc.pages[i], i)]] : [];
 }
 
 // Questions and answers from the page's visible FAQ sections, for search engines and assistants.
 function faqPage(page) {
   // FAQ sections, and FAQs placed inside layout sections.
-  const lists = [];
-  for (const sec of page.sections || []) {
-    if (sec.hidden) continue;
-    if (sec.type === 'faq') lists.push(sec.data?.items);
-    if (sec.type === 'layout') walkLayout(sec.data, (el, path, kind) => { if (kind === 'el' && el?.type === 'w-faq') lists.push(el.items); });
-  }
+  const lists = (page.sections || []).filter((sec) => !sec.hidden).flatMap(blocksIn).filter((b) => b.type === 'faq').map((b) => b.data.items);
   const qa = lists.flatMap((items) => (Array.isArray(items) ? items : []))
     .map((it) => [plain(it?.q), plain(it?.a)]).filter(([q, a]) => q && a);
   return qa.length ? [{

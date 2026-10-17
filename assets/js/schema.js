@@ -4,6 +4,7 @@
 // content (drafts, backups, published history) keeps working forever.
 // To change the format: bump SCHEMA_VERSION and add MIGRATIONS[oldVersion].
 
+import { blocksIn } from './layout.js';
 export const SCHEMA_VERSION = 2;
 export const POSTS_BASE = 'blog';
 
@@ -88,7 +89,7 @@ export function validate(doc) {
   doc.pages.forEach((p, i) => {
     if (i === 0) return;
     if (!SLUG.test(p.slug || '')) problems.push(`Page “${p.title}” needs a web address made of lowercase letters, numbers and dashes.`);
-    else if (RESERVED.has(p.slug) && !(p.slug === POSTS_BASE && p.sections.some((s) => s.type === 'blogfeed'))) problems.push(`Page “${p.title}” can't use the web address “${p.slug}” because it is reserved.`);
+    else if (RESERVED.has(p.slug) && !(p.slug === POSTS_BASE && p.sections.some((s) => blocksIn(s).some((b) => b.type === 'blogfeed')))) problems.push(`Page “${p.title}” can't use the web address “${p.slug}” because it is reserved.`);
     if (slugs.has(p.slug)) problems.push(`Two pages use the web address “${p.slug}”.`);
     slugs.add(p.slug);
   });

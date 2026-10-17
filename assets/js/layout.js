@@ -343,7 +343,8 @@ export function styleDecls(s = {}, { kind = 'el', theme = {}, phone = false, bas
   add('text', 'text-transform', oneOf(s.tt, ['none', 'uppercase', 'capitalize', 'lowercase']));
   // How it arranges what is inside it
   const gap = px(s.gap, 0, 200);
-  if (kind === 'row' || kind === 'box' || kind === 'col' || kind === 'section') add('inner', 'gap', gap);
+  if (kind === 'row') add('inner', '--lay-gap', gap);
+  else if (kind === 'box' || kind === 'col' || kind === 'section') add('inner', 'gap', gap);
   if (kind === 'row') add('layout', 'align-items', { stretch: 'stretch', top: 'start', center: 'center', bottom: 'end' }[s.valign] || '');
   if (kind === 'col' || kind === 'section') {
     const cv = { top: 'flex-start', center: 'center', bottom: 'flex-end' }[s.cv];
@@ -424,6 +425,17 @@ export function walkLayout(d, fn) {
       els(col?.els, `rows.${r}.cols.${c}`, 1);
     });
   });
+}
+
+// The premade sections in a section: itself, or the ones placed in a layout's
+// columns (widgets), as { type, data, path }. Lets the site find its blog page,
+// FAQs and forms wherever they are.
+export function blocksIn(sec) {
+  if (!sec || typeof sec !== 'object') return [];
+  if (sec.type !== 'layout') return [{ type: sec.type, data: sec.data || {}, path: '' }];
+  const out = [];
+  walkLayout(sec.data, (el, path, kind) => { if (kind === 'el' && typeof el?.type === 'string' && el.type.startsWith('w-')) out.push({ type: el.type.slice(2), data: el, path }); });
+  return out;
 }
 
 // rows.0.cols.1.els.2 → n-0-1-2 (a piece's class inside its section).

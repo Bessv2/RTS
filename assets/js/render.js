@@ -5,7 +5,7 @@ import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 import { hasHours, hoursSummary, openBadge } from './hours.js';
 import { esc, safeHref, safeSrc, cssUrl } from './util.js';
-import { cleanHTML, sectionCSS, scopeClass, isDark } from './layout.js';
+import { cleanHTML, sectionCSS, scopeClass, isDark, blocksIn } from './layout.js';
 
 export { esc, safeHref, safeSrc, cssUrl };
 
@@ -88,13 +88,14 @@ const inNav = (page, index) => page.showInNav !== false && isLivePage(page, inde
 // Section anchors can only contain letters, numbers, dashes and underscores.
 export const anchorId = (v) => String(v || '').replace(/^#/, '').replace(/[^\w-]/g, '');
 
-function helpers(data, ctx, sectionPath = '') {
+function helpers(data, ctx, sectionPath = '', inherited = {}) {
   const edit = !!ctx.edit;
   // The first section on a page carries its main headline (h1) and loads its images first.
-  let h1 = !!ctx.first;
+  // A premade section inside a layout (nested helpers) shares the one headline with it.
+  const page = inherited.page || { h1: !!ctx.first };
   // Item titles are h3 under the section's h2 heading; in a section without one they move up to h2,
   // so headings never skip a level (screen reader users move around a page by its headings).
-  let sawH2 = false;
+  let sawH2 = !!inherited.sawH2;
   const attr = (path, opts = {}) => edit
     ? ` data-edit="${esc(sectionPath + path)}" data-ph="${esc(opts.ph || 'Type here…')}"${opts.ml ? ' data-ml' : ''}`
     : '';
@@ -113,7 +114,7 @@ function helpers(data, ctx, sectionPath = '') {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
       // exact: a heading level chosen in the editor is kept as is.
-      if (opts.exact) { if (tag === 'h1') h1 = false; else if (tag === 'h2') sawH2 = true; } else if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
+      if (opts.exact) { if (tag === 'h1') page.h1 = false; else if (tag === 'h2') sawH2 = true; } else if (page.h1 && /^h[12]$/.test(tag)) { tag = 'h1'; page.h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
       // md: paragraphs, lists and subheadings (markdown); ml: one formatted paragraph.
       const body = opts.md ? markdown(v, safeSrc) : opts.ml ? rich(v) : esc(v);
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && (opts.ml || opts.md) ? ' data-rich' : ''}${edit && opts.md ? ' data-md' : ''}>${body}</${tag}>`;
@@ -127,7 +128,8 @@ function helpers(data, ctx, sectionPath = '') {
     // Helpers for a premade section shown inside a layout (a widget): its own data,
     // with editable paths prefixed by where it sits; its styles still go to the section.
     nested(sub, prefix) {
-      const n = helpers(plainModifiers(sub), { ...ctx, first: false }, sectionPath + prefix);
+      // A heading placed above it in the layout counts as its section heading.
+      const n = helpers(plainModifiers(sub), ctx, sectionPath + prefix, { sawH2, page });
       n.css = h.css;
       n.secId = h.secId;
       return n;
@@ -170,7 +172,8 @@ export function renderSection(section, ctx) {
   const scope = block.scoped || d.design || d.mobile ? scopeClass(section.id) : '';
   const theme = { ...THEME_PRESETS.midnight, ...(ctx.site.theme || {}) };
   const dark = d.design && isDark(d.design, theme) ? ' is-dark' : '';
-  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}${scope ? ` ${scope}` : ''}${dark}`;
+  const effect = d.effect === 'glow' ? ' fx-glow' : '';
+  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}${scope ? ` ${scope}` : ''}${dark}${effect}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
     + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
   const h = helpers(d, ctx);
@@ -497,7 +500,7 @@ export function renderPostCard(p, doc = {}, { search = false, level = 'h3' } = {
 }
 
 export function blogPageIndex(doc) {
-  return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed' && !s.hidden && s.data?.limit === 'all'));
+  return doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => !s.hidden && blocksIn(s).some((b) => b.type === 'blogfeed' && b.data?.limit === 'all')));
 }
 
 // A post's “last updated” day (YYYY-MM-DD), when it is set and later than the post's date.
@@ -537,7 +540,7 @@ function shareLinks(url, title) {
 export function renderPostPage(doc, post, ctx = {}) {
   const c = { ...ctx, edit: false, site: doc };
   let bi = blogPageIndex(doc);
-  if (bi < 0) bi = doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => s.type === 'blogfeed'));
+  if (bi < 0) bi = doc.pages.findIndex((p, i) => isLivePage(p, i) && (p.sections || []).some((s) => blocksIn(s).some((b) => b.type === 'blogfeed')));
   const back = bi >= 0 ? pageHref(doc.pages[bi], bi) : '/';
   const all = publishedPosts(doc, 'post');
   const i = all.findIndex((p) => p.id === post.id);
