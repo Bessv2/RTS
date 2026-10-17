@@ -115,6 +115,20 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   there are icon boxes, checklists, quotes, videos (YouTube or Vimeo, loaded only on play),
   review buttons and opening hours. The **Empty
   section** is made only of elements.
+- **Layout** (section, `"type": "layout"`): design a section from scratch. It holds rows, each
+  a 12-column grid of columns (`"span": 1–12`, side by side on computers, stacked on phones
+  unless `"mobile": { "span" }` says otherwise), and each column holds elements: headings
+  (with a chosen level or automatic), rich text, images (cropped to a shape if you like),
+  buttons, icons, boxes (cards or panels that hold elements of their own), and the elements
+  above. Rich text is stored as HTML and cleaned on every save and render (`cleanHTML` in
+  `assets/js/layout.js`): only paragraphs, headings, lists, quotes, bold/italic/underline,
+  links, code and coloured or resized text survive.
+- **Styles** (`"design": { … }` and `"mobile": { … }` on any section, row, column or element):
+  spacing, size, background colour, gradient and image, border, corners, shadow, text colour,
+  font, size, weight and alignment, and hiding on computers or phones. `mobile` changes only
+  phones. Every value is checked and clamped in `layout.js` before it becomes CSS, which the
+  build puts in the page head. A background colour without a text colour makes text light
+  or dark automatically, so it stays readable.
 - **Booking calendar** (section): paste a Calendly, Microsoft Bookings, Google Calendar
   appointment page, Cal.com, HubSpot or Acuity link and the calendar is shown on the page (these
   providers are allowed in the security policy's `frame-src`). Any other link becomes a button.
@@ -212,6 +226,8 @@ content/site.json ──► assets/js/build.js ──► index.html, services/in
 | `assets/js/schema.js` | Content format version, upgrades (migrations) and validation |
 | `assets/js/render.js` | Turns content into HTML. Pure functions, runs in browsers and Node |
 | `assets/js/blocks.js` | Section library: defaults, editor fields and HTML for each section type |
+| `assets/js/layout.js` | Layout sections and styles: rich text cleaning, style settings → CSS, rows and columns |
+| `assets/js/util.js` | Escaping and safe link/image helpers shared by every renderer |
 | `assets/js/build.js` | Builds complete pages, sitemap, RSS feed, robots.txt and 404 page |
 | `assets/js/theme-api.js` | Versioned entry point the standalone editor loads (see below) |
 | `assets/js/enhance.js` | Interactivity: menu, contact form, gallery, video, tag filter |
@@ -270,8 +286,9 @@ The standalone editor ([Bessv2/rts-editor](https://github.com/Bessv2/rts-editor)
 sections, renderer, schema and page builder, plus `EDITOR_API` (currently `1`) and `FEATURES`,
 a list of optional capabilities (`page-drafts`, `noindex`, `redirects`, `code`, `callouts`,
 `audit`, `page-share-image`, `verification`, `scheduled-posts`, `section-labels`, `booking`,
-`elements`, `call-button`, `hours`, `quote-form`, `resources`, `analytics`, `reviews`) the editor
-switches on only when the site supports them.
+`elements`, `call-button`, `hours`, `quote-form`, `resources`, `analytics`, `reviews`,
+`layout-builder`, `rich-text`, `section-styles`, and more) the editor switches on only when the
+site supports them.
 
 `assets/js/audit.js` is the site checkup the editor runs before publishing: broken links and
 anchors, buttons without links, pages without a main headline, leftover sample text, missing

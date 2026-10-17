@@ -14,9 +14,13 @@ export const EDITOR_API = 1;
 
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
-export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements', 'call-button', 'hours', 'quote-form', 'resources', 'analytics', 'reviews', 'blog-search', 'announcement-dates', 'not-found', 'post-toc', 'task-lists', 'post-updated'];
+export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements', 'call-button', 'hours', 'quote-form', 'resources', 'analytics', 'reviews', 'blog-search', 'announcement-dates', 'not-found', 'post-toc', 'task-lists', 'post-updated',
+  'layout-builder', 'rich-text', 'section-styles'];
 
-export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, ELEMENTS, renderElements, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
+export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, ELEMENTS, LAYOUT_ELEMENTS, renderElements, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
+export {
+  cleanHTML, cssColor, COLOR_TOKENS, SHADOWS, STYLE_GROUPS, ROW_PRESETS, newRow, newCol, walkLayout, nodeClass, scopeClass, pieceCSS, sectionCSS,
+} from './layout.js';
 export {
   FONTS, THEME_PRESETS, esc, rich, cssUrl, getPath, setPath, safeHref, safeSrc, fontsHref, themeCSS,
   pageHref, renderSection, renderHeader, renderFooter, renderPage, findRoute, renderNotFound, markdown,

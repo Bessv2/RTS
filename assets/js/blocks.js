@@ -3,6 +3,7 @@
 // and render(data, h) which returns the inner HTML of the section.
 
 import { hasHours, hoursSummary, hoursTable, openBadge } from './hours.js';
+import { renderLayout } from './layout.js';
 
 const btn = (label, href) => ({ label, href });
 
@@ -796,6 +797,22 @@ export const BLOCKS = {
     },
   },
 
+  layout: {
+    label: 'Layout',
+    group: 'Basic',
+    icon: 'grid',
+    description: 'Design your own: rows of columns with any elements, each styled your way',
+    scoped: true,
+    defaults: () => ({
+      bg: 'light', pad: 'normal',
+      rows: [{ cols: [
+        { span: 6, els: [{ type: 'heading', text: 'Design anything here', size: 'l', level: 'auto' }, { type: 'text', size: 'm', html: '<p>Add rows and columns, drag elements between them and style every piece: colours, spacing, borders and fonts, with separate settings for phones.</p>' }, { type: 'button', label: 'Get in touch', href: '/contact/', style: 'primary', size: 'md' }] },
+        { span: 6, els: [{ type: 'image', image: 'assets/library/network-mesh.svg', alt: '', ratio: 'landscape' }] },
+      ], design: { valign: 'center' } }],
+    }),
+    fields: [{ type: 'note', text: 'Click a row, column or element on the page to change it. Use + Add element inside a column, and drag pieces to move them.' }],
+    render: (d, h) => renderLayout(d, h, LAYOUT_ELEMENTS),
+  },
   blank: {
     label: 'Empty section',
     group: 'Basic',
@@ -911,66 +928,185 @@ export const ELEMENTS = {
 
 const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);
 
+// One element's own markup (without the wrapper that places it), or '' when it
+// has nothing to show. `p` is its path in the section data, for editable text.
+export function elementBody(el, p, h) {
+  let body = '';
+  if (el.type === 'heading') {
+    const size = pick(el.size, ['small', 'medium', 'large'], 'medium');
+    body = h.t(size === 'small' ? 'h3' : 'h2', `${p}.text`, `el-heading el-heading--${size}`, { ph: 'Heading' });
+  } else if (el.type === 'text') {
+    body = h.t('div', `${p}.text`, 'el-text', { ph: 'Text', ml: true, md: true });
+  } else if (el.type === 'image') {
+    const src = h.src(el.image);
+    const size = pick(el.size, ['small', 'medium', 'large', 'fill'], 'medium');
+    if (src) {
+      body = `<figure class="el-figure el-figure--${size}${el.round === false ? '' : ' el-figure--round'}"><img src="${h.esc(src)}" alt="${h.esc(el.alt || '')}" loading="lazy" decoding="async">${h.t('figcaption', `${p}.caption`, '', { ph: 'Caption (optional)' })}</figure>`;
+    } else if (h.edit) {
+      body = `<div class="figure__empty el-figure--${size}">${h.icon('image')}<span>Click to choose an image</span></div>`;
+    }
+  } else if (el.type === 'button') {
+    const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
+    body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
+  } else if (el.type === 'feature') {
+    body = `<div class="el-feature"><span class="el-feature__icon">${h.icon(el.icon || 'sparkle')}</span>${h.t('h3', `${p}.title`, 'el-feature__title', { ph: 'Title' })}${h.t('p', `${p}.text`, 'el-feature__text', { ph: 'Text', ml: true })}</div>`;
+  } else if (el.type === 'checklist') {
+    const style = pick(el.style, ['check', 'bullet', 'number'], 'check');
+    const items = (Array.isArray(el.items) ? el.items : []).map((it, j) => (h.edit || String(it?.text || '').trim()
+      ? `<li>${style === 'check' ? `<span class="el-list__mark">${h.icon('check')}</span>` : ''}${h.t('span', `${p}.items.${j}.text`, '', { ph: 'Point' })}</li>` : '')).join('');
+    body = items ? `<${style === 'number' ? 'ol' : 'ul'} class="el-list el-list--${style}">${items}</${style === 'number' ? 'ol' : 'ul'}>` : '';
+  } else if (el.type === 'quote') {
+    body = String(el.text || '').trim() || h.edit ? `<figure class="el-quote"><blockquote>${h.t('p', `${p}.text`, '', { ph: 'Quote', ml: true })}</blockquote>${h.t('figcaption', `${p}.name`, '', { ph: 'Who said it (optional)' })}</figure>` : '';
+  } else if (el.type === 'video') {
+    const v = parseVideo(el.url);
+    const player = v
+      ? `<div class="video" data-embed="${h.esc(v.embed)}">${v.thumb ? `<img class="video__thumb" src="${h.esc(v.thumb)}" alt="" loading="lazy">` : ''}<button class="video__play" type="button" aria-label="Play video">${h.icon('play')}</button></div>`
+      : h.edit ? `<div class="video video--empty">${h.icon('play')}<span>Paste a YouTube or Vimeo link in the panel on the right</span></div>` : '';
+    body = player ? `${player}${h.t('p', `${p}.caption`, 'video__caption', { ph: 'Caption (optional)' })}` : '';
+  } else if (el.type === 'review') {
+    const b = reviewButton(h, el.label, `btn--${pick(el.style, ['primary', 'outline', 'ghost'], 'primary')}`);
+    body = b ? `<div class="btns el-btns">${b}</div>` : h.edit ? `<div class="figure__empty el-hours--empty">${h.icon('star')}<span>Add your review page in Settings → Business</span></div>` : '';
+  } else if (el.type === 'hours') {
+    const hours = h.site.hours;
+    if (hasHours(hours)) {
+      body = `<div class="el-hours">${openBadge(hours, h.esc, h.edit)}${el.show === 'summary' ? `<p class="el-hours__line">${h.esc(hoursSummary(hours))}</p>` : hoursTable(hours, h.esc)}${hours.note ? `<p class="el-hours__note">${h.esc(hours.note)}</p>` : ''}</div>`;
+    } else if (h.edit) {
+      body = `<div class="figure__empty el-hours--empty">${h.icon('clock')}<span>Set your hours in Settings → Business hours</span></div>`;
+    }
+  } else if (el.type === 'divider') {
+    body = '<hr class="el-divider">';
+  } else if (el.type === 'spacer') {
+    body = `<div class="el-spacer el-spacer--${pick(el.size, ['small', 'medium', 'large'], 'medium')}"></div>`;
+  }
+  return body;
+}
+
 // The section's elements, or '' when it has none. Uses the section's helpers,
 // so text is editable in the editor and the first heading on a page is its h1.
 export function renderElements(d, h) {
   const list = h.list('elements');
   const out = list.map((el, i) => {
     if (!el || !ELEMENTS[el.type]) return '';
-    const p = `elements.${i}`;
     const align = pick(el.align, ['left', 'center', 'right'], 'left');
     const width = pick(el.width, ['full', 'twothirds', 'half', 'third'], 'full');
-    let body = '';
-    if (el.type === 'heading') {
-      const size = pick(el.size, ['small', 'medium', 'large'], 'medium');
-      body = h.t(size === 'small' ? 'h3' : 'h2', `${p}.text`, `el-heading el-heading--${size}`, { ph: 'Heading' });
-    } else if (el.type === 'text') {
-      body = h.t('div', `${p}.text`, 'el-text', { ph: 'Text', ml: true, md: true });
-    } else if (el.type === 'image') {
-      const src = h.src(el.image);
-      const size = pick(el.size, ['small', 'medium', 'large', 'fill'], 'medium');
-      if (src) {
-        body = `<figure class="el-figure el-figure--${size}${el.round === false ? '' : ' el-figure--round'}"><img src="${h.esc(src)}" alt="${h.esc(el.alt || '')}" loading="lazy" decoding="async">${h.t('figcaption', `${p}.caption`, '', { ph: 'Caption (optional)' })}</figure>`;
-      } else if (h.edit) {
-        body = `<div class="figure__empty el-figure--${size}">${h.icon('image')}<span>Click to choose an image</span></div>`;
-      }
-    } else if (el.type === 'button') {
-      const style = pick(el.style, ['primary', 'outline', 'ghost'], 'primary');
-      body = h.btns([p, `btn--${style}`]).replace('class="btns"', 'class="btns el-btns"');
-    } else if (el.type === 'feature') {
-      body = `<div class="el-feature"><span class="el-feature__icon">${h.icon(el.icon || 'sparkle')}</span>${h.t('h3', `${p}.title`, 'el-feature__title', { ph: 'Title' })}${h.t('p', `${p}.text`, 'el-feature__text', { ph: 'Text', ml: true })}</div>`;
-    } else if (el.type === 'checklist') {
-      const style = pick(el.style, ['check', 'bullet', 'number'], 'check');
-      const items = (Array.isArray(el.items) ? el.items : []).map((it, j) => (h.edit || String(it?.text || '').trim()
-        ? `<li>${style === 'check' ? `<span class="el-list__mark">${h.icon('check')}</span>` : ''}${h.t('span', `${p}.items.${j}.text`, '', { ph: 'Point' })}</li>` : '')).join('');
-      body = items ? `<${style === 'number' ? 'ol' : 'ul'} class="el-list el-list--${style}">${items}</${style === 'number' ? 'ol' : 'ul'}>` : '';
-    } else if (el.type === 'quote') {
-      body = String(el.text || '').trim() || h.edit ? `<figure class="el-quote"><blockquote>${h.t('p', `${p}.text`, '', { ph: 'Quote', ml: true })}</blockquote>${h.t('figcaption', `${p}.name`, '', { ph: 'Who said it (optional)' })}</figure>` : '';
-    } else if (el.type === 'video') {
-      const v = parseVideo(el.url);
-      const player = v
-        ? `<div class="video" data-embed="${h.esc(v.embed)}">${v.thumb ? `<img class="video__thumb" src="${h.esc(v.thumb)}" alt="" loading="lazy">` : ''}<button class="video__play" type="button" aria-label="Play video">${h.icon('play')}</button></div>`
-        : h.edit ? `<div class="video video--empty">${h.icon('play')}<span>Paste a YouTube or Vimeo link in the panel on the right</span></div>` : '';
-      body = player ? `${player}${h.t('p', `${p}.caption`, 'video__caption', { ph: 'Caption (optional)' })}` : '';
-    } else if (el.type === 'review') {
-      const b = reviewButton(h, el.label, `btn--${pick(el.style, ['primary', 'outline', 'ghost'], 'primary')}`);
-      body = b ? `<div class="btns el-btns">${b}</div>` : h.edit ? `<div class="figure__empty el-hours--empty">${h.icon('star')}<span>Add your review page in Settings → Business</span></div>` : '';
-    } else if (el.type === 'hours') {
-      const hours = h.site.hours;
-      if (hasHours(hours)) {
-        body = `<div class="el-hours">${openBadge(hours, h.esc, h.edit)}${el.show === 'summary' ? `<p class="el-hours__line">${h.esc(hoursSummary(hours))}</p>` : hoursTable(hours, h.esc)}${hours.note ? `<p class="el-hours__note">${h.esc(hours.note)}</p>` : ''}</div>`;
-      } else if (h.edit) {
-        body = `<div class="figure__empty el-hours--empty">${h.icon('clock')}<span>Set your hours in Settings → Business hours</span></div>`;
-      }
-    } else if (el.type === 'divider') {
-      body = '<hr class="el-divider">';
-    } else if (el.type === 'spacer') {
-      body = `<div class="el-spacer el-spacer--${pick(el.size, ['small', 'medium', 'large'], 'medium')}"></div>`;
-    }
+    const body = elementBody(el, `elements.${i}`, h);
     return body ? `<div class="el el--${width} el--${align}"${h.edit ? ` data-el="${i}"` : ''}>${body}</div>` : '';
   }).join('');
   return out ? `<div class="wrap"><div class="elements">${out}</div></div>` : '';
 }
+
+// Elements for layout sections. Their look comes from their style settings
+// (design and mobile, see layout.js), so they mostly hold content. `parts` sends a group of style
+// settings to an inner part, like the button itself instead of the space it sits in.
+const LEVEL = { key: 'level', label: 'Heading level', type: 'select', options: [['auto', 'Automatic'], ['h1', 'H1 – page title'], ['h2', 'H2'], ['h3', 'H3'], ['h4', 'H4'], ['p', 'Not a heading']],
+  help: 'Automatic keeps the page outline in order: the first heading on a page becomes its title (H1).' };
+const BUTTON_STYLES = [['primary', 'Solid'], ['outline', 'Outline'], ['ghost', 'Plain'], ['light', 'White']];
+const RATIOS = { auto: '', square: '1 / 1', landscape: '4 / 3', wide: '16 / 9', portrait: '3 / 4', tall: '2 / 3' };
+// A classic element reused as is, without its own alignment and width (columns and styles do that).
+const classic = (type, extra = {}) => {
+  const base = ELEMENTS[type];
+  return {
+    label: base.label, icon: base.icon,
+    defaults: () => { const d = base.defaults(); delete d.align; delete d.width; return d; },
+    fields: base.fields.filter((f) => f !== ALIGN && f !== WIDTH),
+    render: (el, p, h) => elementBody(el, p, h),
+    ...extra,
+  };
+};
+
+export const LAYOUT_ELEMENTS = {
+  heading: {
+    label: 'Heading', icon: 'heading',
+    defaults: () => ({ type: 'heading', text: 'A new heading', size: 'l', level: 'auto' }),
+    fields: [
+      { key: 'text', label: 'Heading', type: 'text' },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['label', 'Label'], ['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']] },
+      LEVEL,
+    ],
+    cls: (el) => `lx-size--${pick(el.size, ['label', 's', 'm', 'l', 'xl'], 'l')}`,
+    render(el, p, h) {
+      const level = pick(el.level, ['auto', 'h1', 'h2', 'h3', 'h4', 'p'], 'auto');
+      return h.t(level === 'auto' ? 'h2' : level, `${p}.text`, 'lx-h', { ph: 'Heading', exact: level !== 'auto' });
+    },
+  },
+  text: {
+    label: 'Text', icon: 'align-left',
+    defaults: () => ({ type: 'text', html: '<p>Write your text here. Select words to make them <strong>bold</strong>, add a link or change their colour.</p>', size: 'm' }),
+    fields: [
+      { type: 'note', text: 'Click the text on the page to type. Select words for bold, links, lists, headings and colours.' },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['s', 'S'], ['m', 'M'], ['l', 'L']] },
+    ],
+    cls: (el) => `lx-text--${pick(el.size, ['s', 'm', 'l'], 'm')}`,
+    render: (el, p, h) => h.html('div', `${p}.html`, 'lx-rich', { ph: 'Write something…' }),
+  },
+  image: {
+    label: 'Image', icon: 'image',
+    defaults: () => ({ type: 'image', image: '', alt: '', caption: '', ratio: 'auto', href: '' }),
+    fields: [
+      { key: 'image', label: 'Image', type: 'image' },
+      { key: 'alt', label: 'Image description', type: 'text', help: 'What the image shows, for screen readers and search engines.' },
+      { key: 'caption', label: 'Caption', type: 'text' },
+      { key: 'ratio', label: 'Shape', type: 'select', options: [['auto', 'Original'], ['square', 'Square'], ['landscape', 'Landscape 4:3'], ['wide', 'Wide 16:9'], ['portrait', 'Portrait 3:4'], ['tall', 'Tall 2:3']], help: 'Other shapes crop the image to fit.' },
+      { key: 'href', label: 'Link (optional)', type: 'link' },
+    ],
+    parts: { frame: ' img' },
+    render(el, p, h) {
+      const img = h.img(`${p}.image`, 'lx-img__img', el.alt || '');
+      if (!img) return h.edit ? `<div class="figure__empty">${h.icon('image')}<span>Click to choose an image</span></div>` : '';
+      const ratio = RATIOS[el.ratio] ? ` style="--ratio:${RATIOS[el.ratio]}"` : '';
+      const href = String(el.href || '').trim();
+      const linked = href && !h.edit ? `<a href="${h.esc(h.safeHref(href))}"${/^https?:/i.test(href) ? ' target="_blank" rel="noopener"' : ''}>${img}</a>` : img;
+      return `<figure class="lx-img${ratio ? ' lx-img--crop' : ''}"${ratio}>${linked}${h.t('figcaption', `${p}.caption`, '', { ph: 'Caption (optional)' })}</figure>`;
+    },
+  },
+  button: {
+    label: 'Button', icon: 'button',
+    defaults: () => ({ type: 'button', label: 'Get in touch', href: '/contact/', style: 'primary', size: 'md', icon: '', newTab: false }),
+    fields: [
+      { key: 'label', label: 'Button text', type: 'text' },
+      { key: 'href', label: 'Link', type: 'link' },
+      { key: 'style', label: 'Style', type: 'segmented', options: BUTTON_STYLES },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['sm', 'S'], ['md', 'M'], ['lg', 'L']] },
+      { key: 'icon', label: 'Icon (optional)', type: 'icon', optional: true },
+      { key: 'newTab', label: 'Open in a new tab', type: 'toggle' },
+    ],
+    parts: { box: ' .btn', frame: ' .btn', text: ' .btn' },
+    render(el, p, h) {
+      if (!String(el.label || '').trim() && !h.edit) return '';
+      const style = pick(el.style, ['primary', 'outline', 'ghost', 'light'], 'primary');
+      const size = pick(el.size, ['sm', 'md', 'lg'], 'md');
+      const tab = el.newTab ? ' target="_blank" rel="noopener"' : '';
+      return `<a class="btn btn--${style}${size === 'md' ? '' : ` btn--${size}`}" href="${h.esc(h.safeHref(el.href))}"${tab}>${el.icon ? h.icon(el.icon) : ''}<span${h.attr(`${p}.label`, { ph: 'Button' })}>${h.esc(el.label)}</span></a>`;
+    },
+  },
+  icon: {
+    label: 'Icon', icon: 'sparkle',
+    defaults: () => ({ type: 'icon', icon: 'shield-check', look: 'soft' }),
+    fields: [
+      { key: 'icon', label: 'Icon', type: 'icon' },
+      { key: 'look', label: 'Look', type: 'segmented', options: [['plain', 'Plain'], ['soft', 'Tinted'], ['solid', 'Solid'], ['ring', 'Ring']] },
+    ],
+    parts: { text: ' .lx-icon', box: ' .lx-icon', frame: ' .lx-icon' },
+    render: (el, p, h) => `<span class="lx-icon lx-icon--${pick(el.look, ['plain', 'soft', 'solid', 'ring'], 'soft')}">${h.icon(el.icon || 'sparkle')}</span>`,
+  },
+  box: {
+    label: 'Box', icon: 'box',
+    defaults: () => ({
+      type: 'box', design: { pt: 32, pb: 32, pl: 32, pr: 32, rad: 18, bg: 'surface' },
+      els: [{ type: 'heading', text: 'A card title', size: 's', level: 'auto' }, { type: 'text', html: '<p>A sentence or two about this.</p>', size: 'm' }],
+    }),
+    fields: [{ type: 'note', text: 'A box groups elements into a card or a coloured panel. Drag elements into it, and set its colours, border and direction under Style.' }],
+    render: () => '',
+  },
+  feature: classic('feature', { label: 'Icon box' }),
+  checklist: classic('checklist'),
+  quote: classic('quote'),
+  video: classic('video', { parts: { frame: ' .video' } }),
+  review: classic('review'),
+  hours: classic('hours'),
+  divider: classic('divider'),
+  spacer: classic('spacer'),
+};
 
 export const STYLE_FIELDS = [
   { key: 'bg', label: 'Background', type: 'swatches', options: [['light', 'Light'], ['alt', 'Tint'], ['dark', 'Dark'], ['brand', 'Brand']] },
