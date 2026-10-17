@@ -4,6 +4,10 @@ import { BLOCKS, renderElements } from './blocks.js';
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 import { hasHours, hoursSummary, openBadge } from './hours.js';
+import { esc, safeHref, safeSrc, cssUrl } from './util.js';
+import { cleanHTML, sectionCSS, scopeClass } from './layout.js';
+
+export { esc, safeHref, safeSrc, cssUrl };
 
 export const FONTS = {
   'Inter': 'Inter:wght@400;500;600;700;800',
@@ -27,10 +31,6 @@ export const THEME_PRESETS = {
 
 const RADII = { sharp: '4px', soft: '12px', round: '20px' };
 
-export function esc(v) {
-  return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-
 // Lightweight formatting for paragraphs: **bold**, *italic*, `code`, [link](url).
 // Text is escaped first, so only these patterns ever become HTML.
 export function rich(v) {
@@ -47,11 +47,6 @@ export function rich(v) {
     .replace(/\0(\d+)\0/g, (m, i) => `<code>${code[i]}</code>`);
 }
 
-export function cssUrl(src) {
-  const v = safeSrc(src);
-  return v ? `url("${v.replace(/["\\\s()']/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`)}")` : '';
-}
-
 export function getPath(obj, path) {
   return String(path).split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
@@ -61,26 +56,6 @@ export function setPath(obj, path, value) {
   const last = keys.pop();
   const target = keys.reduce((o, k) => (o[k] ??= {}), obj);
   target[last] = value;
-}
-
-// Only allow safe link schemes in rendered hrefs.
-export function safeHref(href) {
-  const v = String(href || '').trim();
-  if (!v) return '#';
-  if (/^(https?:|mailto:|tel:|#|\/|\.\/|[\w-]+\.html)/i.test(v)) return v;
-  if (/^[a-z][\w+.-]*:/i.test(v)) return '#';
-  return v;
-}
-
-// Image sources: data images, https URLs, or site files. Site-relative paths are
-// made root-relative so they work from nested pages like /blog/my-post/.
-export function safeSrc(src) {
-  const v = String(src || '').trim();
-  if (!v) return '';
-  if (/^data:image\/(png|jpe?g|gif|webp|svg\+xml);/i.test(v)) return v;
-  if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
-  if (/^[a-z][\w+.-]*:/i.test(v)) return '';
-  return `/${v.replace(/^\.\//, '')}`;
 }
 
 export function fontsHref(theme) {
@@ -125,6 +100,10 @@ function helpers(data, ctx, sectionPath = '') {
     : '';
   const h = {
     edit, esc, icon, site: ctx.site.site, doc: ctx.site,
+    theme: { ...THEME_PRESETS.midnight, ...(ctx.site.theme || {}) },
+    // CSS from layout and element styles, written once per section by renderSection.
+    css: [],
+    attr,
     blog: { publishedPosts, renderPostCard, postTags },
     src: (v) => safeSrc(v),
     safeHref: (v) => safeHref(v),
@@ -133,10 +112,17 @@ function helpers(data, ctx, sectionPath = '') {
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
-      if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
+      // exact: a heading level chosen in the editor is kept as is.
+      if (opts.exact) { if (tag === 'h1') h1 = false; else if (tag === 'h2') sawH2 = true; } else if (h1 && /^h[12]$/.test(tag)) { tag = 'h1'; h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
       // md: paragraphs, lists and subheadings (markdown); ml: one formatted paragraph.
       const body = opts.md ? markdown(v, safeSrc) : opts.ml ? rich(v) : esc(v);
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && (opts.ml || opts.md) ? ' data-rich' : ''}${edit && opts.md ? ' data-md' : ''}>${body}</${tag}>`;
+    },
+    // Rich text (cleaned HTML), typed straight into the page in the editor.
+    html(tag, path, cls = '', opts = {}) {
+      const v = cleanHTML(getPath(data, path));
+      if (!edit && !v) return '';
+      return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit ? ' data-html' : ''}>${v}</${tag}>`;
     },
     img(path, cls, alt = '') {
       const src = safeSrc(getPath(data, path));
@@ -168,11 +154,17 @@ export function renderSection(section, ctx) {
   const anchor = anchorId(d.anchor);
   const bgImg = cssUrl(d.bgImage);
   const device = d.showOn === 'desktop' || d.showOn === 'mobile' ? ` show-on--${d.showOn}` : '';
-  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}`;
+  // Sections with their own styles get a class for them: x-<section id>.
+  const scope = block.scoped || d.design || d.mobile ? scopeClass(section.id) : '';
+  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}${scope ? ` ${scope}` : ''}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
     + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
   const h = helpers(d, ctx);
-  return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${block.render(d, h)}${renderElements(d, h)}</section>`;
+  h.secId = section.id;
+  const inner = block.render(d, h) + renderElements(d, h);
+  // Section, row, column and element styles. The site build moves them into the page head.
+  const css = sectionCSS(section, h.theme) + h.css.join('');
+  return `<section class="${cls}"${anchor ? ` id="${anchor}"` : ''}${attrs}>${inner}${css ? `<style data-s>${css}</style>` : ''}</section>`;
 }
 
 // The announcement bar's optional dates (YYYY-MM-DD, both days included):

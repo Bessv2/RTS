@@ -76,6 +76,9 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   const fonts = fontsHref(t);
   const url = abs(path);
   const stats = analyticsFor(s);
+  // Section styles (written inside each section by renderSection) move into the head.
+  const styles = [];
+  const html = String(body).replace(/<style data-s>([^<]*)<\/style>/g, (m, css) => { styles.push(css); return ''; });
   return `<!doctype html>
 <html lang="${esc(pageLang(s))}">
 <head>
@@ -101,13 +104,13 @@ export function documentHTML(doc, { path, title, description, body, image, type 
   ${fonts ? `<link rel="stylesheet" href="${esc(fonts)}">` : ''}
   <link rel="stylesheet" href="/assets/css/site.css">
   ${preload ? `<link rel="preload" as="image" href="${esc(preload)}" fetchpriority="high">` : ''}
-  <style id="theme-vars">${themeCSS(t)}</style>
+  <style id="theme-vars">${themeCSS(t)}</style>${styles.length ? `\n  <style id="section-styles">${styles.join('')}</style>` : ''}
   ${jsonLd.map((d) => `<script type="application/ld+json">${ldJson(d)}</script>`).join('\n  ')}
   <script type="module" src="/assets/js/site.js"></script>${stats ? `\n  ${stats.tag}` : ''}
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <div id="app">${body}</div>
+  <div id="app">${html}</div>
 </body>
 </html>
 `;

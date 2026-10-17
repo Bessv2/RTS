@@ -12,6 +12,7 @@ const REQUIRED = {
   esc: 'function', pageHref: 'function', rich: 'function', safeSrc: 'function', icon: 'function',
   migrate: 'function', validate: 'function', buildSite: 'function', staleFiles: 'function', enhance: 'function',
   FEATURES: 'object', isLivePage: 'function', anchorId: 'function', redirectFrom: 'function', redirectTo: 'function', audit: 'function',
+  LAYOUT_ELEMENTS: 'object', STYLE_GROUPS: 'object', ROW_PRESETS: 'object', COLOR_TOKENS: 'object', cleanHTML: 'function', newRow: 'function', newCol: 'function', walkLayout: 'function',
 };
 
 test('theme API exposes everything the editor needs', () => {
