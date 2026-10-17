@@ -262,6 +262,16 @@ function lightness(c, theme = {}) {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+// A dark background (a dark colour, or a well darkened image): the piece gets
+// the is-dark class so the site's dark-section styles (accent colours, icons) apply inside it.
+export function isDark(design, theme = {}) {
+  if (!design || typeof design !== 'object') return false;
+  if (cssUrl(design.img) && num(design.ov, 0, 95) >= 30) return true;
+  const l = lightness(cssColor(design.bg), theme);
+  return l != null && l < 0.36;
+}
+const darkClass = (design, theme) => (isDark(design, theme) ? ' is-dark' : '');
+
 const LIGHT_TEXT = '--sec-link:currentColor;--sec-text:#f8fafc;--sec-muted:rgba(255, 255, 255, .88);--sec-line:rgba(255, 255, 255, .16);--sec-card:rgba(255, 255, 255, .06);color:var(--sec-text)';
 const DARK_TEXT = '--sec-link:var(--c-primary);--sec-text:var(--c-text);--sec-muted:color-mix(in srgb, var(--c-text) 64%, transparent);--sec-line:color-mix(in srgb, var(--c-text) 10%, transparent);--sec-card:#fff;color:var(--sec-text)';
 
@@ -444,7 +454,7 @@ export function renderLayout(d, h, elements) {
     }
     css(p, el.design, el.mobile, { kind: el.type === 'box' ? 'box' : 'el', parts: def.parts || {} });
     const extra = def.cls ? def.cls(el) : '';
-    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''} ${nodeClass(p)}${hideClasses(el.design, el.mobile)}"${nodeAttrs(p, 'el')}>${body}</div>`;
+    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''} ${nodeClass(p)}${hideClasses(el.design, el.mobile)}${darkClass(el.design, theme)}"${nodeAttrs(p, 'el')}>${body}</div>`;
   }).join('');
 
   const rows = (Array.isArray(d.rows) ? d.rows : []).map((row, r) => {
@@ -461,9 +471,9 @@ export function renderLayout(d, h, elements) {
       css(cp, col?.design, col?.mobile, { kind: 'col' });
       let body = renderEls(col?.els, cp, 1);
       if (!body && h.edit) body = `<button type="button" class="lay__add" data-add-el="${cp}">${h.icon('plus')}<span>Add element</span></button>`;
-      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
+      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile)}${darkClass(col?.design, theme)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
     }).join('');
-    return `<div class="wrap lay__row lay__row--${width} ${nodeClass(rp)}${hideClasses(rs, row?.mobile)}"${nodeAttrs(rp, 'row')}>${inner}</div>`;
+    return `<div class="wrap lay__row lay__row--${width} ${nodeClass(rp)}${hideClasses(rs, row?.mobile)}${darkClass(rs, theme)}"${nodeAttrs(rp, 'row')}>${inner}</div>`;
   }).join('');
   if (!rows) {
     return h.edit

@@ -5,7 +5,7 @@ import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 import { hasHours, hoursSummary, openBadge } from './hours.js';
 import { esc, safeHref, safeSrc, cssUrl } from './util.js';
-import { cleanHTML, sectionCSS, scopeClass } from './layout.js';
+import { cleanHTML, sectionCSS, scopeClass, isDark } from './layout.js';
 
 export { esc, safeHref, safeSrc, cssUrl };
 
@@ -124,6 +124,14 @@ function helpers(data, ctx, sectionPath = '') {
       if (!edit && !v) return '';
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit ? ' data-html' : ''}>${v}</${tag}>`;
     },
+    // Helpers for a premade section shown inside a layout (a widget): its own data,
+    // with editable paths prefixed by where it sits; its styles still go to the section.
+    nested(sub, prefix) {
+      const n = helpers(plainModifiers(sub), { ...ctx, first: false }, sectionPath + prefix);
+      n.css = h.css;
+      n.secId = h.secId;
+      return n;
+    },
     img(path, cls, alt = '') {
       const src = safeSrc(getPath(data, path));
       const load = ctx.first ? 'fetchpriority="high"' : 'loading="lazy"';
@@ -144,19 +152,25 @@ function helpers(data, ctx, sectionPath = '') {
 
 // Section settings that end up in class names may only be simple words.
 const MODIFIERS = ['bg', 'pad', 'overlay', 'layout', 'columns', 'style', 'ratio', 'width', 'height', 'align', 'side', 'show', 'limit', 'showOn'];
+function plainModifiers(data) {
+  const d = { ...(data || {}) };
+  for (const k of MODIFIERS) if (d[k] != null && typeof d[k] !== 'object') d[k] = String(d[k]).replace(/[^\w-]/g, '');
+  return d;
+}
 
 export function renderSection(section, ctx) {
   const block = BLOCKS[section.type];
   if (!block) return '';
   if (section.hidden && !ctx.edit) return '';
-  const d = { ...(section.data || {}) };
-  for (const k of MODIFIERS) if (d[k] != null && typeof d[k] !== 'object') d[k] = String(d[k]).replace(/[^\w-]/g, '');
+  const d = plainModifiers(section.data);
   const anchor = anchorId(d.anchor);
   const bgImg = cssUrl(d.bgImage);
   const device = d.showOn === 'desktop' || d.showOn === 'mobile' ? ` show-on--${d.showOn}` : '';
   // Sections with their own styles get a class for them: x-<section id>.
   const scope = block.scoped || d.design || d.mobile ? scopeClass(section.id) : '';
-  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}${scope ? ` ${scope}` : ''}`;
+  const theme = { ...THEME_PRESETS.midnight, ...(ctx.site.theme || {}) };
+  const dark = d.design && isDark(d.design, theme) ? ' is-dark' : '';
+  const cls = `sec sec--${d.bg || 'light'} pad--${d.pad || 'normal'} blk-${section.type}${bgImg ? ` has-bgimg ov--${d.overlay || 'medium'}` : ''}${device}${section.hidden ? ' is-hidden' : ''}${scope ? ` ${scope}` : ''}${dark}`;
   const attrs = (ctx.edit ? ` data-section-id="${esc(section.id)}" data-label="${esc(block.label)}"` : '')
     + (bgImg ? ` style="background-image:linear-gradient(var(--ov-color),var(--ov-color)),${esc(bgImg)}"` : '');
   const h = helpers(d, ctx);

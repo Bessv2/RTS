@@ -123,6 +123,12 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   above. Rich text is stored as HTML and cleaned on every save and render (`cleanHTML` in
   `assets/js/layout.js`): only paragraphs, headings, lists, quotes, bold/italic/underline,
   links, code and coloured or resized text survive.
+- **Widgets** (`"type": "w-faq"`, `"w-contact"`, … in a layout column): the contact and quote
+  forms, FAQ, gallery, blog posts, booking calendar, map, resource links, testimonials, pricing,
+  numbers, steps, team, logos, feature grid and call to action can sit in any column. Each keeps
+  its section's content and settings and is drawn by the same code; its grids follow the
+  column's width (CSS container queries). The checkup and the FAQ rich results look inside
+  layouts too.
 - **Styles** (`"design": { … }` and `"mobile": { … }` on any section, row, column or element):
   spacing, size, background colour, gradient and image, border, corners, shadow, text colour,
   font, size, weight and alignment, and hiding on computers or phones. `mobile` changes only
