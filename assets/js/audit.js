@@ -9,7 +9,8 @@
 //   where: { kind: 'site' | 'page' | 'post', page?, section?, post?, field?, fields? }
 //          page is a page index, section and post are ids, field is a path
 //          inside the section data (or site/post object), e.g. 'items.0.text'.
-import { BLOCKS, ELEMENTS, reviewLink } from './blocks.js';
+import { BLOCKS, ELEMENTS, LAYOUT_ELEMENTS, reviewLink } from './blocks.js';
+import { walkLayout } from './layout.js';
 import { analyticsFor } from './build.js';
 import { hoursProblems } from './hours.js';
 import { validate, redirectFrom, redirectTo, hashToPath } from './schema.js';
@@ -19,7 +20,8 @@ const LEVELS = ['error', 'warning', 'tip'];
 const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
 // Keys that hold settings, not words visitors read.
 const NOT_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'href', 'anchor', 'bg', 'pad', 'overlay', 'layout', 'side', 'columns',
-  'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size']);
+  'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size',
+  'level', 'look', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2']);
 const VALID_ENDPOINT = /^https:\/\/[^\s/]+\/\S*$/i;
 
 // Words the section library fills in for new sections. Seeing them on a live
@@ -42,6 +44,8 @@ function sampleTexts() {
     for (const f of b.fields) if (typeof f.item === 'function') walk(f.item(), 1);
   }
   for (const e of Object.values(ELEMENTS)) walk(e.defaults(), 1);
+  // (premade sections inside layouts are covered by their section defaults above)
+  for (const e of Object.values(LAYOUT_ELEMENTS)) if (!e.widget) walk(e.defaults(), 1);
   return samples;
 }
 
@@ -178,13 +182,14 @@ export function audit(doc) {
       eachValue(sec.data || {}, '', (v, path, key) => {
         if (NOT_TEXT.has(key)) return;
         if (sampleTexts().has(v.trim())) leftover.push([path, v]);
-        checkText(v, place, { ...where, field: path });
+        // Rich text (layouts) has HTML links, other text markdown ones.
+        if (key === 'html') for (const m of v.matchAll(/<a href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) checkLink(m[1].replace(/&amp;/g, '&'), m[2].replace(/<[^>]+>/g, ''), place, { ...where, field: path });
+        else checkText(v, place, { ...where, field: path });
       }, (b, path) => { if (String(b.label || '').trim()) checkLink(b.href, b.label, place, { ...where, field: path }, { button: true }); });
       if (leftover.length) {
         add('warning', 'sample-text', `“${secName}” on ${name} still has sample text: “${short(leftover[0][1], 50)}”${leftover.length > 1 ? ` and ${leftover.length - 1} more` : ''}.`,
           { ...where, field: leftover[0][0], fields: leftover.map(([p]) => p) });
       }
-      if (((sec.type === 'contact' && sec.data?.showForm) || sec.type === 'quote') && formPage < 0) { formPage = i; formName = sec.type === 'quote' ? 'quote request form' : 'contact form'; }
       if (sec.type === 'image' && sec.data?.image && !String(sec.data.imageAlt || sec.data.caption || '').trim()) {
         add('tip', 'image-description', `The image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: 'imageAlt' });
       }
@@ -198,21 +203,42 @@ export function audit(doc) {
           add('tip', 'image-description', `An image added to “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `elements.${n}.alt` });
         }
       });
-      if (sec.type === 'resources') {
-        (Array.isArray(sec.data?.items) ? sec.data.items : []).forEach((it, n) => {
-          const url = String(it?.url || '').trim();
-          if (!String(it?.title || '').trim()) return;
-          if (!/^(https?:\/\/[^\s/]+\.[^\s]+|\/|#|mailto:|tel:)/i.test(url)) {
-            add('warning', 'resource-link', `The link “${short(it.title, 40)}” in “${secName}” on ${name} needs a web address (starting with https://).`, { ...where, field: `items.${n}.url` });
-          } else if (/^[/#]/.test(url)) checkLink(url, it.title, place, { ...where, field: `items.${n}.url` });
+      // Checks for a section's own content, also used for the same section inside a layout (base: its path).
+      const blockChecks = (type, data, base = '') => {
+        if (type === 'resources') {
+          (Array.isArray(data?.items) ? data.items : []).forEach((it, n) => {
+            const url = String(it?.url || '').trim();
+            if (!String(it?.title || '').trim()) return;
+            if (!/^(https?:\/\/[^\s/]+\.[^\s]+|\/|#|mailto:|tel:)/i.test(url)) {
+              add('warning', 'resource-link', `The link “${short(it.title, 40)}” in “${secName}” on ${name} needs a web address (starting with https://).`, { ...where, field: `${base}items.${n}.url` });
+            } else if (/^[/#]/.test(url)) checkLink(url, it.title, place, { ...where, field: `${base}items.${n}.url` });
+          });
+        }
+        if (type === 'booking' && !String(data?.url || '').trim()) {
+          add('warning', 'booking-link', `${base ? 'A booking calendar in ' : ''}“${secName}” on ${name} has no booking link yet, so it shows nothing on the live site.`, { ...where, field: `${base}url` });
+        }
+        if (type === 'gallery') {
+          const bare = (data?.items || []).filter((it) => it.image && !String(it.caption || '').trim()).length;
+          if (bare) add('tip', 'image-description', `${bare} photo${bare === 1 ? '' : 's'} in “${secName}” on ${name} ${bare === 1 ? 'has' : 'have'} no caption. Captions also describe photos for screen readers.`, where);
+        }
+        if (((type === 'contact' && data?.showForm) || type === 'quote') && formPage < 0) { formPage = i; formName = type === 'quote' ? 'quote request form' : 'contact form'; }
+      };
+      blockChecks(sec.type, sec.data);
+      // Layouts: the same checks for the elements and premade sections inside them.
+      if (sec.type === 'layout') {
+        let review = false;
+        walkLayout(sec.data, (el, path, kind) => {
+          if (kind !== 'el' || !el) return;
+          if (el.type === 'video' && !String(el.url || '').trim()) {
+            add('warning', 'video-link', `A video in “${secName}” on ${name} has no YouTube or Vimeo link yet, so it isn’t shown.`, { ...where, field: `${path}.url` });
+          }
+          if (el.type === 'image' && el.image && !String(el.alt || el.caption || '').trim()) {
+            add('tip', 'image-description', `An image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `${path}.alt` });
+          }
+          if (el.type === 'review' || (el.type === 'w-testimonials' && el.reviewButton)) review = true;
+          if (String(el.type).startsWith('w-')) blockChecks(el.type.slice(2), el, `${path}.`);
         });
-      }
-      if (sec.type === 'booking' && !String(sec.data?.url || '').trim()) {
-        add('warning', 'booking-link', `“${secName}” on ${name} has no booking link yet, so it shows nothing on the live site.`, { ...where, field: 'url' });
-      }
-      if (sec.type === 'gallery') {
-        const bare = (sec.data?.items || []).filter((it) => it.image && !String(it.caption || '').trim()).length;
-        if (bare) add('tip', 'image-description', `${bare} photo${bare === 1 ? '' : 's'} in “${secName}” on ${name} ${bare === 1 ? 'has' : 'have'} no caption. Captions also describe photos for screen readers.`, where);
+        if (review && !reviewLink(s)) add('warning', 'review-link', `“${secName}” on ${name} has a review button, but there is no review page in Settings → Business yet, so the button isn’t shown.`, { kind: 'site', field: 'reviewUrl' });
       }
     }
   });

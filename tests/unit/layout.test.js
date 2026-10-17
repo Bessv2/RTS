@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanHTML, cssColor, styleDecls, pieceCSS, hideClasses, walkLayout, nodeClass, newRow, sectionCSS } from '../../assets/js/layout.js';
+import { cleanHTML, cssColor, styleDecls, pieceCSS, hideClasses, walkLayout, nodeClass, newRow, sectionCSS, isDark } from '../../assets/js/layout.js';
 import { renderSection, renderPage } from '../../assets/js/render.js';
 import { buildSite } from '../../assets/js/build.js';
 import { migrate } from '../../assets/js/schema.js';
@@ -67,6 +67,10 @@ test('phone settings go in a media query, and colours keep text readable', () =>
   assert.match(pieceCSS('.a', { bg: 'primary' }, null, { theme: { primary: '#2563eb' } }), /--sec-text:#f8fafc/);
   assert.doesNotMatch(pieceCSS('.a', { bg: '#111827', color: '#ff0000' }), /#f8fafc/);
   assert.match(pieceCSS('.a', { color: 'accent' }), /color:var\(--c-accent\);--sec-text:var\(--c-accent\)/);
+  assert.equal(isDark({ bg: '#111827' }), true);
+  assert.equal(isDark({ bg: 'surface' }, { surface: '#f4f7fb' }), false);
+  assert.equal(isDark({ img: 'assets/a.png', ov: 60 }), true);
+  assert.equal(isDark({}), false);
   assert.equal(hideClasses({ hide: true }, { hide: false }), ' hide-d');
   assert.equal(hideClasses({ hide: true }), ' hide-d hide-m');
   assert.equal(hideClasses({}, { hide: true }), ' hide-m');
@@ -82,7 +86,7 @@ test('layout sections render rows, columns and elements with scoped styles', () 
   assert.match(html, /<div class="wrap lay__row lay__row--narrow n-0"><div class="lay__col lay__col--s7 lay__col--m6 n-0-0">/);
   assert.match(html, /<div class="lx lx--heading lx-size--xl n-0-0-0"><h1 class="lx-h">Hello<\/h1><\/div>/);
   assert.match(html, /<div class="lx-rich"><p>Hi <strong>you<\/strong><\/p><\/div>/);
-  assert.match(html, /<div class="lx lx--box n-0-1-0"><div class="lx lx--button n-0-1-0-0"><a class="btn btn--primary" href="\/contact\/"><span>Go<\/span><\/a><\/div><\/div>/);
+  assert.match(html, /<div class="lx lx--box n-0-1-0 is-dark"><div class="lx lx--button n-0-1-0-0 is-dark"><a class="btn btn--primary" href="\/contact\/"><span>Go<\/span><\/a><\/div><\/div>/);
   const css = html.match(/<style data-s>(.*)<\/style><\/section>$/)[1];
   assert.match(css, /\.x-s-lay \.n-0\{align-items:center\}/);
   assert.match(css, /\.x-s-lay \.n-0-0-1\{color:var\(--c-primary\)/);
@@ -142,4 +146,40 @@ test('layout helpers', () => {
   const els = Object.values(LAYOUT_ELEMENTS).map((def) => def.defaults());
   const html = render(layout([{ cols: [{ span: 12, els }] }]), { edit: true });
   for (const type of Object.keys(LAYOUT_ELEMENTS)) assert.match(html, new RegExp(`lx--${type}\\b`), type);
+});
+
+test('premade sections work inside a column (widgets)', () => {
+  const faq = { ...LAYOUT_ELEMENTS['w-faq'].defaults(), heading: 'Questions', columns: '3"><script>' };
+  assert.equal(faq.type, 'w-faq');
+  assert.equal('bg' in faq || 'pad' in faq, false, 'background and spacing come from the layout');
+  const sec = layout([{ cols: [{ span: 6, els: [faq] }, { span: 6, els: [LAYOUT_ELEMENTS['w-contact'].defaults()] }] }]);
+  const edit = render(sec, { edit: true, first: true });
+  assert.match(edit, /<div class="lx lx--w-faq lx--widget n-0-0-0" data-node="rows\.0\.cols\.0\.els\.0" data-kind="el">/);
+  assert.match(edit, /data-edit="rows\.0\.cols\.0\.els\.0\.heading"/, 'its text is editable at its own path');
+  assert.match(edit, /data-edit="rows\.0\.cols\.0\.els\.0\.items\.1\.q"/);
+  assert.match(edit, /data-contact-form/);
+  assert.doesNotMatch(render(sec), /<h1/, 'a widget heading never becomes the page title');
+  assert.doesNotMatch(render(sec), /<script>/);
+});
+
+test('the checkup and search engine data look inside layouts', async () => {
+  const { audit } = await import('../../assets/js/audit.js');
+  const els = [
+    { type: 'video', url: '' },
+    { type: 'image', image: 'assets/a.png', alt: '' },
+    { type: 'text', html: '<p>See <a href="/missing/">our old page</a></p>' },
+    { ...LAYOUT_ELEMENTS['w-booking'].defaults(), url: '' },
+    { ...LAYOUT_ELEMENTS['w-faq'].defaults(), items: [{ q: 'Do you do house calls?', a: 'Yes, across the county.' }] },
+    LAYOUT_ELEMENTS['w-quote'].defaults(),
+  ];
+  const d = doc([{ id: 's-h', type: 'hero', data: { ...BLOCKS.hero.defaults(), heading: 'Welcome' } }, layout([{ cols: [{ span: 12, els }] }])]);
+  const found = audit(d);
+  const at = (code) => found.filter((f) => f.code === code);
+  assert.equal(at('video-link')[0]?.where.field, 'rows.0.cols.0.els.0.url');
+  assert.equal(at('image-description')[0]?.where.field, 'rows.0.cols.0.els.1.alt');
+  assert.ok(found.some((f) => /our old page/.test(f.message) && f.where.field === 'rows.0.cols.0.els.2.html'), 'broken links in rich text');
+  assert.equal(at('booking-link')[0]?.where.field, 'rows.0.cols.0.els.3.url');
+  assert.match(at('form-destination')[0]?.message || '', /quote request form/);
+  const page = buildSite(d, { origin: 'https://e.com' }).files.get('index.html');
+  assert.match(page, /"@type":"FAQPage".*"name":"Do you do house calls\?"/);
 });

@@ -5,6 +5,7 @@ import { renderPage, renderPostPage, renderNotFound, themeCSS, fontsHref, esc, s
 import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { BOOKING_ORIGINS } from './blocks.js';
 import { openingHoursLd } from './hours.js';
+import { walkLayout } from './layout.js';
 
 export const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
   + "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; "
@@ -159,8 +160,14 @@ function blogCrumb(doc) {
 
 // Questions and answers from the page's visible FAQ sections, for search engines and assistants.
 function faqPage(page) {
-  const qa = (page.sections || []).filter((sec) => sec.type === 'faq' && !sec.hidden)
-    .flatMap((sec) => (Array.isArray(sec.data?.items) ? sec.data.items : []))
+  // FAQ sections, and FAQs placed inside layout sections.
+  const lists = [];
+  for (const sec of page.sections || []) {
+    if (sec.hidden) continue;
+    if (sec.type === 'faq') lists.push(sec.data?.items);
+    if (sec.type === 'layout') walkLayout(sec.data, (el, path, kind) => { if (kind === 'el' && el?.type === 'w-faq') lists.push(el.items); });
+  }
+  const qa = lists.flatMap((items) => (Array.isArray(items) ? items : []))
     .map((it) => [plain(it?.q), plain(it?.a)]).filter(([q, a]) => q && a);
   return qa.length ? [{
     '@context': 'https://schema.org', '@type': 'FAQPage',

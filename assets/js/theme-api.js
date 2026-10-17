@@ -15,7 +15,7 @@ export const EDITOR_API = 1;
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
 export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements', 'call-button', 'hours', 'quote-form', 'resources', 'analytics', 'reviews', 'blog-search', 'announcement-dates', 'not-found', 'post-toc', 'task-lists', 'post-updated',
-  'layout-builder', 'rich-text', 'section-styles'];
+  'layout-builder', 'rich-text', 'section-styles', 'layout-widgets'];
 
 export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, ELEMENTS, LAYOUT_ELEMENTS, renderElements, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
 export {

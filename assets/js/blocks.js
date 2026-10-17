@@ -1014,6 +1014,29 @@ const classic = (type, extra = {}) => {
   };
 };
 
+// Premade sections that can also sit in a column as one element ("widgets"):
+// forms, FAQ, gallery, blog posts, booking, map and more. Each keeps the
+// section's own content and settings (not its background or spacing, which
+// come from the layout), and is drawn by the section's own render().
+const WIDGETS = ['contact', 'quote', 'faq', 'gallery', 'blogfeed', 'booking', 'map', 'resources', 'testimonials', 'pricing', 'stats', 'steps', 'team', 'logos', 'services', 'cta'];
+const WIDGET_LABELS = { contact: 'Contact form', quote: 'Quote request form', gallery: 'Photo gallery', blogfeed: 'Blog posts', resources: 'Resource links', stats: 'Numbers', services: 'Feature grid' };
+function widgets() {
+  return Object.fromEntries(WIDGETS.filter((t) => BLOCKS[t]).map((t) => {
+    const block = BLOCKS[t];
+    return [`w-${t}`, {
+      label: WIDGET_LABELS[t] || block.label, icon: block.icon, group: 'Widgets', description: block.description, widget: t,
+      defaults: () => {
+        const d = block.defaults();
+        for (const k of ['bg', 'pad', 'bgImage', 'overlay', 'anchor', 'showOn', 'elements']) delete d[k];
+        return { ...d, type: `w-${t}` };
+      },
+      fields: block.fields,
+      cls: () => 'lx--widget',
+      render: (el, p, h) => block.render(el, h.nested(el, `${p}.`)),
+    }];
+  }));
+}
+
 export const LAYOUT_ELEMENTS = {
   heading: {
     label: 'Heading', icon: 'heading',
@@ -1106,6 +1129,7 @@ export const LAYOUT_ELEMENTS = {
   hours: classic('hours'),
   divider: classic('divider'),
   spacer: classic('spacer'),
+  ...widgets(),
 };
 
 export const STYLE_FIELDS = [
