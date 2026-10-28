@@ -15,19 +15,21 @@ export const EDITOR_API = 1;
 // Optional capabilities the editor can switch on when present. Additive, so
 // older editors simply ignore them.
 export const FEATURES = ['page-drafts', 'noindex', 'redirects', 'code', 'callouts', 'audit', 'page-share-image', 'verification', 'scheduled-posts', 'section-labels', 'booking', 'elements', 'call-button', 'hours', 'quote-form', 'resources', 'analytics', 'reviews', 'blog-search', 'announcement-dates', 'not-found', 'post-toc', 'task-lists', 'post-updated',
-  'layout-builder', 'rich-text', 'section-styles', 'layout-widgets', 'convert-layout'];
+  'layout-builder', 'rich-text', 'section-styles', 'layout-widgets', 'convert-layout',
+  'tablet-styles', 'hover-styles', 'animations', 'linked-box', 'site-elements', 'header-options', 'footer-layout'];
 
 export { BLOCKS, STYLE_FIELDS, BLOCK_GROUPS, ELEMENTS, LAYOUT_ELEMENTS, renderElements, parseVideo, parseBooking, BOOKING_ORIGINS } from './blocks.js';
 export {
-  cleanHTML, cssColor, COLOR_TOKENS, SHADOWS, STYLE_GROUPS, ROW_PRESETS, newRow, newCol, walkLayout, nodeClass, scopeClass, pieceCSS, sectionCSS,
+  cleanHTML, cssColor, COLOR_TOKENS, SHADOWS, STYLE_GROUPS, ROW_PRESETS, newRow, newCol, walkLayout, nodeClass, scopeClass, pieceCSS, sectionCSS, ANIMATIONS,
 } from './layout.js';
 export {
   FONTS, THEME_PRESETS, esc, rich, cssUrl, getPath, setPath, safeHref, safeSrc, fontsHref, themeCSS,
   pageHref, renderSection, renderHeader, renderFooter, renderPage, findRoute, renderNotFound, markdown,
   postHref, formatDate, postTags, publishedPosts, postTitle, renderPostCard, renderPostPage,
   isLivePage, anchorId, firstSectionIndex, isLivePost, today, announceWindow, NOT_FOUND, postHeadings, postUpdated,
+  HEADER_LAYOUTS, HEADER_STICKY, FOOTER_ID,
 } from './render.js';
-export { convertSection, canConvert } from './convert.js';
+export { convertSection, canConvert, footerToLayout } from './convert.js';
 export { icon, ICON_NAMES, SOCIAL } from './icons.js';
 export { SCHEMA_VERSION, POSTS_BASE, hashToPath, migrate, normalize, validate, redirectFrom, redirectTo } from './schema.js';
 export { CSP, buildSite, staleFiles, documentHTML, rssFeed, redirectHTML, analyticsFor } from './build.js';

@@ -9,8 +9,10 @@
 //
 // Layout section data:
 //   { rows: [{ design, mobile, cols: [{ span, design, mobile, els: [{ type, ...content, design, mobile }] }] }] }
-// `design` holds the style settings for every screen and `mobile` the changes
-// for phones (screens narrower than 760px). A "box" element holds elements of its own (els).
+// `design` holds the style settings for every screen, `tablet` the changes for
+// tablets and small laptops (narrower than 1024px) and `mobile` the changes for
+// phones (narrower than 760px). Phones get the tablet changes too unless they have
+// their own. A "box" element holds elements of its own (els).
 import { esc, safeHref, cssUrl } from './util.js';
 
 // ----------------------------------------------------------------------------
@@ -236,10 +238,27 @@ export const STYLE_GROUPS = [
     { key: 'ta', label: 'Align', type: 'segmented', options: [['left', 'Left'], ['center', 'Center'], ['right', 'Right'], ['justify', 'Justify']] },
     { key: 'tt', label: 'Capitals', type: 'segmented', options: [['none', 'Normal'], ['uppercase', 'ALL CAPS'], ['capitalize', 'Title Case']] },
   ] },
+  // Hover and animation settings are the same on every screen (allScreens).
+  { id: 'hover', label: 'Hover', allScreens: true, items: [
+    { type: 'note', text: 'How it changes when a mouse pointer is over it. Phones and tablets don’t show this.' },
+    { key: 'hbg', label: 'Background colour', type: 'color', on: ['col', 'el', 'box'] },
+    { key: 'hcolor', label: 'Text colour', type: 'color', on: ['col', 'el', 'box'] },
+    { key: 'hbc', label: 'Border colour', type: 'color', on: ['col', 'el', 'box'] },
+    { key: 'hshadow', label: 'Shadow', type: 'segmented', on: ['col', 'el', 'box'], options: [['none', 'None'], ['sm', 'S'], ['md', 'M'], ['lg', 'L'], ['glow', 'Glow']] },
+    { key: 'hlift', label: 'Lift up', type: 'px', min: 0, max: 24, on: ['col', 'el', 'box'] },
+    { key: 'hzoom', label: 'Grow (%)', type: 'number', min: 100, max: 120, on: ['col', 'el', 'box'] },
+  ] },
+  { id: 'motion', label: 'Animation', allScreens: true, items: [
+    { key: 'anim', label: 'Entrance', type: 'select', on: ['row', 'col', 'el', 'box'], options: [['', 'None'], ['fade', 'Fade in'], ['up', 'Slide up'], ['down', 'Slide down'], ['left', 'Slide in from the left'], ['right', 'Slide in from the right'], ['zoom', 'Zoom in']],
+      help: 'Plays once when it scrolls into view. Visitors who turn off animations on their device see it straight away.' },
+    { key: 'animDelay', label: 'Delay (seconds)', type: 'number', min: 0, max: 3, step: 0.1, on: ['row', 'col', 'el', 'box'], when: (s) => !!s.anim },
+  ] },
   { id: 'visibility', label: 'Visibility', items: [
     { key: 'hide', label: 'Hide', type: 'toggle', on: ['row', 'col', 'el', 'box'] },
   ] },
 ];
+
+export const ANIMATIONS = ['fade', 'up', 'down', 'left', 'right', 'zoom'];
 
 const SHADOW_KEYS = ['none', ...Object.keys(SHADOWS)];
 const PLACE = { left: '0 auto', center: 'auto', right: 'auto 0' };
@@ -279,13 +298,17 @@ const DARK_TEXT = '--sec-link:var(--c-primary);--sec-text:var(--c-text);--sec-mu
 // piece itself (spacing around it, width, alignment), `box` for its padding,
 // background, border and shadow, `text` for its type settings, `layout` for how
 // it arranges what is inside it. Elements like buttons send box/text to an inner
-// part (the button itself) instead.
+// part (the button itself) instead. `phone` is true for the changes for a smaller
+// screen (tablets or phones), and `base` is what they change.
 export function styleDecls(s = {}, { kind = 'el', theme = {}, phone = false, base = {} } = {}) {
   const out = { outer: [], box: [], frame: [], text: [], layout: [], inner: [] };
   if (!s || typeof s !== 'object') return out;
   const add = (part, prop, val) => { if (val !== '' && val != null) out[part].push(`${prop}:${val}`); };
   // Spacing
-  for (const [k, prop, min, max] of [['pt', 'padding-top', 0, 600], ['pb', 'padding-bottom', 0, 600], ['pl', 'padding-left', 0, 400], ['pr', 'padding-right', 0, 400]]) add('box', prop, px(s[k], min, max));
+  // A section's top padding leaves room for a see-through header over it (site.css --hdr-pad).
+  const pt = px(s.pt, 0, 600);
+  add('box', 'padding-top', pt && kind === 'section' ? `calc(${pt} + var(--hdr-pad, 0px))` : pt);
+  for (const [k, prop, min, max] of [['pb', 'padding-bottom', 0, 600], ['pl', 'padding-left', 0, 400], ['pr', 'padding-right', 0, 400]]) add('box', prop, px(s[k], min, max));
   if (kind !== 'section') {
     add('outer', 'margin-top', px(s.mt, -400, 600));
     add('outer', 'margin-bottom', px(s.mb, -400, 600));
@@ -356,36 +379,88 @@ export function styleDecls(s = {}, { kind = 'el', theme = {}, phone = false, bas
     add('layout', 'align-items', { stretch: 'stretch', start: 'flex-start', center: 'center', end: 'flex-end' }[s.items] || '');
   }
   if (kind === 'col' && phone) { const o = num(s.order, -12, 12); if (o != null) add('outer', 'order', String(Math.round(o))); }
+  if (!phone && oneOf(s.anim, ANIMATIONS)) { const delay = num(s.animDelay, 0, 3); if (delay) add('outer', '--anim-delay', `${Math.round(delay * 10) / 10}s`); }
   return out;
 }
 
+// Hover changes → declarations for the piece's box/frame/text parts.
+function hoverDecls(s = {}, theme = {}) {
+  const out = { box: [], frame: [], text: [], icons: '' };
+  const bg = cssColor(s.hbg);
+  if (bg) {
+    out.box.push(`background-color:${bg}`);
+    if (!cssUrl(s.img)) out.box.push('background-image:none');
+  }
+  const color = cssColor(s.hcolor);
+  if (color) out.text.push(`color:${color};--sec-text:${color};--sec-muted:color-mix(in srgb, ${color} 74%, transparent)`);
+  else if (bg) {
+    const l = lightness(bg, theme);
+    if (l != null) {
+      out.text.push(l < 0.36 ? LIGHT_TEXT : DARK_TEXT);
+      // Icons inside stay visible on the new background.
+      out.icons = l < 0.36 ? '#fff' : 'var(--c-primary)';
+    }
+  }
+  const bc = cssColor(s.hbc);
+  if (bc) out.frame.push(`border-color:${bc}`);
+  if (oneOf(s.hshadow, SHADOW_KEYS)) out.frame.push(`box-shadow:${s.hshadow === 'none' ? 'none' : SHADOWS[s.hshadow]}`);
+  const lift = num(s.hlift, 0, 24);
+  const zoom = num(s.hzoom, 100, 120);
+  const moves = [lift ? `translateY(-${Math.round(lift)}px)` : '', zoom && zoom !== 100 ? `scale(${Math.round(zoom) / 100})` : ''].filter(Boolean);
+  if (moves.length) out.frame.push(`transform:${moves.join(' ')}`);
+  return out;
+}
+const HOVER_EASE = 'transition:background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease';
+
+const TABLET = '@media (max-width: 1023.98px)';
 const PHONE = '@media (max-width: 759.98px)';
 const rule = (sel, decls) => (decls.length ? `${sel}{${decls.join(';')}}` : '');
+const obj = (v) => (v && typeof v === 'object' ? v : null);
 
 // CSS for one piece. `sel` is its scoped selector; `parts` can send groups of
 // settings to an inner part (for example { box: ' .btn', text: ' .btn' }).
-export function pieceCSS(sel, design, mobile, { kind = 'el', theme = {}, parts = {}, inner = '' } = {}) {
-  const css = [[], []];
-  [[design, false], [mobile, true]].forEach(([s, phone], i) => {
-    if (!s || typeof s !== 'object') return;
-    const d = styleDecls(s, { kind, theme, phone, base: design || {} });
+// Settings for every screen come first, then the tablet changes, then the phone
+// changes, so each smaller screen starts from the one above it.
+export function pieceCSS(sel, design, mobile, { kind = 'el', theme = {}, parts = {}, inner = '', tablet } = {}) {
+  const all = obj(design) || {};
+  // Hover changes, only on screens with a mouse pointer. A part inside the piece
+  // (a button) changes when the pointer is over that part.
+  const hover = {};
+  let icons = '';
+  if (kind !== 'section' && kind !== 'row') {
+    const hv = hoverDecls(all, theme);
+    for (const part of ['box', 'frame', 'text']) if (hv[part].length) (hover[sel + (parts[part] || '')] ||= []).push(...hv[part]);
+    icons = hv.icons;
+  }
+  const screens = [[obj(design), false, {}], [obj(tablet), true, all], [obj(mobile), true, { ...all, ...(obj(tablet) || {}) }]];
+  const css = screens.map(([s, phone, base], i) => {
+    if (!s) return [];
+    const d = styleDecls(s, { kind, theme, phone, base });
     const by = {};
     for (const part of ['outer', 'box', 'frame', 'text', 'layout']) {
       const target = sel + (parts[part] || '');
       (by[target] ||= []).push(...d[part]);
     }
     if (d.inner.length) (by[sel + inner] ||= []).push(...d.inner);
-    css[i] = Object.entries(by).map(([t, decls]) => rule(t, decls)).filter(Boolean);
+    if (i === 0) for (const t of Object.keys(hover)) (by[t] ||= []).push(HOVER_EASE);
+    return Object.entries(by).map(([t, decls]) => rule(t, decls)).filter(Boolean);
   });
-  return css[0].join('') + (css[1].length ? `${PHONE}{${css[1].join('')}}` : '');
+  let hv = Object.entries(hover).map(([t, decls]) => rule(`${t}:hover`, decls)).join('');
+  if (icons) hv += rule(`${sel + (parts.box || '')}:hover .lx-icon`, [`color:${icons}`]);
+  return css[0].join('') + (css[1].length ? `${TABLET}{${css[1].join('')}}` : '') + (css[2].length ? `${PHONE}{${css[2].join('')}}` : '') + (hv ? `@media (hover: hover){${hv}}` : '');
 }
 
-// Visibility classes: hidden on computers and/or phones (the editor still shows them).
-export function hideClasses(design, mobile) {
+// Visibility classes: hidden on computers, tablets and/or phones (the editor
+// still shows them). Each screen follows the one above it unless set.
+export function hideClasses(design, mobile, tablet) {
   const d = design?.hide === true;
-  const p = mobile?.hide ?? d;
-  return `${d ? ' hide-d' : ''}${p === true ? ' hide-m' : ''}`;
+  const t = tablet?.hide ?? d;
+  const p = mobile?.hide ?? t;
+  return `${d ? ' hide-d' : ''}${t === true ? ' hide-t' : ''}${p === true ? ' hide-m' : ''}`;
 }
+
+// Entrance animation classes (enhance.js plays them when they scroll into view).
+export const animClass = (design) => (oneOf(design?.anim, ANIMATIONS) ? ` anim anim--${design.anim}` : '');
 
 // A section id as a class name: x-<id>.
 export const scopeClass = (id) => { const v = String(id || '').replace(/[^\w-]/g, ''); return v ? `x-${v}` : ''; };
@@ -394,8 +469,8 @@ export const scopeClass = (id) => { const v = String(id || '').replace(/[^\w-]/g
 export function sectionCSS(section, theme = {}) {
   const d = section?.data || {};
   const scope = scopeClass(section?.id);
-  if (!scope || (!d.design && !d.mobile)) return '';
-  return pieceCSS(`.${scope}.${scope}`, d.design, d.mobile, { kind: 'section', theme, inner: ' > .lay' });
+  if (!scope || (!d.design && !d.mobile && !d.tablet)) return '';
+  return pieceCSS(`.${scope}.${scope}`, d.design, d.mobile, { kind: 'section', theme, inner: ' > .lay', tablet: d.tablet });
 }
 
 // ----------------------------------------------------------------------------
@@ -443,30 +518,47 @@ export const nodeClass = (path) => `n-${String(path).split('.').filter((x) => /^
 
 const spanOf = (v, fallback) => { const n = num(v, 1, 12); return n == null ? fallback : Math.round(n); };
 
+// The name of a box that is a link: its first heading, button or line of text.
+function boxLabel(box, depth = 0) {
+  for (const el of Array.isArray(box?.els) ? box.els : []) {
+    const t = el?.type === 'heading' ? el.text : el?.type === 'button' ? el.label : el?.type === 'text' ? String(el.html || '').replace(/<[^>]*>/g, ' ') : el?.type === 'box' && depth < MAX_DEPTH ? boxLabel(el, depth + 1) : '';
+    const v = String(t || '').replace(/\s+/g, ' ').trim();
+    if (v) return v.length > 90 ? `${v.slice(0, 88)}…` : v;
+  }
+  return '';
+}
+
 // A layout section's markup. `elements` is the element library: each entry has
 // render(el, path, h) and optional parts (where box/text styles go inside it).
 // The CSS is collected in h.css, which renderSection puts in one <style>.
 export function renderLayout(d, h, elements) {
   const scope = scopeClass(h.secId);
   const theme = h.theme || {};
-  const css = (path, design, mobile, opts) => { if (scope && (design || mobile)) h.css.push(pieceCSS(`.${scope} .${nodeClass(path)}`, design, mobile, { theme, ...opts })); };
+  const css = (path, design, mobile, opts) => { if (scope && (design || mobile || opts.tablet)) h.css.push(pieceCSS(`.${scope} .${nodeClass(path)}`, design, mobile, { theme, ...opts })); };
   const nodeAttrs = (path, kind) => (h.edit ? ` data-node="${path}" data-kind="${kind}"` : '');
   const renderEls = (list, path, depth) => (Array.isArray(list) ? list : []).map((el, i) => {
     const p = `${path}.els.${i}`;
     const def = el && elements[el.type];
     if (!def) return '';
     let body;
+    let linked = '';
     if (el.type === 'box') {
       // A box shows even when empty: with a colour or a height it is a shape of its own.
       body = depth < MAX_DEPTH ? renderEls(el.els, p, depth + 1) : '';
       if (!body && h.edit) body = `<button type="button" class="lay__add" data-add-el="${p}">${h.icon('plus')}<span>Add to box</span></button>`;
+      // A box with a link is clickable all over (links and buttons inside still work on their own).
+      const href = String(el.href || '').trim();
+      if (href && !h.edit) {
+        body += `<a class="lx-cover" href="${esc(safeHref(href))}"${el.newTab ? ' target="_blank" rel="noopener"' : ''} aria-label="${esc(boxLabel(el) || 'Open')}"></a>`;
+        linked = ' lx--linked';
+      }
     } else {
       body = def.render(el, p, h);
       if (!body) return '';
     }
-    css(p, el.design, el.mobile, { kind: el.type === 'box' ? 'box' : 'el', parts: def.parts || {} });
+    css(p, el.design, el.mobile, { kind: el.type === 'box' ? 'box' : 'el', parts: def.parts || {}, tablet: el.tablet });
     const extra = def.cls ? def.cls(el) : '';
-    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''} ${nodeClass(p)}${hideClasses(el.design, el.mobile)}${darkClass(el.design, theme)}"${nodeAttrs(p, 'el')}>${body}</div>`;
+    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''}${linked} ${nodeClass(p)}${hideClasses(el.design, el.mobile, el.tablet)}${darkClass(el.design, theme)}${animClass(el.design)}"${nodeAttrs(p, 'el')}>${body}</div>`;
   }).join('');
 
   const rows = (Array.isArray(d.rows) ? d.rows : []).map((row, r) => {
@@ -474,18 +566,25 @@ export function renderLayout(d, h, elements) {
     const cols = Array.isArray(row?.cols) ? row.cols : [];
     const rs = row?.design || {};
     const width = oneOf(rs.width, ROW_WIDTHS) || 'contained';
-    css(rp, row?.design, row?.mobile, { kind: 'row' });
-    if (row?.mobile?.reverse && scope) {
-      h.css.push(`${PHONE}{${cols.map((c, i) => `.${scope} .${nodeClass(`${rp}.cols.${i}`)}{order:${cols.length - i}}`).join('')}}`);
+    css(rp, row?.design, row?.mobile, { kind: 'row', tablet: row?.tablet });
+    // Columns in reverse order when stacked (on tablets, and on phones unless they say otherwise).
+    const tRev = row?.tablet?.reverse === true;
+    const pRev = (row?.mobile?.reverse ?? tRev) === true;
+    if (scope && (tRev || pRev)) {
+      const orders = (rev) => cols.map((c, i) => `.${scope} .${nodeClass(`${rp}.cols.${i}`)}{order:${rev ? cols.length - i : 0}}`).join('');
+      if (tRev) h.css.push(`${TABLET}{${orders(true)}}`);
+      if (pRev !== tRev) h.css.push(`${PHONE}{${orders(pRev)}}`);
     }
     const inner = cols.map((col, c) => {
       const cp = `${rp}.cols.${c}`;
-      css(cp, col?.design, col?.mobile, { kind: 'col' });
+      css(cp, col?.design, col?.mobile, { kind: 'col', tablet: col?.tablet });
       let body = renderEls(col?.els, cp, 1);
       if (!body && h.edit) body = `<button type="button" class="lay__add" data-add-el="${cp}">${h.icon('plus')}<span>Add element</span></button>`;
-      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile)}${darkClass(col?.design, theme)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
+      // A width for tablets only when one is set; otherwise tablets use the computer width.
+      const tSpan = col?.tablet?.span != null && col.tablet.span !== '' ? ` lay__col--t${spanOf(col.tablet.span, 12)}` : '';
+      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)}${tSpan} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile, col?.tablet)}${darkClass(col?.design, theme)}${animClass(col?.design)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
     }).join('');
-    return `<div class="wrap lay__row lay__row--${width} ${nodeClass(rp)}${hideClasses(rs, row?.mobile)}${darkClass(rs, theme)}"${nodeAttrs(rp, 'row')}>${inner}</div>`;
+    return `<div class="wrap lay__row lay__row--${width} ${nodeClass(rp)}${hideClasses(rs, row?.mobile, row?.tablet)}${darkClass(rs, theme)}${animClass(rs)}"${nodeAttrs(rp, 'row')}>${inner}</div>`;
   }).join('');
   if (!rows) {
     return h.edit

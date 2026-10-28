@@ -1123,6 +1123,8 @@ export const LAYOUT_ELEMENTS = {
     fields: [
       { type: 'note', text: 'A box groups elements into a card or a coloured panel. Drag elements into it, and set its colours, border and direction under Style.' },
       { key: 'look', label: 'Look', type: 'segmented', options: [['plain', 'Plain'], ['card', 'Card']] },
+      { key: 'href', label: 'Link (optional)', type: 'link', help: 'Makes the whole box clickable. Buttons and links inside it still go to their own pages.' },
+      { key: 'newTab', label: 'Open in a new tab', type: 'toggle', when: (d) => !!String(d.href || '').trim() },
     ],
     cls: (el) => (el.look === 'card' ? 'lx-box--card' : ''),
     render: () => '',
@@ -1145,6 +1147,71 @@ export const LAYOUT_ELEMENTS = {
     defaults: () => ({ type: 'panel', icon: 'shield-check', text: 'A short caption' }),
     fields: [{ key: 'icon', label: 'Icon', type: 'icon' }, { key: 'text', label: 'Caption', type: 'text' }],
     render: (el, p, h) => `<div class="split__panel"><span class="split__panel-icon">${h.icon(el.icon || 'cpu')}</span>${h.t('p', `${p}.text`, 'split__panel-text', { ph: 'Optional caption' })}</div>`,
+  },
+  // The site's own pieces, for designing a header or footer (or anywhere else).
+  logo: {
+    label: 'Logo', icon: 'home', group: 'Site',
+    defaults: () => ({ type: 'logo', show: 'both' }),
+    fields: [
+      { type: 'note', text: 'Your logo and business name from Settings, linked to the home page.' },
+      { key: 'show', label: 'Show', type: 'segmented', options: [['both', 'Logo and name'], ['logo', 'Logo'], ['name', 'Name']] },
+    ],
+    parts: { text: ' .brand' },
+    render: (el, p, h) => h.chrome.brand(pick(el.show, ['both', 'logo', 'name'], 'both')),
+  },
+  menu: {
+    label: 'Menu', icon: 'menu', group: 'Site',
+    defaults: () => ({ type: 'menu', dir: 'row', label: 'Pages' }),
+    fields: [
+      { type: 'note', text: 'Links to the pages that are in the site menu (Pages → Show in menu).' },
+      { key: 'dir', label: 'Direction', type: 'segmented', options: [['row', 'Side by side'], ['column', 'Stacked']] },
+      { key: 'label', label: 'Menu name', type: 'text', help: 'Read out by screen readers, like “Footer pages”.' },
+    ],
+    render(el, p, h) {
+      const items = h.chrome.nav();
+      if (!items.length) return h.edit ? '<p class="lx-empty">No pages in the menu yet</p>' : '';
+      return `<nav class="lx-menu lx-menu--${pick(el.dir, ['row', 'column'], 'row')}" aria-label="${h.esc(String(el.label || '').trim() || 'Pages')}"><ul>${items.map((it) =>
+        `<li><a href="${h.esc(it.href)}"${it.current ? ' aria-current="page"' : ''}>${h.esc(it.title)}</a></li>`).join('')}</ul></nav>`;
+    },
+  },
+  social: {
+    label: 'Social links', icon: 'globe', group: 'Site',
+    defaults: () => ({ type: 'social', look: 'soft' }),
+    fields: [
+      { type: 'note', text: 'Your social pages from Settings → Social links.' },
+      { key: 'look', label: 'Look', type: 'segmented', options: [['plain', 'Plain'], ['soft', 'Tinted'], ['solid', 'Solid']] },
+    ],
+    render(el, p, h) {
+      const list = h.chrome.social();
+      if (!list) return h.edit ? '<p class="lx-empty">Add your social pages in Settings → Social links</p>' : '';
+      return `<div class="lx-social lx-social--${pick(el.look, ['plain', 'soft', 'solid'], 'soft')}">${list}</div>`;
+    },
+  },
+  contactinfo: {
+    label: 'Contact details', icon: 'phone', group: 'Site',
+    defaults: () => ({ type: 'contactinfo', email: true, phone: true, location: true, hours: true, icons: true }),
+    fields: [
+      { type: 'note', text: 'Your email, phone, location and hours from Settings, so they are the same everywhere.' },
+      { key: 'email', label: 'Email', type: 'toggle' },
+      { key: 'phone', label: 'Phone', type: 'toggle' },
+      { key: 'location', label: 'Location', type: 'toggle' },
+      { key: 'hours', label: 'Opening hours', type: 'toggle' },
+      { key: 'icons', label: 'Icons', type: 'toggle' },
+    ],
+    render(el, p, h) {
+      const items = h.chrome.contact({ email: el.email !== false, phone: el.phone !== false, location: el.location !== false, hours: el.hours !== false, icons: !!el.icons });
+      if (!items) return h.edit ? '<p class="lx-empty">Add your contact details in Settings</p>' : '';
+      return `<ul class="lx-contact${el.icons ? ' lx-contact--icons' : ''}">${items}</ul>`;
+    },
+  },
+  copyright: {
+    label: 'Copyright line', icon: 'info', group: 'Site',
+    defaults: () => ({ type: 'copyright', note: '' }),
+    fields: [{ key: 'note', label: 'Extra note (optional)', type: 'text' }],
+    render(el, p, h) {
+      const note = h.t('span', `${p}.note`, 'lx-copy__note', { ph: 'Extra note (optional)' });
+      return `<p class="lx-copy"><span>© ${new Date().getFullYear()} ${h.esc(h.site?.name || '')}</span>${note ? ` <span aria-hidden="true">·</span> ${note}` : ''}</p>`;
+    },
   },
   feature: classic('feature', { label: 'Icon box' }),
   checklist: classic('checklist'),

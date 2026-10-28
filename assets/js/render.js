@@ -5,7 +5,7 @@ import { POSTS_BASE, redirectFrom, redirectTo } from './schema.js';
 import { icon, SOCIAL } from './icons.js';
 import { hasHours, hoursSummary, openBadge } from './hours.js';
 import { esc, safeHref, safeSrc, cssUrl } from './util.js';
-import { cleanHTML, sectionCSS, scopeClass, isDark, blocksIn } from './layout.js';
+import { cleanHTML, sectionCSS, scopeClass, isDark, blocksIn, cssColor } from './layout.js';
 
 export { esc, safeHref, safeSrc, cssUrl };
 
@@ -84,6 +84,7 @@ export function pageHref(page, index) {
 // The home page is always live.
 export const isLivePage = (page, index) => index === 0 || !page.draft;
 const inNav = (page, index) => page.showInNav !== false && isLivePage(page, index);
+const navPages = (doc) => doc.pages.map((p, i) => ({ p, i })).filter(({ p, i }) => inNav(p, i));
 
 // Section anchors can only contain letters, numbers, dashes and underscores.
 export const anchorId = (v) => String(v || '').replace(/^#/, '').replace(/[^\w-]/g, '');
@@ -138,6 +139,14 @@ function helpers(data, ctx, sectionPath = '', inherited = {}) {
       const src = safeSrc(getPath(data, path));
       const load = ctx.first ? 'fetchpriority="high"' : 'loading="lazy"';
       return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" ${load} decoding="async">` : '';
+    },
+    // The site's own pieces (logo, menu, social links, contact details), for
+    // header and footer elements placed in a layout.
+    chrome: {
+      brand: (show) => brandLink(ctx.site.site, show),
+      nav: () => navPages(ctx.site).map(({ p, i }) => ({ href: pageHref(p, i), title: p.title, current: i === ctx.pageIndex })),
+      social: () => socialLinks(ctx.site.site, 'social'),
+      contact: (opts) => contactItems(ctx.site.site, opts, ctx.edit),
     },
     btns(...specs) {
       const out = specs.map(([path, cls]) => {
@@ -200,13 +209,50 @@ function announceNote({ start, end, state }) {
   return end ? `Showing until ${formatDate(end)}` : `Showing since ${formatDate(start)}`;
 }
 
+// Header choices (Settings → Header). Unknown values fall back to the first one.
+export const HEADER_LAYOUTS = ['split', 'left', 'center'];
+export const HEADER_STICKY = ['always', 'scroll', 'none'];
+const pickOne = (v, list) => (list.includes(v) ? v : list[0]);
+
+function brandLink(s, show = 'both') {
+  const mark = s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`;
+  const name = `<span class="brand__name">${esc(s.name)}</span>`;
+  // With the logo alone, the link still says where it goes.
+  return show === 'logo' ? `<a class="brand" href="/" aria-label="${esc(s.name || 'Home')}">${mark}</a>` : `<a class="brand" href="/">${show === 'name' ? '' : mark}${name}</a>`;
+}
+
+const telOf = (phone) => String(phone || '').replace(/[^+\d]/g, '');
+
+// The business's email, phone, location and hours as list items.
+function contactItems(s, { email = true, phone = true, location = true, hours = true, icons = false } = {}, edit = false) {
+  const ic = (name, html) => (icons ? `${icon(name)}<span>${html}</span>` : html);
+  return [
+    email && s.email ? `<li><a href="mailto:${esc(s.email)}">${ic('mail', esc(s.email))}</a></li>` : '',
+    phone && s.phone ? `<li><a href="tel:${esc(telOf(s.phone))}">${ic('phone', esc(s.phone))}</a></li>` : '',
+    location && s.location ? `<li>${ic('map-pin', esc(s.location))}</li>` : '',
+    hours && hasHours(s.hours) ? `<li class="site-footer__hours">${ic('clock', `${esc(hoursSummary(s.hours))} ${openBadge(s.hours, esc, edit)}`)}</li>` : '',
+  ].filter(Boolean).join('');
+}
+
+function firstIsDark(page, ctx) {
+  const sec = page?.sections?.[firstSectionIndex(page, !!ctx.edit)];
+  const d = sec?.data || {};
+  if (!sec) return false;
+  if (d.design?.bg || d.design?.img) return isDark(d.design, { ...THEME_PRESETS.midnight, ...(ctx.site.theme || {}) });
+  return d.bg === 'dark' || d.bg === 'brand' || !!cssUrl(d.bgImage);
+}
+
 export function renderHeader(doc, pageIndex, ctx) {
   const s = doc.site;
   const h = helpers(s, ctx);
-  const navPages = doc.pages.map((p, i) => ({ p, i })).filter(({ p, i }) => inNav(p, i));
+  const nav = navPages(doc);
   const logo = s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`;
   const cta = s.headerCta && (s.headerCta.label || '').trim()
     ? `<a class="btn btn--primary btn--sm header__cta" href="${esc(safeHref(s.headerCta.href))}"><span${ctx.edit ? ' data-edit="headerCta.label" data-ph="Button"' : ''}>${esc(s.headerCta.label)}</span></a>` : '';
+  const phone = s.headerPhone && telOf(s.phone).replace(/\D/g, '').length >= 3
+    ? `<a class="header__phone" href="tel:${esc(telOf(s.phone))}">${icon('phone')}<span>${esc(s.phone)}</span></a>` : '';
+  const social = s.headerSocial ? socialLinks(s, 'social social--header') : '';
+  const end = phone || social || cta ? `<div class="header__end">${social}${phone}${cta}</div>` : '';
   const ann = s.announcement || {};
   const win = announceWindow(ann);
   // Pages are rebuilt daily; between rebuilds the visitor's browser checks the dates too.
@@ -215,35 +261,56 @@ export function renderHeader(doc, pageIndex, ctx) {
   const bar = ann.enabled && (ann.text || ctx.edit) && (ctx.edit || win.state !== 'after')
     ? `<div class="announce${ctx.edit && win.state !== 'live' ? ' is-off' : ''}"${when}${ctx.edit ? ' data-section-id="__header" data-label="Announcement bar"' : ''}><div class="wrap announce__inner">${icon('megaphone')}${h.t('span', 'announcement.text', '', { ph: 'Announcement text' })}${ann.link && ann.linkText ? `<a href="${esc(safeHref(ann.link))}">${esc(ann.linkText)} →</a>` : ''}${note}</div></div>`
     : '';
-  return `${bar}<header class="site-header site-header--${s.headerStyle || 'light'}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
+  const layout = pickOne(s.headerLayout, HEADER_LAYOUTS);
+  const sticky = pickOne(s.headerSticky, HEADER_STICKY);
+  // A see-through header has light text over a dark or photo first section. Only pages
+  // made of sections have one (blog posts and the not-found page start with their own title).
+  const overlay = s.headerOverlay && ctx.pageIndex === pageIndex ? ` site-header--overlay${firstIsDark(doc.pages[pageIndex], ctx) ? ' site-header--on-dark' : ''}` : '';
+  const cls = `site-header site-header--${s.headerStyle === 'dark' ? 'dark' : 'light'}${layout === 'split' ? '' : ` site-header--${layout}`}${sticky === 'always' ? '' : ` site-header--${sticky}`}${overlay}`;
+  return `${bar}<header class="${cls}"${ctx.edit ? ' data-section-id="__header" data-label="Header"' : ''}>
     <div class="wrap site-header__inner">
       <a class="brand" href="/">${logo}${h.t('span', 'name', 'brand__name', { ph: 'Business name' })}</a>
-      <nav class="nav" aria-label="Main"><ul class="nav__list">${navPages.map(({ p, i }) =>
-        `<li><a href="${pageHref(p, i)}"${i === pageIndex ? ' aria-current="page"' : ''}>${esc(p.title)}</a></li>`).join('')}</ul>${cta}</nav>
+      <nav class="nav" aria-label="Main"><ul class="nav__list">${nav.map(({ p, i }) =>
+        `<li><a href="${pageHref(p, i)}"${i === pageIndex ? ' aria-current="page"' : ''}>${esc(p.title)}</a></li>`).join('')}</ul>${end}</nav>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">${icon('menu')}</button>
     </div></header>`;
 }
 
 export function renderFooter(doc, ctx) {
   const s = doc.site;
+  // A footer designed in the editor: a layout of rows, columns and elements.
+  if (s.footerMode === 'layout' && Array.isArray(s.footerLayout?.rows)) return customFooter(doc, ctx) + callBar(s);
   const h = helpers(s, ctx);
   const year = new Date().getFullYear();
   return `<footer class="site-footer"${ctx.edit ? ' data-section-id="__footer" data-label="Footer"' : ''}>
     <div class="wrap site-footer__grid">
       <div class="site-footer__brand">
-        <a class="brand" href="/">${s.logo ? `<img class="brand__logo" src="${esc(safeSrc(s.logo))}" alt="">` : `<span class="brand__mark">${icon(s.logoIcon || 'cpu')}</span>`}<span class="brand__name">${esc(s.name)}</span></a>
+        ${brandLink(s)}
         ${h.t('p', 'tagline', 'site-footer__tagline', { ph: 'Short tagline', ml: true })}
         ${socialLinks(s)}
       </div>
-      <div><h2 class="site-footer__title">Pages</h2><ul>${doc.pages.map((p, i) => (inNav(p, i) ? `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>` : '')).join('')}</ul></div>
+      <div><h2 class="site-footer__title">Pages</h2><ul>${navPages(doc).map(({ p, i }) => `<li><a href="${pageHref(p, i)}">${esc(p.title)}</a></li>`).join('')}</ul></div>
       <div><h2 class="site-footer__title">Contact</h2><ul>
-        ${s.email ? `<li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>` : ''}
-        ${s.phone ? `<li><a href="tel:${esc(s.phone.replace(/[^+\d]/g, ''))}">${esc(s.phone)}</a></li>` : ''}
-        ${s.location ? `<li>${esc(s.location)}</li>` : ''}${hasHours(s.hours) ? `\n        <li class="site-footer__hours">${esc(hoursSummary(s.hours))} ${openBadge(s.hours, esc, ctx.edit)}</li>` : ''}
+        ${contactItems(s, {}, ctx.edit)}
       </ul></div>
     </div>
     <div class="wrap site-footer__bottom"><span>© ${year} ${esc(s.name)}</span>${h.t('span', 'footerText', '', { ph: 'Footer note' })}</div>
   </footer>${callBar(s)}`;
+}
+
+// The footer's id inside the page, for its styles (x-__footer) and the editor.
+export const FOOTER_ID = '__footer';
+
+function customFooter(doc, ctx) {
+  const d = plainModifiers(doc.site.footerLayout);
+  const h = helpers(d, ctx, 'footerLayout.');
+  h.secId = FOOTER_ID;
+  const scope = scopeClass(FOOTER_ID);
+  const inner = BLOCKS.layout.render(d, h);
+  const css = sectionCSS({ id: FOOTER_ID, data: d }, h.theme) + h.css.join('');
+  // Dark unless given a light background of its own.
+  const dark = !cssColor(d.design?.bg) || isDark(d.design, h.theme) ? ' is-dark' : '';
+  return `<footer class="site-footer site-footer--custom ${scope}${dark}"${ctx.edit ? ` data-section-id="${FOOTER_ID}" data-label="Footer"` : ''}>${inner}${css ? `<style data-s>${css}</style>` : ''}</footer>`;
 }
 
 // The floating “Call now” (and “Text us”) button, on phones or on every screen.
@@ -258,9 +325,9 @@ function callBar(s) {
     + '</div>';
 }
 
-function socialLinks(s) {
+function socialLinks(s, cls = 'social') {
   const links = SOCIAL.filter(([k]) => /^https?:\/\//i.test(String(s.social?.[k] || '').trim()));
-  return links.length ? `<ul class="social">${links.map(([k, label]) =>
+  return links.length ? `<ul class="${cls}">${links.map(([k, label]) =>
     `<li><a href="${esc(s.social[k].trim())}" target="_blank" rel="noopener" aria-label="${label}" title="${label}">${icon(k)}</a></li>`).join('')}</ul>` : '';
 }
 
@@ -273,6 +340,7 @@ export function renderPage(doc, pageIndex, ctx = {}) {
   const c = { ...ctx, site: doc };
   const page = doc.pages[pageIndex];
   const first = firstSectionIndex(page, !!ctx.edit);
+  c.pageIndex = pageIndex;
   return renderHeader(doc, pageIndex, c)
     + `<main id="main">${(page.sections || []).map((s, i) => renderSection(s, i === first ? { ...c, first: true } : c)).join('')}</main>`
     + renderFooter(doc, c);

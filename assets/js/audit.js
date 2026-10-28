@@ -21,7 +21,8 @@ const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
 // Keys that hold settings, not words visitors read.
 const NOT_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'href', 'anchor', 'bg', 'pad', 'overlay', 'layout', 'side', 'columns',
   'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size',
-  'level', 'look', 'effect', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2']);
+  'level', 'look', 'effect', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2',
+  'anim', 'hbg', 'hcolor', 'hbc', 'hshadow']);
 const VALID_ENDPOINT = /^https:\/\/[^\s/]+\/\S*$/i;
 
 // Words the section library fills in for new sections. Seeing them on a live
@@ -67,6 +68,8 @@ function luminance(hex) {
 }
 const contrast = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
 
+// What a clickable box is called in a message: its heading.
+const boxName = (box) => String((Array.isArray(box?.els) ? box.els : []).find((e) => e?.type === 'heading')?.text || '').trim() || 'clickable box';
 const short = (t, n = 40) => { const s = String(t).replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1)}…` : s; };
 
 export function audit(doc) {
@@ -134,6 +137,17 @@ export function audit(doc) {
   }
   if (s.announcement?.enabled && s.announcement.link) checkLink(s.announcement.link, s.announcement.linkText || s.announcement.link, 'in the announcement bar', { kind: 'site', field: 'announcement.link' });
   for (const f of ['tagline', 'footerText']) if (s[f]) checkText(s[f], 'in the footer', { kind: 'site', field: f });
+  // A footer designed as a layout: the links in its text, buttons and clickable boxes.
+  if (s.footerMode === 'layout' && s.footerLayout) {
+    eachValue(s.footerLayout, 'footerLayout', (v, path, key) => {
+      if (NOT_TEXT.has(key)) return;
+      if (key === 'html') for (const m of v.matchAll(/<a href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) checkLink(m[1].replace(/&amp;/g, '&'), m[2].replace(/<[^>]+>/g, ''), 'in the footer', { kind: 'site', field: path });
+      else checkText(v, 'in the footer', { kind: 'site', field: path });
+    }, (b, path) => { if (String(b.label || '').trim()) checkLink(b.href, b.label, 'in the footer', { kind: 'site', field: path }, { button: true }); });
+    walkLayout(s.footerLayout, (el, path, kind) => {
+      if (kind === 'el' && el?.type === 'box' && String(el.href || '').trim()) checkLink(el.href, boxName(el), 'in the footer', { kind: 'site', field: `footerLayout.${path}.href` });
+    });
+  }
 
   // Theme colors people have to read
   const theme = { ...THEME_PRESETS.midnight, ...doc.theme };
@@ -235,6 +249,7 @@ export function audit(doc) {
           if (el.type === 'image' && el.image && !String(el.alt || el.caption || '').trim()) {
             add('tip', 'image-description', `An image in “${secName}” on ${name} has no description. Add one so screen readers and search engines know what it shows.`, { ...where, field: `${path}.alt` });
           }
+          if (el.type === 'box' && String(el.href || '').trim()) checkLink(el.href, boxName(el), place, { ...where, field: `${path}.href` });
           if (el.type === 'review' || (el.type === 'w-testimonials' && el.reviewButton)) review = true;
           if (String(el.type).startsWith('w-')) blockChecks(el.type.slice(2), el, `${path}.`);
         });

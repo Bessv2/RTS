@@ -13,6 +13,7 @@ export function enhance(root = document, { preview = false } = {}) {
     toggle.setAttribute('aria-expanded', String(open));
   });
   root.querySelectorAll('.nav a, .brand').forEach((a) => a.addEventListener('click', () => header.classList.remove('is-open')));
+  headerScroll(header);
   root.querySelectorAll('[data-contact-form]').forEach((form) => {
     form.dataset.startedAt = String(Date.now());
     form.addEventListener('submit', (e) => onSubmit(e, preview));
@@ -49,6 +50,31 @@ export function enhance(root = document, { preview = false } = {}) {
   if (!preview) rememberTicks(root);
   showOpenStatus(root);
   reveal(root);
+}
+
+// A header that hides while scrolling down, or is see-through until the page scrolls.
+function headerScroll(header) {
+  if (!header) return;
+  const away = header.classList.contains('site-header--scroll');
+  const overlay = header.classList.contains('site-header--overlay');
+  if (!away && !overlay) return;
+  const root = document.documentElement;
+  // The page starts below a see-through header of any height.
+  const measure = () => root.style.setProperty('--hdr-h', `${header.offsetHeight}px`);
+  if (overlay) { measure(); addEventListener('resize', measure, { passive: true }); }
+  let last = scrollY;
+  const onScroll = () => {
+    const y = scrollY;
+    header.classList.toggle('is-scrolled', y > 8);
+    if (away && Math.abs(y - last) > 4) {
+      header.classList.toggle('is-away', y > last && y > header.offsetHeight + 40 && !header.classList.contains('is-open'));
+      last = y;
+    }
+  };
+  // Keyboard users moving into the header always see it.
+  header.addEventListener('focusin', () => header.classList.remove('is-away'));
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 }
 
 // Images in a post open full size when clicked (or with Enter on the keyboard).
@@ -197,6 +223,11 @@ function reveal(root) {
     if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
   }), { rootMargin: '0px 0px -8% 0px' });
   root.querySelectorAll('.sec').forEach((s) => io.observe(s));
+  // Entrance animations chosen in the editor play once each piece is in view.
+  const pieces = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('is-in'); pieces.unobserve(e.target); }
+  }), { rootMargin: '0px 0px -6% 0px' });
+  root.querySelectorAll('.anim').forEach((el) => pieces.observe(el));
 }
 
 // --- Contact form with lightweight bot protection -----------------------

@@ -156,3 +156,31 @@ export function convertSection(sec) {
   const out = { ...sec, type: 'layout', data };
   return JSON.parse(JSON.stringify(out));
 }
+
+// The standard footer as a layout that looks the same: brand, tagline and social
+// links; the pages; the contact details; then the copyright line and footer note.
+// Its text comes along, so the footer can be redesigned from where it is.
+export function footerToLayout(site = {}) {
+  const tagline = filled(site.tagline) ? [el.text(site.tagline, 's', { maxW: 360, fs: 15 })] : [];
+  const note = filled(site.footerText) ? [{ type: 'text', html: html(site.footerText), size: 's', design: { ta: 'right', fs: 14 }, mobile: { ta: 'left' } }] : [];
+  return {
+    rows: [
+      {
+        design: { gap: 40 },
+        cols: [
+          { span: 5, tablet: { span: 12 }, design: { gap: 16 }, els: [{ type: 'logo', show: 'both' }, ...tagline, { type: 'social', look: 'soft' }] },
+          { span: 3, tablet: { span: 6 }, mobile: { span: 6 }, design: { gap: 14 }, els: [el.label('Pages'), { type: 'menu', dir: 'column', label: 'Footer pages' }] },
+          { span: 4, tablet: { span: 6 }, mobile: { span: 6 }, design: { gap: 14 }, els: [el.label('Contact'), { type: 'contactinfo', email: true, phone: true, location: true, hours: true, icons: false }] },
+        ],
+      },
+      { design: { mt: 16 }, cols: [{ span: 12, els: [{ type: 'divider' }] }] },
+      {
+        design: { valign: 'center', gap: 16, mt: -24 },
+        cols: [
+          { span: note.length ? 6 : 12, els: [{ type: 'copyright', note: '' }] },
+          ...(note.length ? [{ span: 6, els: note }] : []),
+        ],
+      },
+    ],
+  };
+}
