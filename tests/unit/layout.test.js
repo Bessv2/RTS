@@ -71,9 +71,12 @@ test('phone settings go in a media query, and colours keep text readable', () =>
   assert.equal(isDark({ bg: 'surface' }, { surface: '#f4f7fb' }), false);
   assert.equal(isDark({ img: 'assets/a.png', ov: 60 }), true);
   assert.equal(isDark({}), false);
-  assert.equal(hideClasses({ hide: true }, { hide: false }), ' hide-d');
-  assert.equal(hideClasses({ hide: true }), ' hide-d hide-m');
+  // Tablets follow computers and phones follow tablets, unless set.
+  assert.equal(hideClasses({ hide: true }, { hide: false }), ' hide-d hide-t');
+  assert.equal(hideClasses({ hide: true }), ' hide-d hide-t hide-m');
   assert.equal(hideClasses({}, { hide: true }), ' hide-m');
+  assert.equal(hideClasses({}, undefined, { hide: true }), ' hide-t hide-m');
+  assert.equal(hideClasses({ hide: true }, undefined, { hide: false }), ' hide-d');
 });
 
 test('layout sections render rows, columns and elements with scoped styles', () => {
@@ -121,8 +124,8 @@ test('heading levels: automatic keeps the outline, a chosen level is kept', () =
 
 test('any section can have its own style, and the build puts styles in the head', () => {
   const hero = { id: 's-h', type: 'hero', data: { ...BLOCKS.hero.defaults(), design: { bg: '#0f172a', pt: 40, minH: 'screen', cv: 'center' }, mobile: { pt: 20 } } };
-  assert.match(sectionCSS(hero), /^\.x-s-h\.x-s-h\{padding-top:40px;min-height:100svh;background-color:#0f172a;background-image:none;--sec-link/);
-  assert.match(sectionCSS(hero), /display:flex;flex-direction:column;justify-content:center\}@media \(max-width: 759\.98px\)\{\.x-s-h\.x-s-h\{padding-top:20px\}\}$/);
+  assert.match(sectionCSS(hero), /^\.x-s-h\.x-s-h\{padding-top:calc\(40px \+ var\(--hdr-pad, 0px\)\);min-height:100svh;background-color:#0f172a;background-image:none;--sec-link/);
+  assert.match(sectionCSS(hero), /display:flex;flex-direction:column;justify-content:center\}@media \(max-width: 759\.98px\)\{\.x-s-h\.x-s-h\{padding-top:calc\(20px \+ var\(--hdr-pad, 0px\)\)\}\}$/);
   assert.equal(sectionCSS({ id: 's-x', type: 'hero', data: {} }), '');
   const d = doc([hero, layout([{ cols: [{ span: 12, els: [{ type: 'heading', text: 'Hi', design: { fs: 20 } }] }] }])]);
   assert.match(renderPage(d, 0), /<style data-s>/);

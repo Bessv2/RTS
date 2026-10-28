@@ -135,12 +135,34 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   the Image + text panel are elements of their own, the hero's glow and grid a background
   effect); forms, FAQ, the blog feed, logos and numbers become widgets. A test checks that
   every word of every live section survives.
-- **Styles** (`"design": { … }` and `"mobile": { … }` on any section, row, column or element):
-  spacing, size, background colour, gradient and image, border, corners, shadow, text colour,
-  font, size, weight and alignment, and hiding on computers or phones. `mobile` changes only
-  phones. Every value is checked and clamped in `layout.js` before it becomes CSS, which the
-  build puts in the page head. A background colour without a text colour makes text light
-  or dark automatically, so it stays readable.
+- **Styles** (`"design": { … }`, `"tablet": { … }` and `"mobile": { … }` on any section, row,
+  column or element): spacing, size, background colour, gradient and image, border, corners,
+  shadow, text colour, font, size, weight and alignment, and hiding on computers, tablets or
+  phones. `tablet` changes screens narrower than 1024px and `mobile` phones (narrower than
+  760px); phones start from the tablet settings. A column's `tablet.span` gives it its own
+  width on tablets. Every value is checked and clamped in `layout.js` before it becomes CSS,
+  which the build puts in the page head. A background colour without a text colour makes text
+  light or dark automatically, so it stays readable.
+- **Hover and animation** (in `design`): `hbg`, `hcolor`, `hbc`, `hshadow`, `hlift` (px) and
+  `hzoom` (%) change a column, element or box while a mouse pointer is over it (only on screens
+  with a pointer). `anim` (`fade`, `up`, `down`, `left`, `right`, `zoom`) and `animDelay`
+  (seconds) play an entrance animation once when the piece scrolls into view. Nothing is hidden
+  without the script, and visitors who turn off animations on their device see everything
+  straight away.
+- **Clickable boxes**: a box with `href` (and optional `newTab`) is a link all over; buttons
+  and links inside it still go to their own pages.
+- **Site elements** (for layouts, and for the footer): `logo`, `menu` (the pages in the site
+  menu), `social` (Settings → Social links), `contactinfo` (email, phone, location, hours) and
+  `copyright`. They read from Settings, so a change there shows everywhere.
+- **Header options** (in `site`): `headerLayout` (`split`, `left` or `center`), `headerSticky`
+  (`always`, `scroll` – hides while scrolling down and comes back going up – or `none`),
+  `headerOverlay` (see-through over the first section, with light text over a dark or photo
+  section, solid once the page scrolls), and `headerPhone` / `headerSocial` to show the phone
+  number and social links next to the button.
+- **Footer layout** (`"footerMode": "layout"` and `"footerLayout": { "rows": [ … ] }` in
+  `site`): a footer designed with rows, columns and elements like a layout section.
+  `footerToLayout(site)` in `convert.js` makes one that looks like the standard footer to start
+  from. Without `footerMode`, the standard footer is used.
 - **Booking calendar** (section): paste a Calendly, Microsoft Bookings, Google Calendar
   appointment page, Cal.com, HubSpot or Acuity link and the calendar is shown on the page (these
   providers are allowed in the security policy's `frame-src`). Any other link becomes a button.
