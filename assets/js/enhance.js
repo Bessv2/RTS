@@ -50,6 +50,7 @@ export function enhance(root = document, { preview = false } = {}) {
   if (!preview) rememberTicks(root);
   showOpenStatus(root);
   reveal(root);
+  motion(root);
 }
 
 // A header that hides while scrolling down, or is see-through until the page scrolls.
@@ -228,6 +229,75 @@ function reveal(root) {
     if (e.isIntersecting) { e.target.classList.add('is-in'); pieces.unobserve(e.target); }
   }), { rootMargin: '0px 0px -6% 0px' });
   root.querySelectorAll('.anim').forEach((el) => pieces.observe(el));
+}
+
+// Moving pieces: numbers that count up, rotating words, ticker pause buttons and
+// the back-to-top button. Everything is readable before (and without) this runs.
+function motion(root) {
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.querySelectorAll('.lx-ticker__pause').forEach((b) => b.addEventListener('click', () => {
+    const t = b.closest('.lx-ticker');
+    const paused = t.classList.toggle('is-paused');
+    b.setAttribute('aria-pressed', String(paused));
+    b.setAttribute('aria-label', paused ? 'Play the moving text' : 'Pause the moving text');
+    b.innerHTML = icon(paused ? 'play' : 'pause');
+  }));
+  const top = root.querySelector('.to-top');
+  if (top) {
+    const show = () => top.classList.toggle('is-shown', scrollY > innerHeight * 0.8);
+    addEventListener('scroll', show, { passive: true });
+    show();
+  }
+  if (still || !('IntersectionObserver' in window)) return;
+  const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (!e.isIntersecting) return;
+    seen.unobserve(e.target);
+    if (e.target.matches('[data-count]')) countUp(e.target);
+    else rotate(e.target);
+  }), { rootMargin: '0px 0px -10% 0px' });
+  root.querySelectorAll('.lx-counter__value[data-count]').forEach((n) => seen.observe(n));
+  root.querySelectorAll('.lx-rot__words').forEach((n) => { if (n.children.length > 1) seen.observe(n); });
+}
+
+export function formatCount(value, decimals = 0, commas = false) {
+  const fixed = Number(value).toFixed(decimals);
+  if (!commas) return fixed;
+  const [whole, part] = fixed.split('.');
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (part ? `.${part}` : '');
+}
+
+function countUp(n) {
+  const target = Number(n.dataset.count);
+  const decimals = Number(n.dataset.decimals) || 0;
+  const commas = n.hasAttribute('data-commas');
+  const start = performance.now();
+  const ms = 1600;
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / ms);
+    const eased = 1 - (1 - t) ** 3;
+    n.textContent = formatCount(target * eased, decimals, commas);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// Rotating words take turns for a few rounds, then stop on the first word.
+function rotate(box) {
+  const words = [...box.children];
+  let i = 0;
+  let turns = 0;
+  const max = words.length * 3;
+  const timer = setInterval(() => {
+    const out = words[i];
+    i = (i + 1) % words.length;
+    turns += 1;
+    out.classList.remove('is-on');
+    out.classList.add('is-out');
+    words[i].classList.remove('is-out');
+    words[i].classList.add('is-on');
+    setTimeout(() => out.classList.remove('is-out'), 500);
+    if (turns >= max && i === 0) clearInterval(timer);
+  }, 2200);
 }
 
 // --- Contact form with lightweight bot protection -----------------------

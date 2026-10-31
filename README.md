@@ -149,6 +149,18 @@ rebuilds the site every morning, so it goes live by itself without anyone pressi
   (seconds) play an entrance animation once when the piece scrolls into view. Nothing is hidden
   without the script, and visitors who turn off animations on their device see everything
   straight away.
+- **Motion** (more `design` keys): `animSpeed`, and `stagger` on a row, column or box so the
+  pieces inside come in one after another; `scroll` (`parallax`, `fade`, `grow`,
+  `slide-left`, `slide-right`, `rotate`, `blur`) with `scrollAmt` (`1`–`3`) moves a piece with
+  the scroll position (CSS scroll-driven animations; browsers without them show it still);
+  `loop` (`float`, `pulse`, `bounce`, `wiggle`, `spin`) with `loopSpeed`; and `sticky` keeps a
+  column or element on screen while the rest of its row scrolls past (not on phones). An
+  entrance, a scroll effect and a loop can go on the same piece.
+- **Moving elements**: `counter` (a number that counts up when it comes into view), `ticker`
+  (words scrolling past in a band, with a pause button) and `rotator` (a heading where one word
+  takes turns with others, for three rounds). Each shows its full content without JavaScript
+  and stays still for visitors who turn off animations. In `site`, `scrollProgress` adds a
+  reading progress bar to pages and `backToTop` a back-to-top button.
 - **Clickable boxes**: a box with `href` (and optional `newTab`) is a link all over; buttons
   and links inside it still go to their own pages.
 - **Site elements** (for layouts, and for the footer): `logo`, `menu` (the pages in the site

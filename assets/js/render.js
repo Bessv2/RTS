@@ -111,11 +111,19 @@ function helpers(data, ctx, sectionPath = '', inherited = {}) {
     safeHref: (v) => safeHref(v),
     list: (path) => (Array.isArray(getPath(data, path)) ? getPath(data, path) : []),
     sub: () => (sawH2 ? 'h3' : 'h2'),
+    // The heading level to write: the page's first h1/h2 becomes its main headline
+    // (h1), and h3 moves up when there is no h2 above it. exact: a level chosen in
+    // the editor is kept as is.
+    level(tag, exact = false) {
+      if (exact) { if (tag === 'h1') page.h1 = false; else if (tag === 'h2') sawH2 = true; return tag; }
+      if (page.h1 && /^h[12]$/.test(tag)) { page.h1 = false; return 'h1'; }
+      if (tag === 'h2') sawH2 = true;
+      return tag === 'h3' ? h.sub() : tag;
+    },
     t(tag, path, cls = '', opts = {}) {
       const v = getPath(data, path) ?? '';
       if (!edit && !String(v).trim()) return '';
-      // exact: a heading level chosen in the editor is kept as is.
-      if (opts.exact) { if (tag === 'h1') page.h1 = false; else if (tag === 'h2') sawH2 = true; } else if (page.h1 && /^h[12]$/.test(tag)) { tag = 'h1'; page.h1 = false; } else if (tag === 'h2') sawH2 = true; else if (tag === 'h3') tag = h.sub();
+      tag = h.level(tag, !!opts.exact);
       // md: paragraphs, lists and subheadings (markdown); ml: one formatted paragraph.
       const body = opts.md ? markdown(v, safeSrc) : opts.ml ? rich(v) : esc(v);
       return `<${tag}${cls ? ` class="${cls}"` : ''}${attr(path, opts)}${edit && (opts.ml || opts.md) ? ' data-rich' : ''}${edit && opts.md ? ' data-md' : ''}>${body}</${tag}>`;
@@ -279,7 +287,7 @@ export function renderHeader(doc, pageIndex, ctx) {
 export function renderFooter(doc, ctx) {
   const s = doc.site;
   // A footer designed in the editor: a layout of rows, columns and elements.
-  if (s.footerMode === 'layout' && Array.isArray(s.footerLayout?.rows)) return customFooter(doc, ctx) + callBar(s);
+  if (s.footerMode === 'layout' && Array.isArray(s.footerLayout?.rows)) return customFooter(doc, ctx) + callBar(s) + toTop(s);
   const h = helpers(s, ctx);
   const year = new Date().getFullYear();
   return `<footer class="site-footer"${ctx.edit ? ' data-section-id="__footer" data-label="Footer"' : ''}>
@@ -295,8 +303,11 @@ export function renderFooter(doc, ctx) {
       </ul></div>
     </div>
     <div class="wrap site-footer__bottom"><span>© ${year} ${esc(s.name)}</span>${h.t('span', 'footerText', '', { ph: 'Footer note' })}</div>
-  </footer>${callBar(s)}`;
+  </footer>${callBar(s)}${toTop(s)}`;
 }
+
+// A button back to the top of the page, shown once the visitor has scrolled down (enhance.js).
+const toTop = (s) => (s.backToTop ? `<a class="to-top" href="#main" aria-label="Back to top" title="Back to top">${icon('chevron-up')}</a>` : '');
 
 // The footer's id inside the page, for its styles (x-__footer) and the editor.
 export const FOOTER_ID = '__footer';
@@ -341,7 +352,8 @@ export function renderPage(doc, pageIndex, ctx = {}) {
   const page = doc.pages[pageIndex];
   const first = firstSectionIndex(page, !!ctx.edit);
   c.pageIndex = pageIndex;
-  return renderHeader(doc, pageIndex, c)
+  // A reading progress bar across the top (blog posts have their own).
+  return (doc.site?.scrollProgress ? '<div class="scroll-progress" aria-hidden="true"></div>' : '') + renderHeader(doc, pageIndex, c)
     + `<main id="main">${(page.sections || []).map((s, i) => renderSection(s, i === first ? { ...c, first: true } : c)).join('')}</main>`
     + renderFooter(doc, c);
 }

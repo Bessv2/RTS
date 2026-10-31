@@ -1148,6 +1148,74 @@ export const LAYOUT_ELEMENTS = {
     fields: [{ key: 'icon', label: 'Icon', type: 'icon' }, { key: 'text', label: 'Caption', type: 'text' }],
     render: (el, p, h) => `<div class="split__panel"><span class="split__panel-icon">${h.icon(el.icon || 'cpu')}</span>${h.t('p', `${p}.text`, 'split__panel-text', { ph: 'Optional caption' })}</div>`,
   },
+  // Moving pieces. Each shows its full content without JavaScript, and stays
+  // still for visitors who turn off animations on their device.
+  counter: {
+    label: 'Counter', icon: 'chart', description: 'A number that counts up when it comes into view',
+    defaults: () => ({ type: 'counter', value: '250', prefix: '', suffix: '+', label: 'Projects finished', size: 'l' }),
+    fields: [
+      { key: 'value', label: 'Number', type: 'text', help: 'Like 250, 4.9 or 1,200. It counts up from zero when visitors scroll to it.' },
+      { key: 'prefix', label: 'Before the number (optional)', type: 'text', help: 'Like $ or £.' },
+      { key: 'suffix', label: 'After the number (optional)', type: 'text', help: 'Like +, % or ★.' },
+      { key: 'label', label: 'Label', type: 'text' },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['m', 'M'], ['l', 'L'], ['xl', 'XL']] },
+    ],
+    render(el, p, h) {
+      const raw = String(el.value ?? '').trim();
+      const n = Number(raw.replace(/,/g, ''));
+      // Only plain numbers count up; anything else is shown as typed.
+      const count = raw && Number.isFinite(n) ? ` data-count="${n}" data-decimals="${(raw.split('.')[1] || '').length}"${raw.includes(',') ? ' data-commas' : ''}` : '';
+      return `<div class="lx-counter lx-counter--${pick(el.size, ['m', 'l', 'xl'], 'l')}"><span class="lx-counter__num">${h.esc(el.prefix || '')}<span class="lx-counter__value"${count}>${h.esc(raw || '0')}</span>${h.esc(el.suffix || '')}</span>${h.t('span', `${p}.label`, 'lx-counter__label', { ph: 'Label' })}</div>`;
+    },
+  },
+  ticker: {
+    label: 'Ticker', icon: 'arrow-right', description: 'Words that scroll past in a band, like a news ticker',
+    defaults: () => ({ type: 'ticker', items: [{ text: 'Friendly service' }, { text: 'Fair prices' }, { text: 'Local experts' }, { text: 'Fast replies' }], speed: 'normal', direction: 'left', size: 'm' }),
+    fields: [
+      { key: 'items', label: 'Words', type: 'list', itemLabel: 'text', item: () => ({ text: 'New item' }), itemFields: [{ key: 'text', label: 'Text', type: 'text' }] },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['s', 'S'], ['m', 'M'], ['l', 'L']] },
+      { key: 'speed', label: 'Speed', type: 'segmented', options: [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']] },
+      { key: 'direction', label: 'Direction', type: 'segmented', options: [['left', 'To the left'], ['right', 'To the right']] },
+      { type: 'note', text: 'Visitors can pause it, and it stays still for anyone who turns off animations.' },
+    ],
+    render(el, p, h) {
+      const items = (Array.isArray(el.items) ? el.items : []).map((it) => String(it?.text || '').trim()).filter(Boolean);
+      if (!items.length) return h.edit ? '<p class="lx-empty">Add words to the ticker in the panel on the right</p>' : '';
+      // Longer text scrolls for longer, so it always moves at about the same pace.
+      const chars = items.join('').length + items.length * 4;
+      const secs = Math.round(Math.min(120, Math.max(8, chars * 0.35 * ({ slow: 1.6, fast: 0.6 }[el.speed] || 1))));
+      const group = (hidden) => `<span class="lx-ticker__group"${hidden ? ' aria-hidden="true"' : ''}>${items.map((t) => `<span class="lx-ticker__item">${h.esc(t)}</span>`).join('')}</span>`;
+      return `<div class="lx-ticker lx-ticker--${pick(el.size, ['s', 'm', 'l'], 'm')}${el.direction === 'right' ? ' lx-ticker--right' : ''}" style="--tk-dur:${secs}s">`
+        + `<div class="lx-ticker__track">${group(false)}${group(true)}</div>`
+        + `<button type="button" class="lx-ticker__pause" aria-label="Pause the moving text" aria-pressed="false">${h.icon('pause') || ''}</button></div>`;
+    },
+  },
+  rotator: {
+    label: 'Rotating words', icon: 'refresh', description: 'A heading where one word changes, like “We build websites / apps / brands”',
+    defaults: () => ({ type: 'rotator', before: 'We help with', words: 'websites, logos, signs', after: '', size: 'l', level: 'auto' }),
+    fields: [
+      { key: 'before', label: 'Words before', type: 'text' },
+      { key: 'words', label: 'Words that change', type: 'text', help: 'Separate them with commas. The first one shows when nothing moves.' },
+      { key: 'after', label: 'Words after (optional)', type: 'text' },
+      { key: 'size', label: 'Size', type: 'segmented', options: [['m', 'M'], ['l', 'L'], ['xl', 'XL'], ['hero', 'Hero']] },
+      LEVEL,
+    ],
+    cls: (el) => `lx-size--${pick(el.size, ['m', 'l', 'xl', 'hero'], 'l')}`,
+    render(el, p, h) {
+      const words = String(el.words || '').split(',').map((w) => w.trim()).filter(Boolean);
+      const before = String(el.before || '').trim();
+      const after = String(el.after || '').trim();
+      if (!words.length && !before && !after) return h.edit ? '<p class="lx-empty">Type the heading’s words in the panel on the right</p>' : '';
+      const level = pick(el.level, ['auto', 'h1', 'h2', 'h3', 'h4', 'p'], 'auto');
+      const tag = h.level(level === 'auto' ? 'h2' : level, level !== 'auto');
+      // Screen readers hear every word once; the moving part is only for the eyes.
+      const list = words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}` : words[0] || '';
+      const said = [before, list, after].filter(Boolean).join(' ');
+      const shown = `<span class="lx-rot__words">${words.map((w, i) => `<span class="lx-rot__word${i === 0 ? ' is-on' : ''}">${h.esc(w)}</span>`).join('')}</span>`;
+      const more = h.edit && words.length > 1 ? `<span class="lx-rot__more" title="${h.esc(words.join(' · '))}">+${words.length - 1}</span>` : '';
+      return `<${tag} class="lx-h lx-rot"><span class="sr-only">${h.esc(said)}</span><span aria-hidden="true">${before ? `${h.esc(before)} ` : ''}${shown}${more}${after ? ` ${h.esc(after)}` : ''}</span></${tag}>`;
+    },
+  },
   // The site's own pieces, for designing a header or footer (or anywhere else).
   logo: {
     label: 'Logo', icon: 'home', group: 'Site',
