@@ -249,16 +249,28 @@ export const STYLE_GROUPS = [
     { key: 'hzoom', label: 'Grow (%)', type: 'number', min: 100, max: 120, on: ['col', 'el', 'box'] },
   ] },
   { id: 'motion', label: 'Animation', allScreens: true, items: [
-    { key: 'anim', label: 'Entrance', type: 'select', on: ['row', 'col', 'el', 'box'], options: [['', 'None'], ['fade', 'Fade in'], ['up', 'Slide up'], ['down', 'Slide down'], ['left', 'Slide in from the left'], ['right', 'Slide in from the right'], ['zoom', 'Zoom in']],
-      help: 'Plays once when it scrolls into view. Visitors who turn off animations on their device see it straight away.' },
+    { key: 'anim', label: 'Entrance', type: 'select', on: ['row', 'col', 'el', 'box'], options: [['', 'None'], ['fade', 'Fade in'], ['up', 'Slide up'], ['down', 'Slide down'], ['left', 'Slide in from the left'], ['right', 'Slide in from the right'], ['zoom', 'Zoom in'], ['flip', 'Flip up'], ['blur', 'Sharpen from a blur']],
+      help: 'Plays once when it scrolls into view. Visitors who turn off animations on their device see everything straight away.' },
+    { key: 'animSpeed', label: 'Speed', type: 'segmented', on: ['row', 'col', 'el', 'box'], options: [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']], when: (s) => !!s.anim },
     { key: 'animDelay', label: 'Delay (seconds)', type: 'number', min: 0, max: 3, step: 0.1, on: ['row', 'col', 'el', 'box'], when: (s) => !!s.anim },
+    { key: 'stagger', label: 'One after another', type: 'toggle', on: ['row', 'col', 'box'], when: (s) => !!s.anim, help: 'The columns or elements inside come in one by one, instead of all together.' },
+    { key: 'scroll', label: 'While scrolling', type: 'select', on: ['row', 'col', 'el', 'box'], options: [['', 'None'], ['parallax', 'Parallax (moves slower than the page)'], ['fade', 'Fade in as it comes up'], ['grow', 'Grow as it comes up'], ['slide-left', 'Slide in from the left'], ['slide-right', 'Slide in from the right'], ['rotate', 'Tilt'], ['blur', 'Sharpen as it comes up']],
+      help: 'Moves with the scroll position, back and forth. Shown in Chrome, Edge and Safari; other browsers show it still.' },
+    { key: 'scrollAmt', label: 'Strength', type: 'segmented', on: ['row', 'col', 'el', 'box'], options: [['1', 'Light'], ['2', 'Medium'], ['3', 'Strong']], when: (s) => !!s.scroll },
+    { key: 'loop', label: 'Keep moving', type: 'select', on: ['col', 'el', 'box'], options: [['', 'None'], ['float', 'Float up and down'], ['pulse', 'Pulse'], ['bounce', 'Bounce'], ['wiggle', 'Wiggle'], ['spin', 'Spin']],
+      help: 'Repeats all the time, so use it sparingly, for example on one icon or badge.' },
+    { key: 'loopSpeed', label: 'Loop speed', type: 'segmented', on: ['col', 'el', 'box'], options: [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']], when: (s) => !!s.loop },
+    { key: 'sticky', label: 'Stay in view while scrolling', type: 'toggle', on: ['col', 'el', 'box'], help: 'Stays on screen while the rest of its row scrolls past, like a sticky side column. Not on phones.' },
   ] },
   { id: 'visibility', label: 'Visibility', items: [
     { key: 'hide', label: 'Hide', type: 'toggle', on: ['row', 'col', 'el', 'box'] },
   ] },
 ];
 
-export const ANIMATIONS = ['fade', 'up', 'down', 'left', 'right', 'zoom'];
+export const ANIMATIONS = ['fade', 'up', 'down', 'left', 'right', 'zoom', 'flip', 'blur'];
+export const SCROLL_EFFECTS = ['parallax', 'fade', 'grow', 'slide-left', 'slide-right', 'rotate', 'blur'];
+export const LOOPS = ['float', 'pulse', 'bounce', 'wiggle', 'spin'];
+const SPEEDS = { slow: 1.6, normal: 1, fast: 0.6 };
 
 const SHADOW_KEYS = ['none', ...Object.keys(SHADOWS)];
 const PLACE = { left: '0 auto', center: 'auto', right: 'auto 0' };
@@ -379,7 +391,14 @@ export function styleDecls(s = {}, { kind = 'el', theme = {}, phone = false, bas
     add('layout', 'align-items', { stretch: 'stretch', start: 'flex-start', center: 'center', end: 'flex-end' }[s.items] || '');
   }
   if (kind === 'col' && phone) { const o = num(s.order, -12, 12); if (o != null) add('outer', 'order', String(Math.round(o))); }
-  if (!phone && oneOf(s.anim, ANIMATIONS)) { const delay = num(s.animDelay, 0, 3); if (delay) add('outer', '--anim-delay', `${Math.round(delay * 10) / 10}s`); }
+  // Motion (the same on every screen): how long and when it plays, and how strong.
+  if (!phone && oneOf(s.anim, ANIMATIONS)) {
+    const delay = num(s.animDelay, 0, 3);
+    if (delay && !s.stagger) add('outer', '--anim-delay', `${Math.round(delay * 10) / 10}s`);
+    if (SPEEDS[s.animSpeed] && s.animSpeed !== 'normal') add('outer', '--anim-dur', `${Math.round(0.8 * SPEEDS[s.animSpeed] * 100) / 100}s`);
+  }
+  if (!phone && oneOf(s.scroll, SCROLL_EFFECTS) && ['1', '3'].includes(String(s.scrollAmt))) add('outer', '--sfx', String(s.scrollAmt));
+  if (!phone && oneOf(s.loop, LOOPS) && SPEEDS[s.loopSpeed] && s.loopSpeed !== 'normal') add('outer', '--loop-k', String(SPEEDS[s.loopSpeed]));
   return out;
 }
 
@@ -459,8 +478,19 @@ export function hideClasses(design, mobile, tablet) {
   return `${d ? ' hide-d' : ''}${t === true ? ' hide-t' : ''}${p === true ? ' hide-m' : ''}`;
 }
 
-// Entrance animation classes (enhance.js plays them when they scroll into view).
-export const animClass = (design) => (oneOf(design?.anim, ANIMATIONS) ? ` anim anim--${design.anim}` : '');
+// Motion classes: an entrance (enhance.js plays it when it scrolls into view), a
+// scroll effect, a loop and sticky. A piece whose entrance goes "one after
+// another" passes it on to what is inside it instead (see renderLayout).
+export function animClass(design) {
+  const d = design || {};
+  const enter = oneOf(d.anim, ANIMATIONS) && !d.stagger ? ` anim anim--${d.anim}` : '';
+  const scroll = oneOf(d.scroll, SCROLL_EFFECTS) ? ` sfx sfx--${d.scroll}` : '';
+  const loop = oneOf(d.loop, LOOPS) ? ` loop loop--${d.loop}` : '';
+  return `${enter}${scroll}${loop}${d.sticky === true ? ' is-sticky' : ''}`;
+}
+// The entrance a piece's contents get from it ("one after another"), or null.
+const staggerOf = (design) => (design?.stagger && oneOf(design.anim, ANIMATIONS) ? { anim: design.anim, base: num(design.animDelay, 0, 3) || 0 } : null);
+const STAGGER_STEP = 0.12;
 
 // A section id as a class name: x-<id>.
 export const scopeClass = (id) => { const v = String(id || '').replace(/[^\w-]/g, ''); return v ? `x-${v}` : ''; };
@@ -536,7 +566,14 @@ export function renderLayout(d, h, elements) {
   const theme = h.theme || {};
   const css = (path, design, mobile, opts) => { if (scope && (design || mobile || opts.tablet)) h.css.push(pieceCSS(`.${scope} .${nodeClass(path)}`, design, mobile, { theme, ...opts })); };
   const nodeAttrs = (path, kind) => (h.edit ? ` data-node="${path}" data-kind="${kind}"` : '');
-  const renderEls = (list, path, depth) => (Array.isArray(list) ? list : []).map((el, i) => {
+  // A piece inside a container whose entrance goes "one after another" gets that
+  // entrance (unless it has its own), a little later than the one before it.
+  const passed = (design, stagger, i, path) => {
+    if (!stagger || oneOf(design?.anim, ANIMATIONS)) return '';
+    if (scope) h.css.push(`.${scope} .${nodeClass(path)}{--anim-delay:${Math.round((stagger.base + i * STAGGER_STEP) * 100) / 100}s}`);
+    return ` anim anim--${stagger.anim}`;
+  };
+  const renderEls = (list, path, depth, stagger = null) => (Array.isArray(list) ? list : []).map((el, i) => {
     const p = `${path}.els.${i}`;
     const def = el && elements[el.type];
     if (!def) return '';
@@ -544,7 +581,7 @@ export function renderLayout(d, h, elements) {
     let linked = '';
     if (el.type === 'box') {
       // A box shows even when empty: with a colour or a height it is a shape of its own.
-      body = depth < MAX_DEPTH ? renderEls(el.els, p, depth + 1) : '';
+      body = depth < MAX_DEPTH ? renderEls(el.els, p, depth + 1, staggerOf(el.design)) : '';
       if (!body && h.edit) body = `<button type="button" class="lay__add" data-add-el="${p}">${h.icon('plus')}<span>Add to box</span></button>`;
       // A box with a link is clickable all over (links and buttons inside still work on their own).
       const href = String(el.href || '').trim();
@@ -558,7 +595,7 @@ export function renderLayout(d, h, elements) {
     }
     css(p, el.design, el.mobile, { kind: el.type === 'box' ? 'box' : 'el', parts: def.parts || {}, tablet: el.tablet });
     const extra = def.cls ? def.cls(el) : '';
-    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''}${linked} ${nodeClass(p)}${hideClasses(el.design, el.mobile, el.tablet)}${darkClass(el.design, theme)}${animClass(el.design)}"${nodeAttrs(p, 'el')}>${body}</div>`;
+    return `<div class="lx lx--${el.type}${extra ? ` ${extra}` : ''}${linked} ${nodeClass(p)}${hideClasses(el.design, el.mobile, el.tablet)}${darkClass(el.design, theme)}${animClass(el.design)}${passed(el.design, stagger, i, p)}"${nodeAttrs(p, 'el')}>${body}</div>`;
   }).join('');
 
   const rows = (Array.isArray(d.rows) ? d.rows : []).map((row, r) => {
@@ -575,14 +612,15 @@ export function renderLayout(d, h, elements) {
       if (tRev) h.css.push(`${TABLET}{${orders(true)}}`);
       if (pRev !== tRev) h.css.push(`${PHONE}{${orders(pRev)}}`);
     }
+    const rowStagger = staggerOf(rs);
     const inner = cols.map((col, c) => {
       const cp = `${rp}.cols.${c}`;
       css(cp, col?.design, col?.mobile, { kind: 'col', tablet: col?.tablet });
-      let body = renderEls(col?.els, cp, 1);
+      let body = renderEls(col?.els, cp, 1, staggerOf(col?.design));
       if (!body && h.edit) body = `<button type="button" class="lay__add" data-add-el="${cp}">${h.icon('plus')}<span>Add element</span></button>`;
       // A width for tablets only when one is set; otherwise tablets use the computer width.
       const tSpan = col?.tablet?.span != null && col.tablet.span !== '' ? ` lay__col--t${spanOf(col.tablet.span, 12)}` : '';
-      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)}${tSpan} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile, col?.tablet)}${darkClass(col?.design, theme)}${animClass(col?.design)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
+      return `<div class="lay__col lay__col--s${spanOf(col?.span, 12)}${tSpan} lay__col--m${spanOf(col?.mobile?.span, 12)} ${nodeClass(cp)}${hideClasses(col?.design, col?.mobile, col?.tablet)}${darkClass(col?.design, theme)}${animClass(col?.design)}${passed(col?.design, rowStagger, c, cp)}"${nodeAttrs(cp, 'col')}>${body}</div>`;
     }).join('');
     return `<div class="wrap lay__row lay__row--${width} ${nodeClass(rp)}${hideClasses(rs, row?.mobile, row?.tablet)}${darkClass(rs, theme)}${animClass(rs)}"${nodeAttrs(rp, 'row')}>${inner}</div>`;
   }).join('');

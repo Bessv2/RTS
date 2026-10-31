@@ -22,13 +22,17 @@ const LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)\)/g;
 const NOT_TEXT = new Set(['id', 'type', 'icon', 'image', 'bgImage', 'href', 'anchor', 'bg', 'pad', 'overlay', 'layout', 'side', 'columns',
   'style', 'ratio', 'width', 'height', 'align', 'show', 'limit', 'price', 'period', 'url', 'address', 'panelIcon', 'size',
   'level', 'look', 'effect', 'img', 'valign', 'cv', 'dir', 'justify', 'items', 'ta', 'tt', 'font', 'place', 'bgSize', 'bgPos', 'shadow', 'bs', 'bc', 'color', 'bg2',
-  'anim', 'hbg', 'hcolor', 'hbc', 'hshadow']);
+  'anim', 'hbg', 'hcolor', 'hbc', 'hshadow', 'animSpeed', 'scroll', 'scrollAmt', 'loop', 'loopSpeed', 'speed', 'direction']);
 const VALID_ENDPOINT = /^https:\/\/[^\s/]+\/\S*$/i;
 
 // Words the section library fills in for new sections. Seeing them on a live
 // page means they were never replaced. Long default sentences and default list
 // items like “New service” count; one-word defaults like “Plan” are real words.
 let samples;
+// The words of rich text (a converted section's paragraphs), to compare with sample text.
+const textOf = (html) => String(html).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, '’').replace(/&quot;/g, '"')
+  .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
+
 function sampleTexts() {
   if (samples) return samples;
   samples = new Set(['A short introduction to this page.']);
@@ -46,7 +50,7 @@ function sampleTexts() {
   }
   for (const e of Object.values(ELEMENTS)) walk(e.defaults(), 1);
   // (premade sections inside layouts are covered by their section defaults above)
-  for (const e of Object.values(LAYOUT_ELEMENTS)) if (!e.widget) walk(e.defaults(), 1);
+  for (const e of Object.values(LAYOUT_ELEMENTS)) if (!e.widget) { const d = e.defaults(); if (d.html) d.html = textOf(d.html); walk(d, 1); }
   return samples;
 }
 
@@ -195,7 +199,7 @@ export function audit(doc) {
       const leftover = [];
       eachValue(sec.data || {}, '', (v, path, key) => {
         if (NOT_TEXT.has(key)) return;
-        if (sampleTexts().has(v.trim())) leftover.push([path, v]);
+        if (sampleTexts().has(key === 'html' ? textOf(v) : v.trim())) leftover.push([path, key === 'html' ? textOf(v) : v]);
         // Rich text (layouts) has HTML links, other text markdown ones.
         if (key === 'html') for (const m of v.matchAll(/<a href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) checkLink(m[1].replace(/&amp;/g, '&'), m[2].replace(/<[^>]+>/g, ''), place, { ...where, field: path });
         else checkText(v, place, { ...where, field: path });

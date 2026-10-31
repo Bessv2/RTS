@@ -106,6 +106,7 @@ const P = {
   button: '<rect x="3" y="7" width="18" height="10" rx="5"/><path d="M8 12h8"/>',
   minus: '<path d="M4 12h16"/>',
   spacing: '<path d="M4 3h16M4 21h16M12 7v10M9 9.5l3-3 3 3M9 14.5l3 3 3-3"/>',
+  pause: '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
 };
 
 const KEYS = Object.keys(P);
