@@ -1,6 +1,6 @@
 # Roe Technology Services website
 
-Consulting and technology services for small to medium businesses and residential clients.
+Tech help for local homes and home offices, plus emergency help when something breaks.
 Live at **https://roetechnologyservices.com** (GitHub Pages).
 
 The site is edited with a visual editor at **https://editor.roetechnologyservices.com**, so you

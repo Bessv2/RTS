@@ -3,13 +3,13 @@
   "site": {
     "name": "Roe Technology Services",
     "url": "https://roetechnologyservices.com",
-    "tagline": "Consulting and technology services for small to medium businesses and residential clients.",
-    "description": "Roe Technology Services provides IT consulting, networking, security, device deployment and support for small to medium businesses and homes.",
+    "tagline": "Tech help for local homes and home offices, plus emergency help when something breaks.",
+    "description": "Roe Technology Services provides tech help for local homes and home offices: Wi-Fi, security, device setup, backups and emergency support.",
     "logo": "",
     "logoIcon": "shield-check",
     "email": "info@roetechnologyservices.com",
     "phone": "",
-    "location": "Serving local businesses and homes",
+    "location": "Serving local homes and home offices",
     "headerStyle": "light",
     "headerCta": {
       "label": "Free consultation",
@@ -40,8 +40,8 @@
       "title": "Home",
       "slug": "",
       "showInNav": true,
-      "seoTitle": "Roe Technology Services | IT Consulting for Business & Home",
-      "seoDescription": "Reliable IT consulting, networking, security and device management for small to medium businesses and residential clients.",
+      "seoTitle": "Roe Technology Services | Tech Help for Home & Home Office",
+      "seoDescription": "Local tech help for homes and home offices: Wi-Fi, security, device setup, backups and emergency help when something breaks.",
       "sections": [
         {
           "id": "s-hero",
@@ -62,7 +62,7 @@
                     "els": [
                       {
                         "type": "heading",
-                        "text": "IT consulting · Business & residential",
+                        "text": "Home & home office · Emergency help",
                         "size": "label",
                         "level": "p",
                         "design": {
@@ -71,13 +71,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Reliable technology for growing businesses and modern homes.",
+                        "text": "Reliable tech help for your home and home office.",
                         "size": "hero",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>From secure networks and firewalls to device rollouts and disaster recovery, Roe Technology Services keeps your technology running so you can focus on what matters.</p>",
+                        "html": "<p>From Wi-Fi and security to new devices and backups, Roe Technology Services keeps the technology at home working, and helps fast when something goes wrong.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -119,13 +119,13 @@
                         "title": "Your IT, handled",
                         "items": [
                           {
-                            "text": "Firewall & network secured"
+                            "text": "Wi-Fi & router secured"
                           },
                           {
-                            "text": "Backups & recovery tested"
+                            "text": "Backups set up & tested"
                           },
                           {
-                            "text": "Devices deployed & managed"
+                            "text": "Devices set up & updated"
                           },
                           {
                             "text": "Support when you need it"
@@ -162,10 +162,10 @@
                             "name": "Microsoft 365"
                           },
                           {
-                            "name": "Google Workspace"
+                            "name": "Android"
                           },
                           {
-                            "name": "Apple Business Manager"
+                            "name": "Mac & iPhone"
                           },
                           {
                             "name": "Chromebooks"
@@ -211,13 +211,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "IT services that scale with you",
+                        "text": "Tech help for home and home office",
                         "size": "l",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>Ground-level support through high-level system integration and security — one trusted partner for all of it.</p>",
+                        "html": "<p>Everyday help with the technology you rely on at home, and fast help when something breaks.</p>",
                         "size": "l",
                         "design": {
                           "mt": -4,
@@ -249,7 +249,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "shield-check",
+                            "icon": "zap",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -257,13 +257,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Network & firewall security",
+                            "text": "Emergency tech help",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Modern firewall configuration, secure network design and ongoing hardening to keep threats out.</p>",
+                            "html": "<p>Hacked account, scam pop-up, a computer that won&#39;t start or files that vanished? Get help fast when something goes wrong.</p>",
                             "size": "s"
                           }
                         ]
@@ -291,13 +291,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Networking & Wi-Fi",
+                            "text": "Wi-Fi & network security",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Switches, routers and wireless setup and maintenance for reliable, fast connectivity.</p>",
+                            "html": "<p>Router and mesh Wi-Fi setup with the right security settings, so every room gets fast, safe internet.</p>",
                             "size": "s"
                           }
                         ]
@@ -325,13 +325,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Disaster recovery",
+                            "text": "Backups & file recovery",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Domain recovery, backup strategy and IT disaster recovery planning so you&#39;re never caught off guard.</p>",
+                            "html": "<p>Automatic backups for your photos and important files, and help getting them back after a crash.</p>",
                             "size": "s"
                           }
                         ]
@@ -359,13 +359,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Device deployment",
+                            "text": "Device setup",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Windows rollouts and upgrades, Apple Business Manager and iPad setups, and fleet-scale Chromebook management.</p>",
+                            "html": "<p>New computers, phones, tablets and printers set up, updated and moved over from your old ones.</p>",
                             "size": "s"
                           }
                         ]
@@ -393,13 +393,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Security cameras",
+                            "text": "Home security cameras",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Installation of camera surveillance and security systems for your business or home.</p>",
+                            "html": "<p>Doorbell and security camera setup for your home, with the app ready on your phone.</p>",
                             "size": "s"
                           }
                         ]
@@ -465,16 +465,16 @@
                             "label": "Years of IT experience"
                           },
                           {
-                            "value": "1,000+",
-                            "label": "Chromebooks deployed"
+                            "value": "7 days",
+                            "label": "Evening & weekend hours"
                           },
                           {
                             "value": "A+",
                             "label": "CompTIA certified"
                           },
                           {
-                            "value": "Biz + Home",
-                            "label": "Business & residential"
+                            "value": "Local",
+                            "label": "Homes & home offices"
                           }
                         ],
                         "type": "w-stats"
@@ -527,13 +527,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Enterprise-grade experience, small-business attention.",
+                        "text": "Real IT experience, personal attention.",
                         "size": "l",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>We bring over a decade of hands-on IT experience — from large-scale operating system rollouts to cybersecurity assessments — and apply it to the needs of your business or home.</p>",
+                        "html": "<p>We bring over a decade of hands-on IT experience to the technology in your home and home office, explained in plain language and sized to what you actually need.</p>",
                         "size": "m",
                         "design": {
                           "mt": -2
@@ -634,7 +634,7 @@
                           },
                           {
                             "title": "Support",
-                            "text": "Ongoing maintenance and help whenever you need it."
+                            "text": "Follow-up help if anything else comes up."
                           }
                         ],
                         "type": "w-steps"
@@ -734,7 +734,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Book a free consultation and get a clear plan for your network, devices and security.</p>",
+                        "html": "<p>Book a free consultation and get a clear plan for your home Wi-Fi, devices and security.</p>",
                         "size": "m",
                         "design": {
                           "mt": -8
@@ -783,7 +783,7 @@
       "slug": "services",
       "showInNav": true,
       "seoTitle": "Services | Roe Technology Services",
-      "seoDescription": "Firewall and network security, disaster recovery, device deployment, camera systems, servers and IT support.",
+      "seoDescription": "Emergency tech help, home Wi-Fi and network security, backups, device setup, security cameras and troubleshooting for local homes and home offices.",
       "sections": [
         {
           "id": "s-sv-hero",
@@ -809,13 +809,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Everything your technology needs.",
+                        "text": "Help with the technology at home.",
                         "size": "hero",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>One partner for networking, security, devices, servers and support — for businesses and homes.</p>",
+                        "html": "<p>Wi-Fi, security, devices, backups and emergency help, for local homes and home offices.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -878,6 +878,74 @@
                         "els": [
                           {
                             "type": "icon",
+                            "icon": "zap",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Emergency tech help",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Hacked accounts, scam pop-ups, computers that won&#39;t start and other urgent problems.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "wifi",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Wi-Fi & home networking",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Routers, mesh Wi-Fi and wired connections, set up so every room gets a reliable signal.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
                             "icon": "shield-check",
                             "look": "soft",
                             "design": {
@@ -886,81 +954,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Firewalls & network security",
+                            "text": "Home network security",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Configuration of modern firewalls and secure network architecture.</p>",
-                            "size": "s"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "span": 4,
-                    "mobile": {},
-                    "els": [
-                      {
-                        "type": "box",
-                        "look": "card",
-                        "design": {
-                          "gap": 8
-                        },
-                        "els": [
-                          {
-                            "type": "icon",
-                            "icon": "network",
-                            "look": "soft",
-                            "design": {
-                              "mb": 12
-                            }
-                          },
-                          {
-                            "type": "heading",
-                            "text": "Network setup & maintenance",
-                            "size": "s",
-                            "level": "auto"
-                          },
-                          {
-                            "type": "text",
-                            "html": "<p>Switches, routers and wireless — designed, installed and maintained.</p>",
-                            "size": "s"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "span": 4,
-                    "mobile": {},
-                    "els": [
-                      {
-                        "type": "box",
-                        "look": "card",
-                        "design": {
-                          "gap": 8
-                        },
-                        "els": [
-                          {
-                            "type": "icon",
-                            "icon": "server",
-                            "look": "soft",
-                            "design": {
-                              "mb": 12
-                            }
-                          },
-                          {
-                            "type": "heading",
-                            "text": "Servers",
-                            "size": "s",
-                            "level": "auto"
-                          },
-                          {
-                            "type": "text",
-                            "html": "<p>Server installation, configuration and ongoing maintenance.</p>",
+                            "html": "<p>Router security settings, firmware updates and a separate guest network for visitors and smart devices.</p>",
                             "size": "s"
                           }
                         ]
@@ -988,13 +988,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Disaster recovery",
+                            "text": "Backups & file recovery",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Domain recovery and IT disaster recovery planning.</p>",
+                            "html": "<p>Automatic backups for photos and important files, and help getting files back after a crash.</p>",
                             "size": "s"
                           }
                         ]
@@ -1014,7 +1014,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "lock",
+                            "icon": "shield",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -1022,13 +1022,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Cybersecurity assessments",
+                            "text": "Scam & hacked account cleanup",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>After-action assessments and vulnerability mitigation.</p>",
+                            "html": "<p>Getting back into hacked email or social media, removing unwanted software and locking accounts down.</p>",
                             "size": "s"
                           }
                         ]
@@ -1056,13 +1056,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Windows rollouts",
+                            "text": "Windows 11 upgrades",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Large-scale Windows operating system deployments and upgrades.</p>",
+                            "html": "<p>Checking whether your PC can upgrade, moving your files and settings, or helping you pick a replacement.</p>",
                             "size": "s"
                           }
                         ]
@@ -1090,13 +1090,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Apple & iPad deployment",
+                            "text": "Mac, iPhone & iPad",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Apple Business Manager setup and iPad deployments for organizations.</p>",
+                            "html": "<p>Apple device setup, updates, iCloud and moving everything over to a new device.</p>",
                             "size": "s"
                           }
                         ]
@@ -1116,7 +1116,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "school",
+                            "icon": "laptop",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -1124,13 +1124,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Chromebook fleets",
+                            "text": "Chromebooks & family devices",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Deployment and management of 1,000+ device Chromebook fleets for education.</p>",
+                            "html": "<p>Chromebook setup and updates, plus screen-time and safety settings for kids&#39; devices.</p>",
                             "size": "s"
                           }
                         ]
@@ -1158,13 +1158,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Camera & security systems",
+                            "text": "Home security cameras",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Surveillance camera and security system installation.</p>",
+                            "html": "<p>Doorbell and security camera setup for your home, with the app ready on your phone.</p>",
                             "size": "s"
                           }
                         ]
@@ -1192,13 +1192,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "End-user support",
+                            "text": "Support & troubleshooting",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Help with applications, performance and IT best practices.</p>",
+                            "html": "<p>Help with slow computers, software problems, printers and devices that won&#39;t cooperate.</p>",
                             "size": "s"
                           }
                         ]
@@ -1218,7 +1218,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "box",
+                            "icon": "home",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -1226,13 +1226,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Asset management",
+                            "text": "Home office setup",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Inventory control and lifecycle management for your hardware.</p>",
+                            "html": "<p>A dependable setup for working from home: Wi-Fi, printer, video calls and backups.</p>",
                             "size": "s"
                           }
                         ]
@@ -1252,7 +1252,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "plug",
+                            "icon": "lock",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -1260,13 +1260,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Cabling & buildouts",
+                            "text": "Account security",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Project management for new construction cabling infrastructure.</p>",
+                            "html": "<p>Multi-factor authentication, passkeys and a password manager set up on the accounts that matter most.</p>",
                             "size": "s"
                           }
                         ]
@@ -1328,12 +1328,12 @@
                         "intro": "",
                         "items": [
                           {
-                            "q": "Do you work with both businesses and homes?",
-                            "a": "Yes. We support small to medium businesses as well as residential clients who want reliable, secure technology at home."
+                            "q": "Who do you work with?",
+                            "a": "Local homes and home offices: households, families and people who work from home. We also help with tech emergencies, like a hacked account or a computer that won't start. We don't offer ongoing IT support or contracts for businesses."
                           },
                           {
-                            "q": "Can you help after a security incident?",
-                            "a": "Yes. We perform cybersecurity after-action assessments and help mitigate vulnerabilities so the same problem doesn't happen again."
+                            "q": "Can you help after a scam or a hacked account?",
+                            "a": "Yes. We'll help you get back into your accounts, check the computer for anything left behind, and lock things down so the same problem doesn't happen again."
                           },
                           {
                             "q": "How do I get started?",
@@ -1428,7 +1428,7 @@
       "slug": "about",
       "showInNav": true,
       "seoTitle": "About | Roe Technology Services",
-      "seoDescription": "Over 10 years of comprehensive IT experience, A+ certified, supporting businesses and homes.",
+      "seoDescription": "Over 10 years of IT experience and CompTIA A+ certified, helping local homes and home offices.",
       "sections": [
         {
           "id": "s-ab-hero",
@@ -1460,7 +1460,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Roe Technology Services helps clients strengthen their technology infrastructure and reach their goals efficiently.</p>",
+                        "html": "<p>Roe Technology Services helps local households and home offices keep their technology safe, working and easy to use.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -1506,13 +1506,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Over 10 years of comprehensive IT experience.",
+                        "text": "Over 10 years of hands-on IT experience.",
                         "size": "l",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>Roe Technology Services is led by an A+ certified IT professional whose experience spans foundational support to advanced technology solutions — from securing networks and recovering domains to deploying thousands of devices. That broad skill set means we can support you from ground-level IT needs through high-level system integrations and security, ensuring efficient and secure operations.</p>",
+                        "html": "<p>Roe Technology Services is run by a CompTIA A+ certified IT professional with over 10 years of hands-on experience. That background goes into helping local households and home offices with Wi-Fi, security, devices and backups, and into fast help when something goes wrong.</p>",
                         "size": "m",
                         "design": {
                           "mt": -2
@@ -1526,7 +1526,7 @@
                             "text": "CompTIA A+ certified"
                           },
                           {
-                            "text": "Business and residential clients"
+                            "text": "Homes and home offices"
                           },
                           {
                             "text": "Security-first approach"
@@ -1611,40 +1611,40 @@
                         "intro": "",
                         "items": [
                           {
-                            "text": "Configuring modern firewalls and securing networks"
+                            "text": "Securing home routers and Wi-Fi networks"
                           },
                           {
-                            "text": "Domain recovery and IT disaster recovery planning"
+                            "text": "Recovering hacked email and social media accounts"
                           },
                           {
-                            "text": "Large-scale Windows rollouts and upgrades"
+                            "text": "Windows 11 upgrades and new PC setup"
                           },
                           {
-                            "text": "Apple Business Manager and iPad deployments"
+                            "text": "Mac, iPhone and iPad setup"
                           },
                           {
-                            "text": "Deploying and managing 1,000+ Chromebooks"
+                            "text": "Chromebook setup and parental controls"
                           },
                           {
                             "text": "Hardware and software troubleshooting"
                           },
                           {
-                            "text": "Cybersecurity after-action assessments"
+                            "text": "Scam and malware cleanup"
                           },
                           {
-                            "text": "Switch, router and wireless configuration"
+                            "text": "Router, mesh Wi-Fi and wired network setup"
                           },
                           {
-                            "text": "Server installation and maintenance"
+                            "text": "Backups and file recovery"
                           },
                           {
-                            "text": "Asset management and lifecycle control"
+                            "text": "Home office setup"
                           },
                           {
-                            "text": "Security camera system installation"
+                            "text": "Home security camera setup"
                           },
                           {
-                            "text": "Cabling project management for new construction"
+                            "text": "Multi-factor authentication, passkeys and password managers"
                           }
                         ],
                         "type": "w-checklist"
@@ -1675,8 +1675,8 @@
                             "label": "Years in IT"
                           },
                           {
-                            "value": "1,000+",
-                            "label": "Devices deployed"
+                            "value": "Local",
+                            "label": "Homes & home offices"
                           },
                           {
                             "value": "A+",
@@ -1734,7 +1734,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>What&#39;s happening in the tech world, practical advice for your business and home, and a few things I like.</p>",
+                        "html": "<p>What&#39;s happening in the tech world, practical advice for your home and home office, and a few things I like.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -1791,7 +1791,7 @@
       "showInNav": true,
       "draft": true,
       "seoTitle": "Free cybersecurity and tech resources | Roe Technology Services",
-      "seoDescription": "Trustworthy free guides and tools to protect your business and home online, from CISA, the FTC, NIST and more.",
+      "seoDescription": "Trustworthy free guides and tools to protect your home and home office online, from CISA, the FTC and more.",
       "sections": [
         {
           "id": "s-res-hero",
@@ -1823,7 +1823,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Practical, official resources to keep your business and your home safe online. Not sure where to start? Ask us.</p>",
+                        "html": "<p>Practical, official resources to keep your home and home office safe online. Not sure where to start? Ask us.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -1953,34 +1953,6 @@
                             "url": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
                             "category": "Stay safe online",
                             "icon": "alert"
-                          },
-                          {
-                            "title": "Cybersecurity for Small Business",
-                            "text": "The FTC’s plain-language guides on the basics, ransomware, phishing, vendor security and more.",
-                            "url": "https://www.ftc.gov/business-guidance/small-businesses/cybersecurity",
-                            "category": "For small businesses",
-                            "icon": "briefcase"
-                          },
-                          {
-                            "title": "Small Business Cybersecurity Corner",
-                            "text": "NIST’s free resources for understanding and reducing your cybersecurity risks.",
-                            "url": "https://www.nist.gov/itl/smallbusinesscyber",
-                            "category": "For small businesses",
-                            "icon": "building"
-                          },
-                          {
-                            "title": "Small and medium businesses",
-                            "text": "CISA’s free information and tools for protecting your people, customers and data.",
-                            "url": "https://www.cisa.gov/topics/small-and-medium-businesses",
-                            "category": "For small businesses",
-                            "icon": "shield"
-                          },
-                          {
-                            "title": "#StopRansomware Guide",
-                            "text": "Prevention best practices and a response checklist from CISA, the FBI and partners.",
-                            "url": "https://www.cisa.gov/stopransomware/ransomware-guide",
-                            "category": "For small businesses",
-                            "icon": "database"
                           },
                           {
                             "title": "Report fraud to the FTC",
@@ -2134,7 +2106,7 @@
       "slug": "contact",
       "showInNav": true,
       "seoTitle": "Contact | Roe Technology Services",
-      "seoDescription": "Get in touch with Roe Technology Services for a free IT consultation.",
+      "seoDescription": "Get in touch with Roe Technology Services for home and home office tech help, or fast help with a tech emergency.",
       "sections": [
         {
           "id": "s-ct-form",
@@ -2150,7 +2122,7 @@
                         "showForm": true,
                         "eyebrow": "Contact",
                         "heading": "Let's talk about your technology.",
-                        "text": "Tell us what you're working on — a new network, a security concern, a device rollout or something that just isn't working. We'll get back to you within one business day.",
+                        "text": "Tell us what's going on: a hacked account, slow Wi-Fi, a new device to set up or something that just isn't working. We'll get back to you within one business day.",
                         "hours": "Mon–Fri, 6pm–9pm\nSat–Sun, 10am–5pm",
                         "button": "Send message",
                         "sentText": "Your contact form has been submitted! We will get back to you as soon as possible!",
@@ -2195,7 +2167,7 @@
       "image": "/assets/library/circuit.svg",
       "summary": "Passkeys let you sign in with your fingerprint, face or PIN instead of a password, and they can’t be phished. Here’s how they work and how to start.",
       "link": "",
-      "body": "A passkey replaces your password with your device’s own lock: your fingerprint, your face or your PIN. Google, Apple, Microsoft and many banks and shops now support them.\n\n## Why they’re safer\n- **Nothing to steal or reuse.** A passkey is a pair of keys. The secret half stays on your device; the website only keeps the public half, which is useless to a thief.\n- **They can’t be phished.** Each passkey only works on the real website or app it was made for, so a lookalike site can’t trick you into handing it over.\n- **Nothing to remember.** You unlock your phone or computer the way you already do.\n\n## Where passkeys live\nMost passkeys sync through your Apple, Google or Microsoft account or your password manager, so they follow you to a new phone. A hardware security key keeps one on a single physical device instead.\n\n## Set one up for your Google account\n1. Make sure your phone or computer has a screen lock.\n2. Go to your Google Account’s passkeys page and choose **Create a passkey**.\n3. Next time you sign in, confirm with your fingerprint, face or PIN.\n\nYour password and other sign-in methods still work as a backup, so you can try passkeys without risk.\n\n## Good to know\n- Start with the accounts that matter most: email, banking and your Apple, Google or Microsoft account.\n- Keep your account recovery options up to date in case you lose your device.\n- Not every site supports passkeys yet. For the rest, a password manager plus [multi-factor authentication](/blog/turn-on-multi-factor-authentication/) is still the way to go.\n\n## Go deeper\n- FIDO Alliance: [What are passkeys?](https://fidoalliance.org/passkeys/)\n- Google: [Sign in with a passkey instead of a password](https://support.google.com/accounts/answer/13548313?hl=en)\n\nWant help moving your business accounts to passkeys? [Let’s talk](/contact/)."
+      "body": "A passkey replaces your password with your device’s own lock: your fingerprint, your face or your PIN. Google, Apple, Microsoft and many banks and shops now support them.\n\n## Why they’re safer\n- **Nothing to steal or reuse.** A passkey is a pair of keys. The secret half stays on your device; the website only keeps the public half, which is useless to a thief.\n- **They can’t be phished.** Each passkey only works on the real website or app it was made for, so a lookalike site can’t trick you into handing it over.\n- **Nothing to remember.** You unlock your phone or computer the way you already do.\n\n## Where passkeys live\nMost passkeys sync through your Apple, Google or Microsoft account or your password manager, so they follow you to a new phone. A hardware security key keeps one on a single physical device instead.\n\n## Set one up for your Google account\n1. Make sure your phone or computer has a screen lock.\n2. Go to your Google Account’s passkeys page and choose **Create a passkey**.\n3. Next time you sign in, confirm with your fingerprint, face or PIN.\n\nYour password and other sign-in methods still work as a backup, so you can try passkeys without risk.\n\n## Good to know\n- Start with the accounts that matter most: email, banking and your Apple, Google or Microsoft account.\n- Keep your account recovery options up to date in case you lose your device.\n- Not every site supports passkeys yet. For the rest, a password manager plus [multi-factor authentication](/blog/turn-on-multi-factor-authentication/) is still the way to go.\n\n## Go deeper\n- FIDO Alliance: [What are passkeys?](https://fidoalliance.org/passkeys/)\n- Google: [Sign in with a passkey instead of a password](https://support.google.com/accounts/answer/13548313?hl=en)\n\nWant help setting up passkeys on your accounts? [Let’s talk](/contact/)."
     },
     {
       "id": "post-hacked",
@@ -2208,7 +2180,7 @@
       "image": "/assets/library/hex-shield.svg",
       "summary": "Locked out, or friends getting strange messages from you? Here is the order to work in, from getting back in to warning your contacts.",
       "link": "",
-      "body": "Your email is the key to almost everything else: password resets for your bank, shopping and social media all go there. If it’s taken over, act quickly and in this order.\n\n## Signs someone got in\n- You can’t log in, or your password or recovery email changed without you.\n- You get an alert about a sign-in from a device or place you don’t recognize.\n- Friends tell you they got odd messages or requests for money from you.\n\n## 1. Clean your computer first\nUpdate your security software and run a full scan. If it finds anything, remove it and restart. Otherwise whoever got in may simply get in again.\n\n## 2. Get back in\nUse the provider’s own account recovery page (Google, Microsoft, Apple, Facebook and others all have one). Go to it directly, never through a link in an email or text.\n\n## 3. Lock the account down\n- [ ] Change the password to a long, unique one, ideally made by a password manager.\n- [ ] Sign out of all other devices from the security settings.\n- [ ] Turn on [multi-factor authentication](/blog/turn-on-multi-factor-authentication/), or set up a passkey.\n- [ ] Check the recovery email and phone number are yours.\n- [ ] Look for forwarding rules or filters you didn’t create. Attackers use them to keep reading your mail.\n- [ ] Change the password anywhere else you used the same one.\n\n## 4. Tell people\nLet friends, family and customers know, and ask them not to click links or send money because of a message from you.\n\n## 5. If personal information was misused\nReport it at [IdentityTheft.gov](https://www.identitytheft.gov/) for a step-by-step recovery plan, and check whether your address appears in known breaches at [Have I Been Pwned](https://haveibeenpwned.com/).\n\n## Go deeper\n- FTC: [How To Recover Your Hacked Email or Social Media Account](https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account)\n- FTC: [What To Do if You Were Scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)\n\nNeed a hand getting back in or cleaning up a computer? [Contact us](/contact/)."
+      "body": "Your email is the key to almost everything else: password resets for your bank, shopping and social media all go there. If it’s taken over, act quickly and in this order.\n\n## Signs someone got in\n- You can’t log in, or your password or recovery email changed without you.\n- You get an alert about a sign-in from a device or place you don’t recognize.\n- Friends tell you they got odd messages or requests for money from you.\n\n## 1. Clean your computer first\nUpdate your security software and run a full scan. If it finds anything, remove it and restart. Otherwise whoever got in may simply get in again.\n\n## 2. Get back in\nUse the provider’s own account recovery page (Google, Microsoft, Apple, Facebook and others all have one). Go to it directly, never through a link in an email or text.\n\n## 3. Lock the account down\n- [ ] Change the password to a long, unique one, ideally made by a password manager.\n- [ ] Sign out of all other devices from the security settings.\n- [ ] Turn on [multi-factor authentication](/blog/turn-on-multi-factor-authentication/), or set up a passkey.\n- [ ] Check the recovery email and phone number are yours.\n- [ ] Look for forwarding rules or filters you didn’t create. Attackers use them to keep reading your mail.\n- [ ] Change the password anywhere else you used the same one.\n\n## 4. Tell people\nLet friends, family and your other contacts know, and ask them not to click links or send money because of a message from you.\n\n## 5. If personal information was misused\nReport it at [IdentityTheft.gov](https://www.identitytheft.gov/) for a step-by-step recovery plan, and check whether your address appears in known breaches at [Have I Been Pwned](https://haveibeenpwned.com/).\n\n## Go deeper\n- FTC: [How To Recover Your Hacked Email or Social Media Account](https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account)\n- FTC: [What To Do if You Were Scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)\n\nNeed a hand getting back in or cleaning up a computer? [Contact us](/contact/)."
     },
     {
       "id": "post-router",
@@ -2234,20 +2206,20 @@
       "image": "/assets/library/waves.svg",
       "summary": "Most Wi-Fi problems have simple causes. Try these seven fixes, in this order, before replacing anything.",
       "link": "",
-      "body": "Slow or patchy Wi-Fi is one of the most common problems we see. Before buying new equipment, work through these steps.\n\n## 1. Restart the modem and router\nUnplug both for 30 seconds, plug the modem in first, wait until it is online, then the router. It clears up more problems than you’d think.\n\n## 2. Move the router\nWi-Fi travels best through open air. Put the router up high, near the middle of the space, and away from metal shelves, fish tanks and microwaves.\n\n## 3. Check the speed you’re paying for\nRun a speed test next to the router, connected by cable if you can. If it is far below your plan, the problem is the internet connection, not your Wi-Fi. The [FCC National Broadband Map](https://broadbandmap.fcc.gov/) shows which providers and speeds are available at your address.\n\n## 4. Update the router\nRouter updates fix bugs and security holes. Many routers can update automatically; turn that on.\n\n## 5. Use the right band\nNewer devices do better on 5 GHz (faster, shorter range); 2.4 GHz reaches further but is slower and more crowded.\n\n## 6. Plug in what doesn’t move\nDesktop computers, TVs and printers are faster and more reliable on a network cable, and they free up Wi-Fi for phones and laptops.\n\n## 7. Add coverage the right way\nIf some rooms are still weak, a mesh system or a wired access point usually works much better than a plug-in extender.\n\nStill stuck? [We’ll take a look](/contact/), for homes and businesses alike."
+      "body": "Slow or patchy Wi-Fi is one of the most common problems we see. Before buying new equipment, work through these steps.\n\n## 1. Restart the modem and router\nUnplug both for 30 seconds, plug the modem in first, wait until it is online, then the router. It clears up more problems than you’d think.\n\n## 2. Move the router\nWi-Fi travels best through open air. Put the router up high, near the middle of the space, and away from metal shelves, fish tanks and microwaves.\n\n## 3. Check the speed you’re paying for\nRun a speed test next to the router, connected by cable if you can. If it is far below your plan, the problem is the internet connection, not your Wi-Fi. The [FCC National Broadband Map](https://broadbandmap.fcc.gov/) shows which providers and speeds are available at your address.\n\n## 4. Update the router\nRouter updates fix bugs and security holes. Many routers can update automatically; turn that on.\n\n## 5. Use the right band\nNewer devices do better on 5 GHz (faster, shorter range); 2.4 GHz reaches further but is slower and more crowded.\n\n## 6. Plug in what doesn’t move\nDesktop computers, TVs and printers are faster and more reliable on a network cable, and they free up Wi-Fi for phones and laptops.\n\n## 7. Add coverage the right way\nIf some rooms are still weak, a mesh system or a wired access point usually works much better than a plug-in extender.\n\nStill stuck? [We’ll take a look](/contact/), for homes and home offices alike."
     },
     {
       "id": "post-checklist",
-      "slug": "small-business-cybersecurity-checklist",
+      "slug": "home-office-cybersecurity-checklist",
       "kind": "post",
-      "title": "Small business cybersecurity checklist: 10 things to do this month",
+      "title": "Home office cybersecurity checklist: 10 things to do this month",
       "date": "2026-10-16",
       "published": false,
-      "tags": "Security, Small business",
+      "tags": "Security, Home office",
       "image": "/assets/library/network-mesh.svg",
       "summary": "You don’t need a big budget to be much safer. Ten practical steps, most of them free, that close the gaps attackers use most.",
       "link": "",
-      "body": "Most attacks on small businesses aren’t clever. They take advantage of the basics: reused passwords, missing updates and people in a hurry. Work through this list this month. Tick each item as you go; your ticks are saved on this device.\n\n## Accounts and passwords\n- [ ] **Turn on multi-factor authentication** for email, banking, payroll and admin accounts.\n- [ ] **Use a password manager** so every account has a long, unique password. CISA suggests at least 16 random characters.\n- [ ] **Remove old accounts** for people who have left, and review who has admin rights.\n\n## Devices and software\n- [ ] **Turn on automatic updates** for computers, phones, routers and apps.\n- [ ] **Replace computers that no longer get security updates**, such as anything still on Windows 10.\n- [ ] **Keep a simple list of your devices** so you know what needs protecting.\n\n## Data\n- [ ] **Back up with the 3-2-1 rule** and keep one copy offline.\n- [ ] **Separate guest Wi-Fi** from the network your business computers use.\n\n## People\n- [ ] **Talk about phishing.** Agree that nobody pays an invoice or changes bank details because of an email alone; call to confirm.\n- [ ] **Know what to do if something goes wrong:** who to call, and where to report it, such as [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/) or the FBI at [ic3.gov](https://www.ic3.gov/).\n\n## Free official guides\n- FTC: [Cybersecurity for Small Business](https://www.ftc.gov/business-guidance/small-businesses/cybersecurity)\n- NIST: [Small Business Cybersecurity Corner](https://www.nist.gov/itl/smallbusinesscyber)\n- CISA: [Secure Our World](https://www.cisa.gov/secure-our-world)\n\nWant help working through the list? [Book a free consultation](/contact/)."
+      "body": "Most attacks on people who work from home aren’t clever. They take advantage of the basics: reused passwords, missing updates and people in a hurry. Work through this list this month. Tick each item as you go; your ticks are saved on this device.\n\n## Accounts and passwords\n- [ ] **Turn on multi-factor authentication** for email, banking and the accounts you use for work.\n- [ ] **Use a password manager** so every account has a long, unique password. CISA suggests at least 16 random characters.\n- [ ] **Remove old accounts** and apps you no longer use, and don’t use an administrator account for everyday work.\n\n## Devices and software\n- [ ] **Turn on automatic updates** for computers, phones, routers and apps.\n- [ ] **Replace computers that no longer get security updates**, such as anything still on Windows 10.\n- [ ] **Keep a simple list of your devices** so you know what needs protecting.\n\n## Data\n- [ ] **Back up with the 3-2-1 rule** and keep one copy offline.\n- [ ] **Put guests and smart devices on a guest Wi-Fi network**, separate from your work computer.\n\n## Habits\n- [ ] **Slow down on urgent emails.** Never pay an invoice or change bank details because of an email alone; call a number you already know to confirm.\n- [ ] **Know what to do if something goes wrong:** who to call, and where to report it, such as [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/) or the FBI at [ic3.gov](https://www.ic3.gov/).\n\n## Free official guides\n- FTC: [How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network)\n- FTC: [How to recognize and avoid phishing scams](https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams)\n- CISA: [Secure Our World](https://www.cisa.gov/secure-our-world)\n\nWant help working through the list? [Book a free consultation](/contact/)."
     },
     {
       "id": "post-backups",
@@ -2260,7 +2232,7 @@
       "image": "/assets/library/server-grid.svg",
       "summary": "One copy of your files is no copy. The 3-2-1 rule is an easy way to make sure a broken laptop or ransomware doesn’t take your work with it.",
       "link": "",
-      "body": "Hard drives fail, laptops get lost and ransomware locks files. A good backup turns any of those into an inconvenience instead of a disaster.\n\n## The rule\n- **3 copies** of your important files: the original plus two backups.\n- **2 different kinds of storage**, for example your computer and an external drive or a cloud service.\n- **1 copy somewhere else**, away from your office or home, such as a cloud backup.\n\n## Keep one copy offline\nRansomware can encrypt anything it can reach, including a backup drive that is always plugged in. CISA recommends keeping **offline, encrypted backups** of important data and testing them regularly.\n\n## Test your backups\nA backup you’ve never restored from is a guess. A few times a year, try restoring a file or two and make sure it opens.\n\n## A simple setup that works\n1. An automatic cloud backup of your computers or your shared files.\n2. An external drive that you back up to weekly and then unplug.\n3. A reminder on your calendar to test a restore every few months.\n\nWant it set up and checked for you? [We can help](/contact/).\n\nSource: CISA, [#StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)."
+      "body": "Hard drives fail, laptops get lost and ransomware locks files. A good backup turns any of those into an inconvenience instead of a disaster.\n\n## The rule\n- **3 copies** of your important files: the original plus two backups.\n- **2 different kinds of storage**, for example your computer and an external drive or a cloud service.\n- **1 copy somewhere else**, away from your home, such as a cloud backup.\n\n## Keep one copy offline\nRansomware can encrypt anything it can reach, including a backup drive that is always plugged in. CISA recommends keeping **offline, encrypted backups** of important data and testing them regularly.\n\n## Test your backups\nA backup you’ve never restored from is a guess. A few times a year, try restoring a file or two and make sure it opens.\n\n## A simple setup that works\n1. An automatic cloud backup of your computers or your shared files.\n2. An external drive that you back up to weekly and then unplug.\n3. A reminder on your calendar to test a restore every few months.\n\nWant it set up and checked for you? [We can help](/contact/).\n\nSource: CISA, [#StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)."
     },
     {
       "id": "post-windows-10",
@@ -2269,11 +2241,11 @@
       "title": "Windows 10 support has ended: what it means for your PCs",
       "date": "2026-10-16",
       "published": false,
-      "tags": "Windows, Small business",
+      "tags": "Windows, Tips",
       "image": "/assets/library/circuit.svg",
       "summary": "Microsoft stopped updating Windows 10 on October 14, 2025. Your computers still work, but they no longer get security fixes. Here are your options.",
       "link": "",
-      "body": "Microsoft ended support for Windows 10 on **October 14, 2025**. If your business or home still has Windows 10 computers, here’s what that means.\n\n## What changed\n- **No more security updates.** New problems found in Windows 10 are no longer fixed, so the computer becomes easier to attack over time.\n- **No more technical support** from Microsoft.\n- **Your computer still works.** Nothing switches off. The risk grows quietly.\n\nMicrosoft 365 apps keep receiving security updates on Windows 10 for a while longer (until October 10, 2028), but the operating system underneath them doesn’t.\n\n## Your options\n1. **Upgrade to Windows 11** if the computer meets Microsoft’s requirements. It’s a free upgrade for eligible PCs.\n2. **Replace the computer** if it can’t run Windows 11. This is often the right time for older machines anyway.\n3. **Extended Security Updates (ESU).** Microsoft offers a paid program that adds security updates for a limited time. It buys time, but it isn’t a long-term plan.\n\n## How we can help\nWe can check which of your computers can upgrade, move your files and settings safely, and plan replacements so nobody loses a day of work. [Get in touch](/contact/) for a quick review.\n\nSource: Microsoft, [End of support for Windows 10](https://www.microsoft.com/en-us/windows/end-of-support)."
+      "body": "Microsoft ended support for Windows 10 on **October 14, 2025**. If you still have Windows 10 computers at home or in your home office, here’s what that means.\n\n## What changed\n- **No more security updates.** New problems found in Windows 10 are no longer fixed, so the computer becomes easier to attack over time.\n- **No more technical support** from Microsoft.\n- **Your computer still works.** Nothing switches off. The risk grows quietly.\n\nMicrosoft 365 apps keep receiving security updates on Windows 10 for a while longer (until October 10, 2028), but the operating system underneath them doesn’t.\n\n## Your options\n1. **Upgrade to Windows 11** if the computer meets Microsoft’s requirements. It’s a free upgrade for eligible PCs.\n2. **Replace the computer** if it can’t run Windows 11. This is often the right time for older machines anyway.\n3. **Extended Security Updates (ESU).** Microsoft offers a paid program that adds security updates for a limited time. It buys time, but it isn’t a long-term plan.\n\n## How we can help\nWe can check which of your computers can upgrade, move your files and settings safely, and plan replacements so nobody loses a day of work. [Get in touch](/contact/) for a quick review.\n\nSource: Microsoft, [End of support for Windows 10](https://www.microsoft.com/en-us/windows/end-of-support)."
     },
     {
       "id": "post-phishing",
@@ -2291,14 +2263,14 @@
     {
       "id": "post-network-signs",
       "kind": "post",
-      "title": "5 signs your small business network needs an upgrade",
+      "title": "5 signs your home network needs an upgrade",
       "slug": "5-signs-your-network-needs-an-upgrade",
       "date": "2026-10-01",
       "published": true,
-      "tags": "Networking, Small business",
+      "tags": "Networking, Tips",
       "image": "assets/library/network-mesh.svg",
       "summary": "Slow Wi-Fi, dropped video calls and mystery outages usually aren't bad luck. Here's how to tell when it's time to modernize.",
-      "body": "Most networks aren't designed. They grow one switch, one extender and one \"temporary\" cable at a time. Eventually that adds up to slowdowns and outages nobody can explain.\n\n## 1. Wi-Fi gets worse when everyone is in the office\nIf things are fine at 7am and crawl by 10am, your access points are overloaded or badly placed. Modern business-grade Wi-Fi is built for lots of devices at once.\n\n## 2. Video calls freeze or drop\nCalls are the first thing to suffer when bandwidth is shared poorly. Quality-of-service settings and a properly sized internet connection make a big difference.\n\n## 3. Your firewall is older than your phone\nOlder firewalls stop receiving security updates and often can't keep up with today's internet speeds. If yours is past end of life, it's a security risk as well as a bottleneck.\n\n## 4. Nobody knows where the cables go\nUnlabeled cables and a tangled closet make every problem take longer to fix.\n\n## 5. Guests and staff share the same network\nVisitors and personal devices should be kept separate from the computers that run your business.\n\n> A little planning now prevents a lot of downtime later.\n\nIf any of these sound familiar, [get in touch](/contact/) for a free network review.",
+      "body": "Most home networks aren't designed. They grow one extender, one smart gadget and one \"temporary\" cable at a time. Eventually that adds up to slowdowns and outages nobody can explain.\n\n## 1. Wi-Fi gets worse when everyone is home\nIf things are fine during the day and crawl in the evening, when everyone is streaming and gaming, your router is overloaded or badly placed. A modern router or mesh system is built for lots of devices at once.\n\n## 2. Video calls freeze or drop\nCalls are the first thing to suffer when bandwidth is shared poorly. Quality-of-service settings and a properly sized internet connection make a big difference.\n\n## 3. Your router is older than your phone\nOlder routers stop receiving security updates and often can't keep up with today's internet speeds. If yours no longer gets updates, it's a security risk as well as a bottleneck.\n\n## 4. Nobody knows where the cables go\nUnlabeled cables and a tangle behind the desk or TV make every problem take longer to fix.\n\n## 5. Guests and smart devices share your main network\nVisitors, smart TVs, cameras and doorbells should be on a guest network, separate from the computers you work and bank on.\n\n> A little planning now prevents a lot of downtime later.\n\nIf any of these sound familiar, [get in touch](/contact/) for a free home network review.",
       "link": ""
     },
     {
@@ -2311,7 +2283,7 @@
       "tags": "Security, Tips",
       "image": "assets/library/hex-shield.svg",
       "summary": "Stolen passwords are behind a huge share of account break-ins. Multi-factor authentication is the simplest, cheapest fix.",
-      "body": "Passwords get reused, guessed and leaked. **Multi-factor authentication (MFA)** adds a second check, like a code on your phone, so a stolen password alone isn't enough.\n\n## Where to turn it on first\n- Your email account (it can reset everything else)\n- Banking and payroll\n- Microsoft 365 or Google Workspace admin accounts\n- Your domain registrar and website host\n\n## Which method to choose\n1. An authenticator app or security key is the strongest everyday option.\n2. Text-message codes are better than nothing, but easier to intercept.\n\nIt takes about ten minutes per account, and it's one of the best security investments a small business can make.",
+      "body": "Passwords get reused, guessed and leaked. **Multi-factor authentication (MFA)** adds a second check, like a code on your phone, so a stolen password alone isn't enough.\n\n## Where to turn it on first\n- Your email account (it can reset everything else)\n- Banking and payment apps\n- Your Apple, Google or Microsoft account\n- Social media accounts\n\n## Which method to choose\n1. An authenticator app or security key is the strongest everyday option.\n2. Text-message codes are better than nothing, but easier to intercept.\n\nIt takes about ten minutes per account, and it's one of the best security steps you can take.",
       "link": ""
     },
     {
