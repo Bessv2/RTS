@@ -786,7 +786,7 @@
       "slug": "services",
       "showInNav": true,
       "seoTitle": "Services | Roe Technology Services",
-      "seoDescription": "Home Wi-Fi and network security, backups, device setup, security cameras, scam cleanup and troubleshooting for local homes and home offices.",
+      "seoDescription": "Home Wi-Fi and network security, backups, device setup, security cameras, scam cleanup and troubleshooting for local homes, home offices and small organizations.",
       "sections": [
         {
           "id": "s-sv-hero",
@@ -812,13 +812,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Help with the technology at home.",
+                        "text": "Help with the technology you rely on.",
                         "size": "hero",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>Wi-Fi, security, devices, backups and troubleshooting, for local homes and home offices.</p>",
+                        "html": "<p>Wi-Fi, security, devices, backups and troubleshooting, for local homes, home offices and small organizations.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
