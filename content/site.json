@@ -3,8 +3,8 @@
   "site": {
     "name": "Roe Technology Services",
     "url": "https://roetechnologyservices.com",
-    "tagline": "Tech help for local homes and home offices, plus emergency help when something breaks.",
-    "description": "Roe Technology Services provides tech help for local homes and home offices: Wi-Fi, security, device setup, backups and emergency support.",
+    "tagline": "Tech help for local homes and home offices.",
+    "description": "Roe Technology Services provides tech help for local homes and home offices: Wi-Fi, security, device setup, backups and troubleshooting.",
     "logo": "",
     "logoIcon": "shield-check",
     "email": "info@roetechnologyservices.com",
@@ -19,6 +19,9 @@
     "formEndpoint": "https://formspree.io/f/myezrgov",
     "announcement": {
       "enabled": false
+    },
+    "notFound": {
+      "heading": "Sorry, I couldn’t find that page"
     }
   },
   "theme": {
@@ -41,7 +44,7 @@
       "slug": "",
       "showInNav": true,
       "seoTitle": "Roe Technology Services | Tech Help for Home & Home Office",
-      "seoDescription": "Local tech help for homes and home offices: Wi-Fi, security, device setup, backups and emergency help when something breaks.",
+      "seoDescription": "Local tech help for homes and home offices: Wi-Fi, security, device setup, backups and troubleshooting.",
       "sections": [
         {
           "id": "s-hero",
@@ -62,7 +65,7 @@
                     "els": [
                       {
                         "type": "heading",
-                        "text": "Home & home office · Emergency help",
+                        "text": "Tech help for home & home office",
                         "size": "label",
                         "level": "p",
                         "design": {
@@ -77,7 +80,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>From Wi-Fi and security to new devices and backups, Roe Technology Services keeps the technology at home working, and helps fast when something goes wrong.</p>",
+                        "html": "<p>From Wi-Fi and security to new devices and backups, Roe Technology Services keeps the technology at home working, and helps when something goes wrong.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -202,7 +205,7 @@
                     "els": [
                       {
                         "type": "heading",
-                        "text": "What we do",
+                        "text": "What I do",
                         "size": "label",
                         "level": "p",
                         "design": {
@@ -217,7 +220,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Everyday help with the technology you rely on at home, and fast help when something breaks.</p>",
+                        "html": "<p>Everyday help with the technology you rely on at home and in your home office.</p>",
                         "size": "l",
                         "design": {
                           "mt": -4,
@@ -249,7 +252,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "zap",
+                            "icon": "home",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -257,13 +260,13 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Emergency tech help",
+                            "text": "Home office setup",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Hacked account, scam pop-up, a computer that won&#39;t start or files that vanished? Get help fast when something goes wrong.</p>",
+                            "html": "<p>A dependable setup for working from home: Wi-Fi, printer, video calls and security.</p>",
                             "size": "s"
                           }
                         ]
@@ -533,7 +536,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>We bring over a decade of hands-on IT experience to the technology in your home and home office, explained in plain language and sized to what you actually need.</p>",
+                        "html": "<p>I bring over a decade of hands-on IT experience to the technology in your home and home office, explained in plain language and sized to what you actually need.</p>",
                         "size": "m",
                         "design": {
                           "mt": -2
@@ -559,7 +562,7 @@
                       },
                       {
                         "type": "button",
-                        "label": "About us",
+                        "label": "About me",
                         "href": "/about/",
                         "style": "primary",
                         "size": "md",
@@ -593,7 +596,7 @@
                     "els": [
                       {
                         "type": "heading",
-                        "text": "How we work",
+                        "text": "How I work",
                         "size": "label",
                         "level": "p",
                         "design": {
@@ -622,7 +625,7 @@
                         "items": [
                           {
                             "title": "Assess",
-                            "text": "We review your current setup, risks and goals."
+                            "text": "I review your current setup, risks and goals."
                           },
                           {
                             "title": "Plan",
@@ -630,7 +633,7 @@
                           },
                           {
                             "title": "Implement",
-                            "text": "We install, configure and test everything properly."
+                            "text": "I install, configure and test everything properly."
                           },
                           {
                             "title": "Support",
@@ -783,7 +786,7 @@
       "slug": "services",
       "showInNav": true,
       "seoTitle": "Services | Roe Technology Services",
-      "seoDescription": "Emergency tech help, home Wi-Fi and network security, backups, device setup, security cameras and troubleshooting for local homes and home offices.",
+      "seoDescription": "Home Wi-Fi and network security, backups, device setup, security cameras, scam cleanup and troubleshooting for local homes and home offices.",
       "sections": [
         {
           "id": "s-sv-hero",
@@ -815,7 +818,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Wi-Fi, security, devices, backups and emergency help, for local homes and home offices.</p>",
+                        "html": "<p>Wi-Fi, security, devices, backups and troubleshooting, for local homes and home offices.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -878,40 +881,6 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "zap",
-                            "look": "soft",
-                            "design": {
-                              "mb": 12
-                            }
-                          },
-                          {
-                            "type": "heading",
-                            "text": "Emergency tech help",
-                            "size": "s",
-                            "level": "auto"
-                          },
-                          {
-                            "type": "text",
-                            "html": "<p>Hacked accounts, scam pop-ups, computers that won&#39;t start and other urgent problems.</p>",
-                            "size": "s"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "span": 4,
-                    "mobile": {},
-                    "els": [
-                      {
-                        "type": "box",
-                        "look": "card",
-                        "design": {
-                          "gap": 8
-                        },
-                        "els": [
-                          {
-                            "type": "icon",
                             "icon": "wifi",
                             "look": "soft",
                             "design": {
@@ -926,7 +895,7 @@
                           },
                           {
                             "type": "text",
-                            "html": "<p>Routers, mesh Wi-Fi and wired connections, set up so every room gets a reliable signal.</p>",
+                            "html": "<p>Routers and mesh Wi-Fi, set up so every room gets a fast, reliable signal.</p>",
                             "size": "s"
                           }
                         ]
@@ -1029,6 +998,40 @@
                           {
                             "type": "text",
                             "html": "<p>Getting back into hacked email or social media, removing unwanted software and locking accounts down.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "lock",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Account security",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Multi-factor authentication, passkeys and a password manager set up on the accounts that matter most.</p>",
                             "size": "s"
                           }
                         ]
@@ -1184,40 +1187,6 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "headset",
-                            "look": "soft",
-                            "design": {
-                              "mb": 12
-                            }
-                          },
-                          {
-                            "type": "heading",
-                            "text": "Support & troubleshooting",
-                            "size": "s",
-                            "level": "auto"
-                          },
-                          {
-                            "type": "text",
-                            "html": "<p>Help with slow computers, software problems, printers and devices that won&#39;t cooperate.</p>",
-                            "size": "s"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "span": 4,
-                    "mobile": {},
-                    "els": [
-                      {
-                        "type": "box",
-                        "look": "card",
-                        "design": {
-                          "gap": 8
-                        },
-                        "els": [
-                          {
-                            "type": "icon",
                             "icon": "home",
                             "look": "soft",
                             "design": {
@@ -1252,7 +1221,7 @@
                         "els": [
                           {
                             "type": "icon",
-                            "icon": "lock",
+                            "icon": "cpu",
                             "look": "soft",
                             "design": {
                               "mb": 12
@@ -1260,13 +1229,47 @@
                           },
                           {
                             "type": "heading",
-                            "text": "Account security",
+                            "text": "Computer tune-ups",
                             "size": "s",
                             "level": "auto"
                           },
                           {
                             "type": "text",
-                            "html": "<p>Multi-factor authentication, passkeys and a password manager set up on the accounts that matter most.</p>",
+                            "html": "<p>Speeding up slow computers, clearing out unwanted programs and getting updates current.</p>",
+                            "size": "s"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "span": 4,
+                    "mobile": {},
+                    "els": [
+                      {
+                        "type": "box",
+                        "look": "card",
+                        "design": {
+                          "gap": 8
+                        },
+                        "els": [
+                          {
+                            "type": "icon",
+                            "icon": "headset",
+                            "look": "soft",
+                            "design": {
+                              "mb": 12
+                            }
+                          },
+                          {
+                            "type": "heading",
+                            "text": "Support & troubleshooting",
+                            "size": "s",
+                            "level": "auto"
+                          },
+                          {
+                            "type": "text",
+                            "html": "<p>Help with software problems, printers and devices that won&#39;t cooperate.</p>",
                             "size": "s"
                           }
                         ]
@@ -1329,15 +1332,15 @@
                         "items": [
                           {
                             "q": "Who do you work with?",
-                            "a": "Local homes and home offices: households, families and people who work from home. We also help with tech emergencies, like a hacked account or a computer that won't start. We don't offer ongoing IT support or contracts for businesses."
+                            "a": "Homes, home offices and small organizations in the local area."
                           },
                           {
                             "q": "Can you help after a scam or a hacked account?",
-                            "a": "Yes. We'll help you get back into your accounts, check the computer for anything left behind, and lock things down so the same problem doesn't happen again."
+                            "a": "Yes. I'll help you get back into your accounts, check the computer for anything left behind, and lock things down so the same problem doesn't happen again."
                           },
                           {
                             "q": "How do I get started?",
-                            "a": "Reach out through the contact page. We'll schedule a free consultation to understand your needs and recommend next steps."
+                            "a": "Reach out through the contact page. I'll schedule a free consultation to understand your needs and recommend next steps."
                           }
                         ],
                         "type": "w-faq"
@@ -1379,7 +1382,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Tell us about your setup and we&#39;ll point you in the right direction.</p>",
+                        "html": "<p>Tell me about your setup and I&#39;ll point you in the right direction.</p>",
                         "size": "m",
                         "design": {
                           "mt": -8
@@ -1401,7 +1404,7 @@
                         "els": [
                           {
                             "type": "button",
-                            "label": "Contact us",
+                            "label": "Contact me",
                             "href": "/contact/",
                             "style": "light",
                             "size": "lg"
@@ -1497,7 +1500,7 @@
                     "els": [
                       {
                         "type": "heading",
-                        "text": "Who we are",
+                        "text": "Who I am",
                         "size": "label",
                         "level": "p",
                         "design": {
@@ -1512,7 +1515,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Roe Technology Services is run by a CompTIA A+ certified IT professional with over 10 years of hands-on experience. That background goes into helping local households and home offices with Wi-Fi, security, devices and backups, and into fast help when something goes wrong.</p>",
+                        "html": "<p>I&#39;m a CompTIA A+ certified IT professional with over 10 years of hands-on experience, and I run Roe Technology Services. I put that background to work helping local households and home offices with Wi-Fi, security, devices and backups.</p>",
                         "size": "m",
                         "design": {
                           "mt": -2
@@ -1538,7 +1541,7 @@
                       },
                       {
                         "type": "button",
-                        "label": "Work with us",
+                        "label": "Work with me",
                         "href": "/contact/",
                         "style": "primary",
                         "size": "md",
@@ -1632,7 +1635,7 @@
                             "text": "Scam and malware cleanup"
                           },
                           {
-                            "text": "Router, mesh Wi-Fi and wired network setup"
+                            "text": "Router and mesh Wi-Fi setup"
                           },
                           {
                             "text": "Backups and file recovery"
@@ -1817,13 +1820,13 @@
                       },
                       {
                         "type": "heading",
-                        "text": "Free tools and guides we trust",
+                        "text": "Free tools and guides I trust",
                         "size": "hero",
                         "level": "auto"
                       },
                       {
                         "type": "text",
-                        "html": "<p>Practical, official resources to keep your home and home office safe online. Not sure where to start? Ask us.</p>",
+                        "html": "<p>Practical, official resources to keep your home and home office safe online. Not sure where to start? Ask me.</p>",
                         "size": "l",
                         "design": {
                           "mt": 2,
@@ -1883,7 +1886,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>Every link goes to the official source. We keep this list short on purpose.</p>",
+                        "html": "<p>Every link goes to the official source. I keep this list short on purpose.</p>",
                         "size": "l",
                         "design": {
                           "mt": -4,
@@ -2057,7 +2060,7 @@
                       },
                       {
                         "type": "text",
-                        "html": "<p>We’ll walk through your setup with you and point out the quick wins.</p>",
+                        "html": "<p>I’ll walk through your setup with you and point out the quick wins.</p>",
                         "size": "m",
                         "design": {
                           "mt": -8
@@ -2106,7 +2109,7 @@
       "slug": "contact",
       "showInNav": true,
       "seoTitle": "Contact | Roe Technology Services",
-      "seoDescription": "Get in touch with Roe Technology Services for home and home office tech help, or fast help with a tech emergency.",
+      "seoDescription": "Get in touch with Roe Technology Services for home and home office tech help and a free consultation.",
       "sections": [
         {
           "id": "s-ct-form",
@@ -2122,10 +2125,10 @@
                         "showForm": true,
                         "eyebrow": "Contact",
                         "heading": "Let's talk about your technology.",
-                        "text": "Tell us what's going on: a hacked account, slow Wi-Fi, a new device to set up or something that just isn't working. We'll get back to you within one business day.",
+                        "text": "Tell me what's going on: slow Wi-Fi, a new device to set up, a security worry or something that just isn't working. I'll get back to you within one business day.",
                         "hours": "Mon–Fri, 6pm–9pm\nSat–Sun, 10am–5pm",
                         "button": "Send message",
-                        "sentText": "Your contact form has been submitted! We will get back to you as soon as possible!",
+                        "sentText": "Your contact form has been submitted! I will get back to you as soon as possible!",
                         "type": "w-contact"
                       }
                     ]
@@ -2154,7 +2157,7 @@
       "image": "/assets/library/topography.svg",
       "summary": "Fake virus warnings and surprise calls about your computer are some of the most common scams around. How to spot them, and what to do if you already let someone in.",
       "link": "",
-      "body": "It usually starts with a loud pop-up that freezes your screen, or a phone call from someone who says they’re from Microsoft, Apple, your bank or even the government. They say your computer is infected and they can fix it, if you let them connect or pay right away.\n\n## The rules that make these easy to spot\n- **Real tech companies don’t call, email or text you about a problem with your computer.**\n- **A pop-up that tells you to call a phone number is always a scam.** Real security warnings never ask you to call.\n- **Nobody legitimate asks to be paid with gift cards, wire transfers or cryptocurrency.**\n- **Never give a verification code** to someone who contacted you. It’s the key to your account.\n\n## What to do\n- Hang up on unexpected calls about your computer.\n- If a pop-up won’t close, restart the computer. On Windows you can also press Ctrl+Alt+Delete and open Task Manager to close the browser.\n- If you’re worried something really is wrong, update your security software and run a scan, then get help from a company you already know and trust.\n- To check a “subscription renewal” message, contact the company using a number you know is real, not the one in the message.\n\n## If you already let them in\n- [ ] Disconnect the computer from the internet.\n- [ ] Uninstall any remote access program they had you install, and run a full security scan.\n- [ ] Change your passwords from a different, clean device, starting with email and banking.\n- [ ] Call your bank or card company to stop or reverse any payments.\n- [ ] Report it at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/), including the phone number they told you to call.\n\n## Go deeper\n- FTC: [How To Spot, Avoid, and Report Tech Support Scams](https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams)\n\nNot sure if a message is real? Ask us before you call anyone: [contact us](/contact/). We’re happy to take a look."
+      "body": "It usually starts with a loud pop-up that freezes your screen, or a phone call from someone who says they’re from Microsoft, Apple, your bank or even the government. They say your computer is infected and they can fix it, if you let them connect or pay right away.\n\n## The rules that make these easy to spot\n- **Real tech companies don’t call, email or text you about a problem with your computer.**\n- **A pop-up that tells you to call a phone number is always a scam.** Real security warnings never ask you to call.\n- **Nobody legitimate asks to be paid with gift cards, wire transfers or cryptocurrency.**\n- **Never give a verification code** to someone who contacted you. It’s the key to your account.\n\n## What to do\n- Hang up on unexpected calls about your computer.\n- If a pop-up won’t close, restart the computer. On Windows you can also press Ctrl+Alt+Delete and open Task Manager to close the browser.\n- If you’re worried something really is wrong, update your security software and run a scan, then get help from a company you already know and trust.\n- To check a “subscription renewal” message, contact the company using a number you know is real, not the one in the message.\n\n## If you already let them in\n- [ ] Disconnect the computer from the internet.\n- [ ] Uninstall any remote access program they had you install, and run a full security scan.\n- [ ] Change your passwords from a different, clean device, starting with email and banking.\n- [ ] Call your bank or card company to stop or reverse any payments.\n- [ ] Report it at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/), including the phone number they told you to call.\n\n## Go deeper\n- FTC: [How To Spot, Avoid, and Report Tech Support Scams](https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams)\n\nNot sure if a message is real? Ask me before you call anyone: [get in touch](/contact/). I’m happy to take a look."
     },
     {
       "id": "post-passkeys",
@@ -2180,7 +2183,7 @@
       "image": "/assets/library/hex-shield.svg",
       "summary": "Locked out, or friends getting strange messages from you? Here is the order to work in, from getting back in to warning your contacts.",
       "link": "",
-      "body": "Your email is the key to almost everything else: password resets for your bank, shopping and social media all go there. If it’s taken over, act quickly and in this order.\n\n## Signs someone got in\n- You can’t log in, or your password or recovery email changed without you.\n- You get an alert about a sign-in from a device or place you don’t recognize.\n- Friends tell you they got odd messages or requests for money from you.\n\n## 1. Clean your computer first\nUpdate your security software and run a full scan. If it finds anything, remove it and restart. Otherwise whoever got in may simply get in again.\n\n## 2. Get back in\nUse the provider’s own account recovery page (Google, Microsoft, Apple, Facebook and others all have one). Go to it directly, never through a link in an email or text.\n\n## 3. Lock the account down\n- [ ] Change the password to a long, unique one, ideally made by a password manager.\n- [ ] Sign out of all other devices from the security settings.\n- [ ] Turn on [multi-factor authentication](/blog/turn-on-multi-factor-authentication/), or set up a passkey.\n- [ ] Check the recovery email and phone number are yours.\n- [ ] Look for forwarding rules or filters you didn’t create. Attackers use them to keep reading your mail.\n- [ ] Change the password anywhere else you used the same one.\n\n## 4. Tell people\nLet friends, family and your other contacts know, and ask them not to click links or send money because of a message from you.\n\n## 5. If personal information was misused\nReport it at [IdentityTheft.gov](https://www.identitytheft.gov/) for a step-by-step recovery plan, and check whether your address appears in known breaches at [Have I Been Pwned](https://haveibeenpwned.com/).\n\n## Go deeper\n- FTC: [How To Recover Your Hacked Email or Social Media Account](https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account)\n- FTC: [What To Do if You Were Scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)\n\nNeed a hand getting back in or cleaning up a computer? [Contact us](/contact/)."
+      "body": "Your email is the key to almost everything else: password resets for your bank, shopping and social media all go there. If it’s taken over, act quickly and in this order.\n\n## Signs someone got in\n- You can’t log in, or your password or recovery email changed without you.\n- You get an alert about a sign-in from a device or place you don’t recognize.\n- Friends tell you they got odd messages or requests for money from you.\n\n## 1. Clean your computer first\nUpdate your security software and run a full scan. If it finds anything, remove it and restart. Otherwise whoever got in may simply get in again.\n\n## 2. Get back in\nUse the provider’s own account recovery page (Google, Microsoft, Apple, Facebook and others all have one). Go to it directly, never through a link in an email or text.\n\n## 3. Lock the account down\n- [ ] Change the password to a long, unique one, ideally made by a password manager.\n- [ ] Sign out of all other devices from the security settings.\n- [ ] Turn on [multi-factor authentication](/blog/turn-on-multi-factor-authentication/), or set up a passkey.\n- [ ] Check the recovery email and phone number are yours.\n- [ ] Look for forwarding rules or filters you didn’t create. Attackers use them to keep reading your mail.\n- [ ] Change the password anywhere else you used the same one.\n\n## 4. Tell people\nLet friends, family and your other contacts know, and ask them not to click links or send money because of a message from you.\n\n## 5. If personal information was misused\nReport it at [IdentityTheft.gov](https://www.identitytheft.gov/) for a step-by-step recovery plan, and check whether your address appears in known breaches at [Have I Been Pwned](https://haveibeenpwned.com/).\n\n## Go deeper\n- FTC: [How To Recover Your Hacked Email or Social Media Account](https://consumer.ftc.gov/articles/how-recover-your-hacked-email-or-social-media-account)\n- FTC: [What To Do if You Were Scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)\n\nNeed a hand getting back in or cleaning up a computer? [Contact me](/contact/)."
     },
     {
       "id": "post-router",
@@ -2193,7 +2196,7 @@
       "image": "/assets/library/waves.svg",
       "summary": "Your router is the front door to every device in the house. Six settings make it much harder to get in.",
       "link": "",
-      "body": "Most people set up their router once and never look at it again. That’s a problem: an old password or a forgotten setting can let a stranger onto your network, or into the router itself. Grab the sticker on the bottom of your router and work through this list. Tick each item as you go.\n\n## Log in to your router\nType the address printed on the router (often 192.168.0.1 or 192.168.1.1) into a browser, or use the router’s app. If the admin password is still the one on the sticker, that’s the first thing to change.\n\n## The checklist\n- [ ] **Change the admin password.** This is different from your Wi-Fi password: it controls the router’s settings. If someone gets into the admin side, they can change everything else.\n- [ ] **Use WPA3 or WPA2 encryption.** The FTC says routers that only offer WEP or the original WPA are outdated and not secure. If yours is one of them, it’s time for a new router.\n- [ ] **Give the network a new name.** Avoid your name, your address or the router brand.\n- [ ] **Update the firmware.** Check the router’s settings or the maker’s website, and turn on automatic updates if it has them.\n- [ ] **Turn off remote management, WPS and UPnP** unless you know you need them. Each one is a way in that most homes never use.\n- [ ] **Set up a guest network** for visitors and smart devices like cameras, TVs and doorbells, so they stay separate from your computers and phones.\n\n## When to replace the router\nIf it no longer gets updates, can’t do WPA2 or WPA3, or struggles with all your devices, a new router (or a mesh system for larger homes) is money well spent. See our post on [slow Wi-Fi fixes](/blog/slow-wifi-fixes/) too.\n\n## Go deeper\n- FTC: [How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network)\n- FTC: [Securing Your Internet-Connected Devices at Home](https://consumer.ftc.gov/articles/securing-your-internet-connected-devices-home)\n\nWant us to check your setup? [Book a free consultation](/contact/)."
+      "body": "Most people set up their router once and never look at it again. That’s a problem: an old password or a forgotten setting can let a stranger onto your network, or into the router itself. Grab the sticker on the bottom of your router and work through this list. Tick each item as you go.\n\n## Log in to your router\nType the address printed on the router (often 192.168.0.1 or 192.168.1.1) into a browser, or use the router’s app. If the admin password is still the one on the sticker, that’s the first thing to change.\n\n## The checklist\n- [ ] **Change the admin password.** This is different from your Wi-Fi password: it controls the router’s settings. If someone gets into the admin side, they can change everything else.\n- [ ] **Use WPA3 or WPA2 encryption.** The FTC says routers that only offer WEP or the original WPA are outdated and not secure. If yours is one of them, it’s time for a new router.\n- [ ] **Give the network a new name.** Avoid your name, your address or the router brand.\n- [ ] **Update the firmware.** Check the router’s settings or the maker’s website, and turn on automatic updates if it has them.\n- [ ] **Turn off remote management, WPS and UPnP** unless you know you need them. Each one is a way in that most homes never use.\n- [ ] **Set up a guest network** for visitors and smart devices like cameras, TVs and doorbells, so they stay separate from your computers and phones.\n\n## When to replace the router\nIf it no longer gets updates, can’t do WPA2 or WPA3, or struggles with all your devices, a new router (or a mesh system for larger homes) is money well spent. See my post on [slow Wi-Fi fixes](/blog/slow-wifi-fixes/) too.\n\n## Go deeper\n- FTC: [How To Secure Your Home Wi-Fi Network](https://consumer.ftc.gov/articles/how-secure-your-home-wi-fi-network)\n- FTC: [Securing Your Internet-Connected Devices at Home](https://consumer.ftc.gov/articles/securing-your-internet-connected-devices-home)\n\nWant me to check your setup? [Book a free consultation](/contact/)."
     },
     {
       "id": "post-wifi",
@@ -2206,7 +2209,7 @@
       "image": "/assets/library/waves.svg",
       "summary": "Most Wi-Fi problems have simple causes. Try these seven fixes, in this order, before replacing anything.",
       "link": "",
-      "body": "Slow or patchy Wi-Fi is one of the most common problems we see. Before buying new equipment, work through these steps.\n\n## 1. Restart the modem and router\nUnplug both for 30 seconds, plug the modem in first, wait until it is online, then the router. It clears up more problems than you’d think.\n\n## 2. Move the router\nWi-Fi travels best through open air. Put the router up high, near the middle of the space, and away from metal shelves, fish tanks and microwaves.\n\n## 3. Check the speed you’re paying for\nRun a speed test next to the router, connected by cable if you can. If it is far below your plan, the problem is the internet connection, not your Wi-Fi. The [FCC National Broadband Map](https://broadbandmap.fcc.gov/) shows which providers and speeds are available at your address.\n\n## 4. Update the router\nRouter updates fix bugs and security holes. Many routers can update automatically; turn that on.\n\n## 5. Use the right band\nNewer devices do better on 5 GHz (faster, shorter range); 2.4 GHz reaches further but is slower and more crowded.\n\n## 6. Plug in what doesn’t move\nDesktop computers, TVs and printers are faster and more reliable on a network cable, and they free up Wi-Fi for phones and laptops.\n\n## 7. Add coverage the right way\nIf some rooms are still weak, a mesh system or a wired access point usually works much better than a plug-in extender.\n\nStill stuck? [We’ll take a look](/contact/), for homes and home offices alike."
+      "body": "Slow or patchy Wi-Fi is one of the most common problems I see. Before buying new equipment, work through these steps.\n\n## 1. Restart the modem and router\nUnplug both for 30 seconds, plug the modem in first, wait until it is online, then the router. It clears up more problems than you’d think.\n\n## 2. Move the router\nWi-Fi travels best through open air. Put the router up high, near the middle of the space, and away from metal shelves, fish tanks and microwaves.\n\n## 3. Check the speed you’re paying for\nRun a speed test next to the router, connected by cable if you can. If it is far below your plan, the problem is the internet connection, not your Wi-Fi. The [FCC National Broadband Map](https://broadbandmap.fcc.gov/) shows which providers and speeds are available at your address.\n\n## 4. Update the router\nRouter updates fix bugs and security holes. Many routers can update automatically; turn that on.\n\n## 5. Use the right band\nNewer devices do better on 5 GHz (faster, shorter range); 2.4 GHz reaches further but is slower and more crowded.\n\n## 6. Plug in what doesn’t move\nDesktop computers, TVs and printers are faster and more reliable on a network cable, and they free up Wi-Fi for phones and laptops.\n\n## 7. Add coverage the right way\nIf some rooms are still weak, a mesh system usually works much better than a plug-in extender.\n\nStill stuck? [I’ll take a look](/contact/), for homes and home offices alike."
     },
     {
       "id": "post-checklist",
@@ -2232,7 +2235,7 @@
       "image": "/assets/library/server-grid.svg",
       "summary": "One copy of your files is no copy. The 3-2-1 rule is an easy way to make sure a broken laptop or ransomware doesn’t take your work with it.",
       "link": "",
-      "body": "Hard drives fail, laptops get lost and ransomware locks files. A good backup turns any of those into an inconvenience instead of a disaster.\n\n## The rule\n- **3 copies** of your important files: the original plus two backups.\n- **2 different kinds of storage**, for example your computer and an external drive or a cloud service.\n- **1 copy somewhere else**, away from your home, such as a cloud backup.\n\n## Keep one copy offline\nRansomware can encrypt anything it can reach, including a backup drive that is always plugged in. CISA recommends keeping **offline, encrypted backups** of important data and testing them regularly.\n\n## Test your backups\nA backup you’ve never restored from is a guess. A few times a year, try restoring a file or two and make sure it opens.\n\n## A simple setup that works\n1. An automatic cloud backup of your computers or your shared files.\n2. An external drive that you back up to weekly and then unplug.\n3. A reminder on your calendar to test a restore every few months.\n\nWant it set up and checked for you? [We can help](/contact/).\n\nSource: CISA, [#StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)."
+      "body": "Hard drives fail, laptops get lost and ransomware locks files. A good backup turns any of those into an inconvenience instead of a disaster.\n\n## The rule\n- **3 copies** of your important files: the original plus two backups.\n- **2 different kinds of storage**, for example your computer and an external drive or a cloud service.\n- **1 copy somewhere else**, away from your home, such as a cloud backup.\n\n## Keep one copy offline\nRansomware can encrypt anything it can reach, including a backup drive that is always plugged in. CISA recommends keeping **offline, encrypted backups** of important data and testing them regularly.\n\n## Test your backups\nA backup you’ve never restored from is a guess. A few times a year, try restoring a file or two and make sure it opens.\n\n## A simple setup that works\n1. An automatic cloud backup of your computers or your shared files.\n2. An external drive that you back up to weekly and then unplug.\n3. A reminder on your calendar to test a restore every few months.\n\nWant it set up and checked for you? [I can help](/contact/).\n\nSource: CISA, [#StopRansomware Guide](https://www.cisa.gov/stopransomware/ransomware-guide)."
     },
     {
       "id": "post-windows-10",
@@ -2245,7 +2248,7 @@
       "image": "/assets/library/circuit.svg",
       "summary": "Microsoft stopped updating Windows 10 on October 14, 2025. Your computers still work, but they no longer get security fixes. Here are your options.",
       "link": "",
-      "body": "Microsoft ended support for Windows 10 on **October 14, 2025**. If you still have Windows 10 computers at home or in your home office, here’s what that means.\n\n## What changed\n- **No more security updates.** New problems found in Windows 10 are no longer fixed, so the computer becomes easier to attack over time.\n- **No more technical support** from Microsoft.\n- **Your computer still works.** Nothing switches off. The risk grows quietly.\n\nMicrosoft 365 apps keep receiving security updates on Windows 10 for a while longer (until October 10, 2028), but the operating system underneath them doesn’t.\n\n## Your options\n1. **Upgrade to Windows 11** if the computer meets Microsoft’s requirements. It’s a free upgrade for eligible PCs.\n2. **Replace the computer** if it can’t run Windows 11. This is often the right time for older machines anyway.\n3. **Extended Security Updates (ESU).** Microsoft offers a paid program that adds security updates for a limited time. It buys time, but it isn’t a long-term plan.\n\n## How we can help\nWe can check which of your computers can upgrade, move your files and settings safely, and plan replacements so nobody loses a day of work. [Get in touch](/contact/) for a quick review.\n\nSource: Microsoft, [End of support for Windows 10](https://www.microsoft.com/en-us/windows/end-of-support)."
+      "body": "Microsoft ended support for Windows 10 on **October 14, 2025**. If you still have Windows 10 computers at home or in your home office, here’s what that means.\n\n## What changed\n- **No more security updates.** New problems found in Windows 10 are no longer fixed, so the computer becomes easier to attack over time.\n- **No more technical support** from Microsoft.\n- **Your computer still works.** Nothing switches off. The risk grows quietly.\n\nMicrosoft 365 apps keep receiving security updates on Windows 10 for a while longer (until October 10, 2028), but the operating system underneath them doesn’t.\n\n## Your options\n1. **Upgrade to Windows 11** if the computer meets Microsoft’s requirements. It’s a free upgrade for eligible PCs.\n2. **Replace the computer** if it can’t run Windows 11. This is often the right time for older machines anyway.\n3. **Extended Security Updates (ESU).** Microsoft offers a paid program that adds security updates for a limited time. It buys time, but it isn’t a long-term plan.\n\n## How I can help\nI can check which of your computers can upgrade, move your files and settings safely, and plan replacements so nobody loses a day of work. [Get in touch](/contact/) for a quick review.\n\nSource: Microsoft, [End of support for Windows 10](https://www.microsoft.com/en-us/windows/end-of-support)."
     },
     {
       "id": "post-phishing",
@@ -2258,7 +2261,7 @@
       "image": "/assets/library/hex-shield.svg",
       "summary": "Phishing messages try to rush you into clicking. Here are the warning signs, and the exact steps to take if you already did.",
       "link": "",
-      "body": "Phishing emails and texts pretend to be someone you trust, like your bank, a delivery company or even a coworker, to get you to click a link, open an attachment or share a password.\n\n## The warning signs\n- **Urgency or a threat.** “Your account will be closed today.” Scammers want you to act before you think.\n- **A request for personal or payment details.** Real companies don’t ask you to confirm passwords or card numbers by email.\n- **An unexpected attachment or link.** Even when it looks like it comes from someone you know.\n- **Unusual ways to pay.** Anyone who insists on gift cards, wire transfers, a payment app or cryptocurrency is a scammer.\n\n## What to do instead\n1. Don’t click. Go to the company’s website or call a number you already know, not the one in the message.\n2. Turn on multi-factor authentication for your email and banking, so a stolen password alone isn’t enough.\n3. Keep your software and phone updated, and let your email’s spam filter do its job.\n\n## If you already clicked\n1. Change the password for that account, and anywhere else you used the same password.\n2. If you downloaded something, run a security scan, or [ask us](/contact/) to check the computer.\n3. If you shared personal or financial information, visit [IdentityTheft.gov](https://www.identitytheft.gov/) for a recovery plan.\n\n## Report it\n- Forward phishing emails to reportphishing@apwg.org.\n- Forward scam texts to 7726 (SPAM).\n- Report the scam to the FTC at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/).\n\nSource: the FTC’s guide, [How to recognize and avoid phishing scams](https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams)."
+      "body": "Phishing emails and texts pretend to be someone you trust, like your bank, a delivery company or even a coworker, to get you to click a link, open an attachment or share a password.\n\n## The warning signs\n- **Urgency or a threat.** “Your account will be closed today.” Scammers want you to act before you think.\n- **A request for personal or payment details.** Real companies don’t ask you to confirm passwords or card numbers by email.\n- **An unexpected attachment or link.** Even when it looks like it comes from someone you know.\n- **Unusual ways to pay.** Anyone who insists on gift cards, wire transfers, a payment app or cryptocurrency is a scammer.\n\n## What to do instead\n1. Don’t click. Go to the company’s website or call a number you already know, not the one in the message.\n2. Turn on multi-factor authentication for your email and banking, so a stolen password alone isn’t enough.\n3. Keep your software and phone updated, and let your email’s spam filter do its job.\n\n## If you already clicked\n1. Change the password for that account, and anywhere else you used the same password.\n2. If you downloaded something, run a security scan, or [ask me](/contact/) to check the computer.\n3. If you shared personal or financial information, visit [IdentityTheft.gov](https://www.identitytheft.gov/) for a recovery plan.\n\n## Report it\n- Forward phishing emails to reportphishing@apwg.org.\n- Forward scam texts to 7726 (SPAM).\n- Report the scam to the FTC at [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/).\n\nSource: the FTC’s guide, [How to recognize and avoid phishing scams](https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams)."
     },
     {
       "id": "post-network-signs",
@@ -2296,7 +2299,7 @@
       "tags": "Tips",
       "image": "",
       "summary": "",
-      "body": "**Quick tip:** label both ends of every network cable during an install. It costs a few minutes today and saves hours the next time something breaks.",
+      "body": "**Quick tip:** label both ends of the cables behind your desk, TV and router. It takes a few minutes today and saves a lot of guessing the next time something needs unplugging.",
       "link": ""
     },
     {
